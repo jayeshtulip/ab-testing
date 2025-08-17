@@ -1,0 +1,2 @@
+﻿# Ignore temp or cache in data folders
+data/**/*.tmp
