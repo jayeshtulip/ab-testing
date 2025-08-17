@@ -1,0 +1,70 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Data files (DVC will track these)
+data/raw/*.csv
+data/processed/*.csv
+data/features/*.csv
+
+# Model files (MLflow will track these)
+models/*.joblib
+models/*.pkl
+
+# Temporary files
+tmp/
+temp/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# MLflow
+mlruns/
+
+# DVC
+.dvc/tmp/
+
+# Docker
+.docker/
