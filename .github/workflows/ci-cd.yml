@@ -219,8 +219,8 @@ jobs:
         
         # Update API deployment with new image
         kubectl set image deployment/loan-default-api \
-          loan-default-api=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-          -n $NAMESPACE
+           api=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+           -n $NAMESPACE
         
         echo "⏳ Waiting for rollout to complete..."
         kubectl rollout status deployment/loan-default-api -n $NAMESPACE --timeout=600s
