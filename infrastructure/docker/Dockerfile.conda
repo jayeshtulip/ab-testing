@@ -1,0 +1,23 @@
+﻿FROM continuumio/miniconda3:latest
+
+WORKDIR /app
+
+# Install required packages with conda (faster)
+RUN conda install -c conda-forge \
+    fastapi \
+    uvicorn \
+    pandas \
+    numpy \
+    scikit-learn \
+    requests \
+    && conda clean -a
+
+# Install additional packages with pip
+RUN pip install pydantic joblib
+
+# Copy application
+COPY src/ ./src/
+COPY models/ ./models/
+
+EXPOSE 8001
+CMD ["python", "src/api/main.py"]

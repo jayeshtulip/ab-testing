@@ -1,0 +1,37 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: loan-default-api-service
+  namespace: loan-default
+  labels:
+    app: loan-default-api
+    service: api
+spec:
+  type: LoadBalancer
+  selector:
+    app: loan-default-api
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8001
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loan-default-api-internal
+  namespace: loan-default
+  labels:
+    app: loan-default-api
+    service: internal
+spec:
+  type: ClusterIP
+  selector:
+    app: loan-default-api
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8001
+    targetPort: 8001

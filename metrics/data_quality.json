@@ -1,0 +1,219 @@
+{
+  "dataset_info": {
+    "n_samples": 1000,
+    "n_features": 20,
+    "target_distribution": {
+      "1": 700,
+      "2": 300
+    },
+    "missing_values_per_feature": {
+      "Attribute1": 0,
+      "Attribute2": 0,
+      "Attribute3": 0,
+      "Attribute4": 0,
+      "Attribute5": 0,
+      "Attribute6": 0,
+      "Attribute7": 0,
+      "Attribute8": 0,
+      "Attribute9": 0,
+      "Attribute10": 0,
+      "Attribute11": 0,
+      "Attribute12": 0,
+      "Attribute13": 0,
+      "Attribute14": 0,
+      "Attribute15": 0,
+      "Attribute16": 0,
+      "Attribute17": 0,
+      "Attribute18": 0,
+      "Attribute19": 0,
+      "Attribute20": 0
+    },
+    "duplicate_rows": 0,
+    "data_types": {
+      "Attribute1": "object",
+      "Attribute2": "int64",
+      "Attribute3": "object",
+      "Attribute4": "object",
+      "Attribute5": "int64",
+      "Attribute6": "object",
+      "Attribute7": "object",
+      "Attribute8": "int64",
+      "Attribute9": "object",
+      "Attribute10": "object",
+      "Attribute11": "int64",
+      "Attribute12": "object",
+      "Attribute13": "int64",
+      "Attribute14": "object",
+      "Attribute15": "object",
+      "Attribute16": "int64",
+      "Attribute17": "object",
+      "Attribute18": "int64",
+      "Attribute19": "object",
+      "Attribute20": "object"
+    }
+  },
+  "feature_statistics": {
+    "numerical_features_stats": {
+      "Attribute2": {
+        "count": 1000.0,
+        "mean": 20.903,
+        "std": 12.058814452756375,
+        "min": 4.0,
+        "25%": 12.0,
+        "50%": 18.0,
+        "75%": 24.0,
+        "max": 72.0
+      },
+      "Attribute5": {
+        "count": 1000.0,
+        "mean": 3271.258,
+        "std": 2822.7368759604406,
+        "min": 250.0,
+        "25%": 1365.5,
+        "50%": 2319.5,
+        "75%": 3972.25,
+        "max": 18424.0
+      },
+      "Attribute8": {
+        "count": 1000.0,
+        "mean": 2.973,
+        "std": 1.1187146743126786,
+        "min": 1.0,
+        "25%": 2.0,
+        "50%": 3.0,
+        "75%": 4.0,
+        "max": 4.0
+      },
+      "Attribute11": {
+        "count": 1000.0,
+        "mean": 2.845,
+        "std": 1.1037178956568536,
+        "min": 1.0,
+        "25%": 2.0,
+        "50%": 3.0,
+        "75%": 4.0,
+        "max": 4.0
+      },
+      "Attribute13": {
+        "count": 1000.0,
+        "mean": 35.546,
+        "std": 11.375468574317512,
+        "min": 19.0,
+        "25%": 27.0,
+        "50%": 33.0,
+        "75%": 42.0,
+        "max": 75.0
+      },
+      "Attribute16": {
+        "count": 1000.0,
+        "mean": 1.407,
+        "std": 0.5776544682461002,
+        "min": 1.0,
+        "25%": 1.0,
+        "50%": 1.0,
+        "75%": 2.0,
+        "max": 4.0
+      },
+      "Attribute18": {
+        "count": 1000.0,
+        "mean": 1.155,
+        "std": 0.36208577175319395,
+        "min": 1.0,
+        "25%": 1.0,
+        "50%": 1.0,
+        "75%": 1.0,
+        "max": 2.0
+      }
+    },
+    "categorical_features_counts": {
+      "Attribute1": {
+        "A14": 394,
+        "A11": 274,
+        "A12": 269,
+        "A13": 63
+      },
+      "Attribute3": {
+        "A32": 530,
+        "A34": 293,
+        "A33": 88,
+        "A31": 49,
+        "A30": 40
+      },
+      "Attribute4": {
+        "A43": 280,
+        "A40": 234,
+        "A42": 181,
+        "A41": 103,
+        "A49": 97,
+        "A46": 50,
+        "A45": 22,
+        "A44": 12,
+        "A410": 12,
+        "A48": 9
+      },
+      "Attribute6": {
+        "A61": 603,
+        "A65": 183,
+        "A62": 103,
+        "A63": 63,
+        "A64": 48
+      },
+      "Attribute7": {
+        "A73": 339,
+        "A75": 253,
+        "A74": 174,
+        "A72": 172,
+        "A71": 62
+      },
+      "Attribute9": {
+        "A93": 548,
+        "A92": 310,
+        "A94": 92,
+        "A91": 50
+      },
+      "Attribute10": {
+        "A101": 907,
+        "A103": 52,
+        "A102": 41
+      },
+      "Attribute12": {
+        "A123": 332,
+        "A121": 282,
+        "A122": 232,
+        "A124": 154
+      },
+      "Attribute14": {
+        "A143": 814,
+        "A141": 139,
+        "A142": 47
+      },
+      "Attribute15": {
+        "A152": 713,
+        "A151": 179,
+        "A153": 108
+      },
+      "Attribute17": {
+        "A173": 630,
+        "A172": 200,
+        "A174": 148,
+        "A171": 22
+      },
+      "Attribute19": {
+        "A191": 596,
+        "A192": 404
+      },
+      "Attribute20": {
+        "A201": 963,
+        "A202": 37
+      }
+    }
+  },
+  "quality_checks": {
+    "missing_value_percentage": 0.0,
+    "duplicate_percentage": 0.0,
+    "target_class_balance": {
+      "majority_class_ratio": 0.7,
+      "minority_class_ratio": 0.3
+    }
+  }
+}

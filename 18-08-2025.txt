@@ -1,0 +1,1345 @@
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> python src\models\train.py
+C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\venv\lib\site-packages\pydantic\_internal\_fields.py:149: UserWarning: Field "model_server_url" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\venv\lib\site-packages\pydantic\_internal\_config.py:321: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+✅ Directories created successfully
+2025-08-18 06:25:29,476 - __main__ - INFO - Starting full training pipeline...
+2025-08-18 06:25:29,477 - __main__ - INFO - Loading processed data...
+2025-08-18 06:25:29,485 - __main__ - INFO - Loaded data shapes: Train (600, 20), Val (200, 20), Test (200, 20)
+2025-08-18 06:25:29,486 - __main__ - INFO - Loading preprocessor...
+2025-08-18 06:25:29,498 - __main__ - INFO - Preprocessor loaded successfully
+2025-08-18 06:25:29,498 - __main__ - INFO - Fitting preprocessor on training data...
+2025-08-18 06:25:29,509 - __main__ - INFO - Fitted preprocessor saved to C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\models\preprocessor.joblib
+2025-08-18 06:25:29,516 - __main__ - INFO - Training model...
+2025-08-18 06:25:29,516 - __main__ - INFO - Creating model...
+2025-08-18 06:25:29,516 - __main__ - INFO - Created RandomForestClassifier
+2025-08-18 06:25:29,724 - __main__ - INFO - Training completed. Validation metrics:
+2025-08-18 06:25:29,724 - __main__ - INFO -   accuracy: 0.7150
+2025-08-18 06:25:29,724 - __main__ - INFO -   precision: 0.6864
+2025-08-18 06:25:29,724 - __main__ - INFO -   recall: 0.7150
+2025-08-18 06:25:29,724 - __main__ - INFO -   f1_score: 0.6830
+2025-08-18 06:25:29,724 - __main__ - INFO -   roc_auc: 0.7525
+2025-08-18 06:25:29,724 - __main__ - INFO - Saving model artifacts...
+2025-08-18 06:25:29,753 - __main__ - INFO - Model artifacts saved to C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\models
+2025-08-18 06:25:29,753 - __main__ - INFO - Logging to MLflow...
+Successfully registered model 'loan_default_classifier'.
+2025/08/18 06:25:39 INFO mlflow.store.model_registry.abstract_store: Waiting up to 300 seconds for model version to finish creation. Model name: loan_default_classifier, version 1
+Created version '1' of model 'loan_default_classifier'.
+2025-08-18 06:25:39,394 - __main__ - INFO - MLflow run completed: ae8317e97ca24f7dacd366c8af43aa05
+2025-08-18 06:25:39,394 - __main__ - INFO - MLflow UI: http://localhost:5000/#/experiments
+2025-08-18 06:25:39,395 - __main__ - INFO - Training pipeline completed successfully!
+
+==================================================
+🎉 TRAINING RESULTS
+==================================================
+📊 ACCURACY: 0.7150
+📊 PRECISION: 0.6864
+📊 RECALL: 0.7150
+📊 F1_SCORE: 0.6830
+📊 ROC_AUC: 0.7525
+🔗 MLflow Run ID: ae8317e97ca24f7dacd366c8af43aa05
+🌐 MLflow UI: http://localhost:5000
+==================================================
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws configure
+AWS Access Key ID [****************CFPW]: 
+AWS Secret Access Key [****************Ps1I]: 
+Default region name [ap-south-1]: 
+Default output format [None]: 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Create the bucket
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3 mb s3://loan-default-mlops-dvc-storage --region us-east-1
+make_bucket: loan-default-mlops-dvc-storage
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Enable versioning (recommended for DVC)
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3api put-bucket-versioning \
+
+usage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]
+To see help text, you can run:
+
+  aws help
+  aws <command> help
+  aws <command> <subcommand> help
+
+aws.exe: error: the following arguments are required: --bucket, --versioning-configuration
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops>     --bucket loan-default-mlops-dvc-storage \
+At line:1 char:7
++     --bucket loan-default-mlops-dvc-storage \
++       ~
+Missing expression after unary operator '--'.
+At line:1 char:7
++     --bucket loan-default-mlops-dvc-storage \
++       ~~~~~~
+Unexpected token 'bucket' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterOperator
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops>     --versioning-configuration Status=Enabled
+At line:1 char:7
++     --versioning-configuration Status=Enabled
++       ~
+Missing expression after unary operator '--'.
+At line:1 char:7
++     --versioning-configuration Status=Enabled
++       ~~~~~~~~~~~~~~~~~~~~~~~~
+Unexpected token 'versioning-configuration' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterOperator
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Verify bucket creation
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Create the bucket                            
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3 mb s3://loan-default-mlops-dvc-storage-$(Get-Random) --region us-east-1
+make_bucket: loan-default-mlops-dvc-storage-1239461291
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Enable versioning
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3api put-bucket-versioning --bucket loan-default-mlops-dvc-storage-12345 --versioning-configuration Status=Enabled
+
+An error occurred (NoSuchBucket) when calling the PutBucketVersioning operation: The specified bucket does not exist
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Verify creation
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3 ls | Select-String "loan-default"
+
+2025-08-18 06:33:00 loan-default-mlops-dvc-storage
+2025-08-18 06:34:05 loan-default-mlops-dvc-storage-1239461291
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc init
+ERROR: failed to initiate DVC - '.dvc' exists. Use `-f` to force.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Add S3 remote with your actual bucket name
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote add -d myremote s3://loan-default-mlops-dvc-storage/dvc-storage
+Setting 'myremote' as a default remote.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Set the region
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote modify myremote region us-east-1
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Optional: Configure additional S3 settings
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote modify myremote use_ssl true
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote modify myremote ssl_verify true^C
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> ^C
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dic init -f
+dic : The term 'dic' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, 
+or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ dic init -f
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (dic:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc init -f
+Initialized DVC repository.
+
+You can now commit the changes to git.
+
++---------------------------------------------------------------------+
+|                                                                     |
+|        DVC has enabled anonymous aggregate usage analytics.         |
+|     Read the analytics documentation (and how to opt-out) here:     |
+|             <https://dvc.org/doc/user-guide/analytics>              |
+|                                                                     |
++---------------------------------------------------------------------+
+
+What's next?
+------------
+- Check out the documentation: <https://dvc.org/doc>
+- Get help and share ideas: <https://dvc.org/chat>
+- Star us on GitHub: <https://github.com/iterative/dvc>
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Add S3 remote with your actual bucket name
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote add -d myremote s3://loan-default-mlops-dvc-storage/dvc-storage
+Setting 'myremote' as a default remote.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Set the region
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote modify myremote region us-east-1
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Optional: Configure additional S3 settings
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote modify myremote use_ssl true
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote modify myremote ssl_verify true
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # If you've already configured AWS CLI, DVC will use those credentials
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws configure list
+      Name                    Value             Type    Location
+      ----                    -----             ----    --------
+   profile                <not set>             None    None
+access_key     ****************CFPW shared-credentials-file
+secret_key     ****************Ps1I shared-credentials-file
+    region               ap-south-1      config-file    ~/.aws/config
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Add some data to test
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc add data/raw/X.csv data/raw/y.csv
+100% Adding...|██████████████████████████████████████████████████████████████████████████████████████████████████████|2/2 [00:00, 10.65file/s] 
+
+To track the changes with git, run:
+
+        git add 'data\raw\y.csv.dvc' 'data\raw\X.csv.dvc'
+
+To enable auto staging, run:
+
+        dvc config core.autostage true
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Push to S3 (this will test your connection)
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc push
+Collecting                                                                                                          |2.00 [00:00,  866entry/s]
+Pushing
+2 files pushed
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops>                                                  
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Verify files are in S3
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3 ls s3://loan-default-mlops-dvc-storage/dvc-storage/ --recursive
+2025-08-18 06:35:58       3007 dvc-storage/files/md5/e0/32cb8f2af0c97f32f1bf2db30dd7be
+2025-08-18 06:35:58      79025 dvc-storage/files/md5/ff/8c6a3cc47877a80bdacf2ac9791eea
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Check if .dvc folder exists
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> ls -la | Select-String ".dvc"
+Get-ChildItem : A parameter cannot be found that matches parameter name 'la'.
+At line:1 char:4
++ ls -la | Select-String ".dvc"
++    ~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-ChildItem], ParameterBindingException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # or
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dir .dvc
+
+
+    Directory: C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\.dvc
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        18-08-2025     06:35                cache
+d-----        18-08-2025     06:35                tmp
+-a----        18-08-2025     06:35             29 .gitignore
+-a----        18-08-2025     06:35            180 config
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # View the current config file contents
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Get-Content .dvc\config
+[core]
+    remote = myremote
+['remote "myremote"']
+    url = s3://loan-default-mlops-dvc-storage/dvc-storage
+    region = us-east-1
+    use_ssl = true
+    ssl_verify = true
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 1. Verify DVC recognizes your remote
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc remote list -v
+2025-08-18 06:39:06,185 DEBUG: v3.46.0 (pip), CPython 3.10.0 on Windows-10-10.0.26100-SP0
+2025-08-18 06:39:06,185 DEBUG: command: C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\venv\Scripts\dvc remote list -v
+myremote        s3://loan-default-mlops-dvc-storage/dvc-storage
+2025-08-18 06:39:06,379 DEBUG: Analytics is enabled.
+2025-08-18 06:39:06,431 DEBUG: Trying to spawn ['daemon', 'analytics', 'C:\\Users\\jayes\\AppData\\Local\\Temp\\tmpz51odjja', '-v']
+2025-08-18 06:39:06,435 DEBUG: Spawned ['daemon', 'analytics', 'C:\\Users\\jayes\\AppData\\Local\\Temp\\tmpz51odjja', '-v'] with pid 29412
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 2. Check if you can access the S3 bucket
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws s3 ls s3://loan-default-mlops-dvc-storage/
+                           PRE dvc-storage/
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 3. Test DVC connection to S3 (dry run)
+
+
+
+
+
+
+
+
+
+
+
+100% Adding...|██████████████████████████████████████████████████████████████████████████████████████████████████████|2/2 [00:00, 14.24file/s] 
+
+To track the changes with git, run:
+
+        git add 'data\raw\X.csv.dvc' 'data\raw\y.csv.dvc'
+
+To enable auto staging, run:
+
+        dvc config core.autostage true
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> dvc push
+Collecting                                                                                                          |2.00 [00:00,  285entry/s]
+Pushing
+Everything is up to date.                                                                                                                      
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+
+
+
+
+
+
+Mlflow, then training once again
+
+
+
+
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Invoke-WebRequest -Uri "http://localhost:5000/health" -Method GET
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : OK
+RawContent        : HTTP/1.1 200 OK
+                    Content-Length: 2
+                    Content-Type: text/html; charset=utf-8
+                    Date: Mon, 18 Aug 2025 01:15:26 GMT
+                    Server: mlflow
+
+                    OK
+Forms             : {}
+Headers           : {[Content-Length, 2], [Content-Type, text/html; charset=utf-8], [Date, Mon, 18 Aug 2025 01:15:26 GMT], [Server, mlflow]}   
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 2
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Complete MLflow + S3 Setup Script
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 1. Start MLflow server (in background)
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Starting MLflow server..." -ForegroundColor Green
+ Starting MLflow server...
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Start-Job -ScriptBlock { mlflow server --host 0.0.0.0 --port 5000 }
+
+Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
+--     ----            -------------   -----         -----------     --------             -------
+1      Job1            BackgroundJob   Running       True            localhost             mlflow server --host ...
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Wait a moment for server to start
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Start-Sleep -Seconds 5
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 2. Configure S3 environment variables
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "🔧 Configuring S3 environment..." -ForegroundColor Yellow
+🔧 Configuring S3 environment...
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $env:MLFLOW_S3_ENDPOINT_URL = "https://s3.amazonaws.com"
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $env:AWS_DEFAULT_REGION = "us-east-1"
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get AWS credentials from AWS CLI config
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $accessKey = aws configure get aws_access_key_id
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $secretKey = aws configure get aws_secret_access_key
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> if ($accessKey -and $secretKey) {
+>>     $env:AWS_ACCESS_KEY_ID = $accessKey
+>>     $env:AWS_SECRET_ACCESS_KEY = $secretKey
+>>     Write-Host "✅✅ AWS credentials loaded from AWS CLI" -ForegroundColor Green                                                              >> } else {                                                                                                                                    >>     Write-Host "⚠️  Please set your AWS credentials manually:" -ForegroundColor Red                                                         >>     Write-Host '$env:AWS_ACCESS_KEY_ID = "your_key"'                                                                                        >     Write-Host '$env:AWS_SECRET_ACCESS_KEY = "your_secret"'
+>> }
+✅ AWS credentials loaded from AWS CLI
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 3. Set MLflow artifact root to S3
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $env:MLFLOW_DEFAULT_ARTIFACT_ROOT = "s3://loan-default-mlops-dvc-storage/mlflow-artifacts"
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 4. Test connection
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Testing MLflow connection..." -ForegroundColor Blue
+ Testing MLflow connection...
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Start-Sleep -Seconds 3
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> try {
+>>     $response = Invoke-WebRequest -Uri "http://localhost:5000/health" -Method GET -TimeoutSec 10
+>>     if ($response.StatusCode -eq 200) {
+>>         Write-Host " MLflow server is running successfully!" -ForegroundColor Green
+>>         Write-Host " MLflow UI: http://localhost:5000" -ForegroundColor Cyan
+>>
+>>         # Open browser
+>>         Start-Process "http://localhost:5000"
+>>     }
+>> } catch {
+>>     Write-Host "❌ MLflow server not responding. Please check if it started correctly." -ForegroundColor Red
+>> }
+ MLflow server is running successfully!
+ MLflow UI: http://localhost:5000
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # 5. Display current configuration
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "`n📋 Current MLflow Configuration:" -ForegroundColor Magenta
+
+📋 Current MLflow Configuration:
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "S3 Endpoint: $env:MLFLOW_S3_ENDPOINT_URL"
+S3 Endpoint: https://s3.amazonaws.com
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "AWS Region: $env:AWS_DEFAULT_REGION"
+AWS Region: us-east-1
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "Artifact Root: $env:MLFLOW_DEFAULT_ARTIFACT_ROOT"
+Artifact Root: s3://loan-default-mlops-dvc-storage/mlflow-artifacts
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "Access Key: $($env:AWS_ACCESS_KEY_ID.Substring(0,8))..." -ForegroundColor DarkGray
+Access Key: AKIAVJ7H...
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Navigate to your project directory (if not already there)
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> cd C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Run the training script
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> python src\models\train.py
+C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\venv\lib\site-packages\pydantic\_internal\_fields.py:149: UserWarning: Field "model_server_url" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\venv\lib\site-packages\pydantic\_internal\_config.py:321: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+✅ Directories created successfully
+2025-08-18 06:48:21,058 - __main__ - INFO - Starting full training pipeline...
+2025-08-18 06:48:21,062 - __main__ - INFO - Loading processed data...
+2025-08-18 06:48:21,072 - __main__ - INFO - Loaded data shapes: Train (600, 20), Val (200, 20), Test (200, 20)
+2025-08-18 06:48:21,073 - __main__ - INFO - Loading preprocessor...
+2025-08-18 06:48:21,104 - __main__ - INFO - Preprocessor loaded successfully
+2025-08-18 06:48:21,107 - __main__ - INFO - Preprocessor is already fitted
+2025-08-18 06:48:21,115 - __main__ - INFO - Training model...
+2025-08-18 06:48:21,115 - __main__ - INFO - Creating model...
+2025-08-18 06:48:21,115 - __main__ - INFO - Created RandomForestClassifier
+2025-08-18 06:48:21,288 - __main__ - INFO - Training completed. Validation metrics:
+2025-08-18 06:48:21,288 - __main__ - INFO -   accuracy: 0.7150
+2025-08-18 06:48:21,288 - __main__ - INFO -   precision: 0.6864
+2025-08-18 06:48:21,288 - __main__ - INFO -   recall: 0.7150
+2025-08-18 06:48:21,288 - __main__ - INFO -   f1_score: 0.6830
+2025-08-18 06:48:21,288 - __main__ - INFO -   roc_auc: 0.7525
+2025-08-18 06:48:21,288 - __main__ - INFO - Saving model artifacts...
+2025-08-18 06:48:21,319 - __main__ - INFO - Model artifacts saved to C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\models
+2025-08-18 06:48:21,319 - __main__ - INFO - Logging to MLflow...
+Registered model 'loan_default_classifier' already exists. Creating a new version of this model...
+2025/08/18 06:48:24 INFO mlflow.store.model_registry.abstract_store: Waiting up to 300 seconds for model version to finish creation. Model name: loan_default_classifier, version 2
+Created version '2' of model 'loan_default_classifier'.
+2025-08-18 06:48:24,734 - __main__ - INFO - MLflow run completed: 37287a5efca6443a8e31e86e16322670
+2025-08-18 06:48:24,734 - __main__ - INFO - MLflow UI: http://localhost:5000/#/experiments
+2025-08-18 06:48:24,734 - __main__ - INFO - Training pipeline completed successfully!
+
+==================================================
+🎉 TRAINING RESULTS
+==================================================
+📊 ACCURACY: 0.7150
+📊 PRECISION: 0.6864
+📊 RECALL: 0.7150
+📊 F1_SCORE: 0.6830
+📊 ROC_AUC: 0.7525
+🔗 MLflow Run ID: 37287a5efca6443a8e31e86e16322670
+🌐 MLflow UI: http://localhost:5000
+==================================================
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+Fast api started
+
+
+
+
+
+C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\venv\lib\site-packages\pydantic\_internal\_fields.py:149: UserWarning: Field "model_loaded" has conflict with protected namespace "model_".
+
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+ Model loaded successfully
+ Starting API on http://localhost:8000
+ Docs: http://localhost:8000/docs
+INFO:     Started server process [2120]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+ # Test health check   
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Test health check
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Invoke-WebRequest -Uri "http://localhost:8001/health" -Method GET
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"status":"healthy","timestamp":1755481155.972813,"model_loaded":true,"preprocessor_loaded":true}
+RawContent        : HTTP/1.1 200 OK
+                    Content-Length: 97
+                    Content-Type: application/json
+                    Date: Mon, 18 Aug 2025 01:39:15 GMT
+                    Server: uvicorn
+                                                                                                                                                                   {"status":"healthy","timestamp":1755481155.972813,"model_loaded":true,"prep...                                             Forms             : {}                                                                                                                         Headers           : {[Content-Length, 97], [Content-Type, application/json], [Date, Mon, 18 Aug 2025 01:39:15 GMT], [Server, uvicorn]}         
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 97
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Test with minimal features (should work now)
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $body = '{"features": {"Attribute1": "A11", "Attribute2": "24", "Attribute3": "A32", "Attribute5": "3500"}}'
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Invoke-WebRequest -Uri "http://localhost:8001/predict" -Method POST -Body $body -ContentType "application/json"
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"prediction":"bad","probability":0.7967419048355444,"model_version":"1.0.0","timestamp":1755481156.1761525}
+RawContent        : HTTP/1.1 200 OK
+                    Content-Length: 108
+                    Content-Type: application/json
+                    Date: Mon, 18 Aug 2025 01:39:15 GMT                                                                                                            Server: uvicorn                                                                                                                                                                                                                                                                               {"prediction":"bad","probability":0.7967419048355444,"model_version":"1.0....                                              
+Forms             : {}
+Headers           : {[Content-Length, 108], [Content-Type, application/json], [Date, Mon, 18 Aug 2025 01:39:15 GMT], [Server, uvicorn]}        
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 108
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get sample request format
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Invoke-WebRequest -Uri "http://localhost:8001/debug/sample-request" -Method GET
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"sample_minimal":{"features":{"Attribute1":"A11","Attribute2":24,"Attribute3":"A32","Attribute5":3500}},"sample_full":{"f
+                    eatures":{"Attribute1":"A11","Attribute2":24,"Attribute3":"A32","Attribute4":"...
+RawContent        : HTTP/1.1 200 OK
+                    Content-Length: 509
+                    Content-Type: application/json
+                    Date: Mon, 18 Aug 2025 01:39:15 GMT
+                    Server: uvicorn
+
+                    {"sample_minimal":{"features":{"Attribute1":"A11","Attribute2":24,"Attribu...
+Forms             : {}
+Headers           : {[Content-Length, 509], [Content-Type, application/json], [Date, Mon, 18 Aug 2025 01:39:15 GMT], [Server, uvicorn]}        
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 509
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Open API docs
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Start-Process "http://localhost:8001/docs"
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+Streamlite complted
+
+
+Pytest
+*********
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> python comprehensive_test.py
+ Testing API Health...
+ Health Status: 200
+ API Status: healthy
+ Model Loaded: True
+
+ Testing Prediction Endpoint...
+
+ Test Case 1 - Low Risk Profile
+ Status: 200
+ Prediction: BAD
+📊 Confidence: 63.0%
+ Response Time: 2.10s
+
+ Test Case 2 - High Risk Profile
+ Status: 200
+ Prediction: GOOD
+📊 Confidence: 55.0%
+ Response Time: 2.15s
+
+ Testing API Performance...
+ Average Response Time: 2.15s
+ Max Response Time: 2.16s
+ Warning: Average response time > 2 seconds
+
+==================================================
+ ALL TESTS PASSED!
+ API Health Check: PASSED
+ Prediction Endpoint: PASSED
+ Response Structure: PASSED
+ Data Validation: PASSED
+ Performance: PASSED
+==================================================
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+Docker file got created, images also
+
+ECR
+****
+
+
+
+venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Create ECR repository in your region
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws ecr create-repository --repository-name loan-default-api --region ap-south-1
+
+An error occurred (RepositoryAlreadyExistsException) when calling the CreateRepository operation: The repository with name 'loan-default-api' already exists in the registry with id '365021531163'
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get your AWS account ID
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $ACCOUNT_ID = aws sts get-caller-identity --query
+ Account --output text
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Account ID: $ACCOUNT_ID" -ForegroundColor Yellow
+ Account ID: 365021531163
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Create ECR repository in your region
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws ecr create-repository --repository-name loan-default-api --region ap-south-1
+
+An error occurred (RepositoryAlreadyExistsException) when calling the CreateRepository operation: The repository with name 'loan-default-api' already exists in the registry with id '365021531163'
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get your AWS account ID
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $ACCOUNT_ID = aws sts get-caller-identity --query
+ Account --output text
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Account ID: $ACCOUNT_ID" -ForegroundColor Yellow
+ Account ID: 365021531163
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Create ECR repository in your region
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws ecr create-repository --repository-name loan-default-api --region ap-south-1
+{
+    "repository": {
+        "repositoryArn": "arn:aws:ecr:ap-south-1:365021531163:repository/loan-default-api",
+        "registryId": "365021531163",
+        "repositoryName": "loan-default-api",
+        "repositoryUri": "365021531163.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api",
+        "createdAt": "2025-08-18T10:19:33.746000+05:30",
+        "imageTagMutability": "MUTABLE",
+        "imageScanningConfiguration": {
+            "scanOnPush": false
+        },
+        "encryptionConfiguration": {
+            "encryptionType": "AES256"
+        }
+    }
+}
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get your AWS account ID
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $ACCOUNT_ID = aws sts get-caller-identity --query
+ Account --output text
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "📋 Account ID: $ACCOUNT_ID" -ForegroundColor Yellow
+📋 Account ID: 365021531163
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get ECR login token and login to Docker
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+unknown shorthand flag: 's' in -south-1
+
+Usage:  docker login [OPTIONS] [SERVER]
+
+Run 'docker login --help' for more information
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Logged into ECR successfully" -ForegroundColor Green
+ Logged into ECR successfully
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Tag your local image for ECR
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $ECR_URI = "$ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api:latest"
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> docker tag loan-default-api:latest $ECR_URI
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "🏷️ Tagged image: $ECR_URI" -ForegrounndColor Blue
+🏷️ Tagged image: 365021531163.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api:latest
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Push to ECR
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Pushing to ECR..." -ForegroundColor Yellow
+ Pushing to ECR...
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> docker push $ECR_URI
+The push refers to repository [365021531163.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api]
+2e52c180d636: Waiting
+8905535afc15: Waiting
+00aa2453f380: Waiting
+c1f99c1feb63: Waiting
+3fa1124e7cf3: Waiting
+26116e6ec2a5: Waiting
+12b8240e46e9: Waiting
+b605a93244ee: Waiting
+59e22667830b: Waiting
+e479862beda4: Waiting
+585d4a422add: Waiting
+c4c43227f4a2: Waiting
+unknown: unexpected status from HEAD request to https://365021531163.dkr.ecr.ap-south-1.amazonaws.com/v2/loan-default-api/blobs/sha256:2e52c180d63625e9f5e406510ed734293609bad8068f68353a16cc6e96756694: 403 Forbidden
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "✅ Image pushed to ECR successfully!" -ForegroundColor Green
+✅ Image pushed to ECR successfully!
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+Cheking the Loadbalancer
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> $LB_URL = kubectl get service loan-default-api-service -n loan-default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Testing Load Balancer: http://$LB_URL" -ForegroundColor Green
+ Testing Load Balancer: http://a015d0a5e673c47e9b4ff468a0af8419-1590493237.ap-south-1.elb.amazonaws.com
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops>                                                  (venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Test health endpoint                           (venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> try {                                            >>     $response = Invoke-WebRequest -Uri "http://$LB_URL/health" -Method GET -TimeoutSec 30                                                   >>     Write-Host "✅✅ Health check successful: $($response.StatusCode)" -ForegroundColor Green                                                 
+>>     # Test prediction
+>>     $body = '{"features": {"Attribute1": "A11", "Attribute2": "24"}}'
+>>     $predResponse = Invoke-WebRequest -Uri "http://$LB_URL/predict" -Method POST -Body $body -ContentType "application/json"
+>>     Write-Host "✅ Prediction successful: $($predResponse.StatusCode)" -ForegroundColor Green
+>>
+>>     # Show response
+>>     $predResponse.Content | ConvertFrom-Json
+>>
+>> } catch {
+>>     Write-Host "⚠️ Testing load balancer..." -ForegroundColor Yellow
+>>     Write-Host "URL: http://$LB_URL/health" -ForegroundColor Cyan
+>> }
+✅ Health check successful: 200
+✅ Prediction successful: 200
+
+prediction        probability model_version          timestamp
+----------        ----------- -------------          ---------
+good       0.8596258682681579 k8s-demo      1755493348.6933894
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get all -n loan-default
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/loan-default-api-65f44b4db9-g4t7q   1/1     Running   0          2m41s
+pod/loan-default-api-65f44b4db9-zxlz2   1/1     Running   0          2m41s
+
+NAME                                TYPE           CLUSTER-IP      EXTERNAL-IP                                                                PORT(S)        AGE
+service/loan-default-api-internal   ClusterIP      10.100.32.162   <none>                                                                     8001/TCP       18m
+service/loan-default-api-service    LoadBalancer   10.100.107.9    a015d0a5e673c47e9b4ff468a0af8419-1590493237.ap-south-1.elb.amazonaws.com   80:32400/TCP   18m
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/loan-default-api   2/2     2            2           2m41s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/loan-default-api-65f44b4db9   2         2         2       2m41s
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl logs -l app=loan-default-api -n loan-default --tail=20
+INFO:     Started server process [24]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     192.168.22.12:39186 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:35522 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:43130 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:43128 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:52204 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:47140 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:44824 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:44822 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:58786 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:40376 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:34240 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:34234 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:60318 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:48090 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:40480 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.22.12:40478 - "GET /health HTTP/1.1" 200 OK
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     192.168.50.174:44948 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:40818 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:60340 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:60338 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:46692 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.3.212:8105 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.3.212:8105 - "POST /predict HTTP/1.1" 200 OK
+INFO:     192.168.50.174:60302 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:33174 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:33178 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:43412 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:43006 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:43866 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:43868 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:36116 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:33530 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:43576 - "GET /health HTTP/1.1" 200 OK
+INFO:     192.168.50.174:43574 - "GET /health HTTP/1.1" 200 OK
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl describe service loan-default-api-service
+ -n loan-default
+Name:                     loan-default-api-service
+Namespace:                loan-default
+Labels:                   app=loan-default-api
+                          service=api
+Annotations:              <none>
+Selector:                 app=loan-default-api
+Type:                     LoadBalancer
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.100.107.9
+IPs:                      10.100.107.9
+LoadBalancer Ingress:     a015d0a5e673c47e9b4ff468a0af8419-1590493237.ap-south-1.elb.amazonaws.com
+Port:                     http  80/TCP
+TargetPort:               8001/TCP
+NodePort:                 http  32400/TCP
+Endpoints:                192.168.24.78:8001,192.168.53.61:8001
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Internal Traffic Policy:  Cluster
+Events:
+  Type    Reason                Age   From                Message
+  ----    ------                ----  ----                -------
+  Normal  EnsuringLoadBalancer  19m   service-controller  Ensuring load balancer
+  Normal  EnsuredLoadBalancer   19m   service-controller  Ensured load balancer
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+now putting streamlite in k8s cluster
+*****************************************
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get pods -n loan-default
+NAME                                     READY   STATUS              RESTARTS   AGE
+loan-default-api-65f44b4db9-g4t7q        1/1     Running             0          12m
+loan-default-api-65f44b4db9-zxlz2        1/1     Running             0          12m
+loan-default-frontend-7bd64866b6-2klgj   0/1     ContainerCreating   0          4s
+loan-default-frontend-7bd64866b6-s9dcz   0/1     ContainerCreating   0          4s
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Wait for deployment to complete
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host " Waiting for frontend deployment..." -ForegroundColor Yellow
+ Waiting for frontend deployment...
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl rollout status deployment/loan-default-frontend -n loan-default --timeout=300s
+Waiting for deployment "loan-default-frontend" rollout to finish: 0 of 2 updated replicas are available...
+
+
+
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl describe pods -n loan-default        
+Name:             loan-default-api-65f44b4db9-g4t7q
+Namespace:        loan-default
+Priority:         0
+Service Account:  default
+Node:             ip-192-168-22-12.ap-south-1.compute.internal/192.168.22.12
+Start Time:       Mon, 18 Aug 2025 10:30:46 +0530
+Labels:           app=loan-default-api
+                  pod-template-hash=65f44b4db9
+Annotations:      <none>
+Status:           Running
+IP:               192.168.24.78
+IPs:
+  IP:           192.168.24.78
+Controlled By:  ReplicaSet/loan-default-api-65f44b4db9
+Containers:
+  api:
+    Container ID:  containerd://016cd6f9342a388994605bb737e3928222eea14097eb8a5447f6913b760bad9b
+    Image:         python:3.10-slim
+    Image ID:      docker.io/library/python@sha256:420fbb0e468d3eaf0f7e93ea6f7a48792cbcadc39d43ac95b96bee2afe4367da
+    Port:          8001/TCP
+    Host Port:     0/TCP
+    Command:
+      /bin/sh
+      -c
+      pip install fastapi uvicorn pydantic pandas numpy &&
+      python /app/main.py
+
+    State:          Running
+      Started:      Mon, 18 Aug 2025 10:30:54 +0530
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     300m
+      memory:  512Mi
+    Requests:
+      cpu:        100m
+      memory:     256Mi
+    Liveness:     http-get http://:8001/health delay=60s timeout=1s period=30s #success=1 #failure=3
+    Readiness:    http-get http://:8001/health delay=30s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /app from api-code (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-k5vxv (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  api-code:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      api-code
+    Optional:  false
+  kube-api-access-k5vxv:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  14m                default-scheduler  Successfully assigned loan-default/loan-default-api-65f44b4db9-g4t7q to ip-192-168-22-12.ap-south-1.compute.internal
+  Normal   Pulling    14m                kubelet            Pulling image "python:3.10-slim"
+  Normal   Pulled     14m                kubelet            Successfully pulled image "python:3.10-slim" in 7.669s (7.669s including waiting)  
+  Normal   Created    14m                kubelet            Created container: api
+  Normal   Started    14m                kubelet            Started container api
+  Warning  Unhealthy  13m (x3 over 14m)  kubelet            Readiness probe failed: Get "http://192.168.24.78:8001/health": dial tcp 192.168.24.78:8001: connect: connection refused
+
+
+Name:             loan-default-api-65f44b4db9-zxlz2
+Namespace:        loan-default
+Priority:         0
+Service Account:  default
+Node:             ip-192-168-50-174.ap-south-1.compute.internal/192.168.50.174
+Start Time:       Mon, 18 Aug 2025 10:30:46 +0530
+Labels:           app=loan-default-api
+                  pod-template-hash=65f44b4db9
+Annotations:      <none>
+Status:           Running
+IP:               192.168.53.61
+IPs:
+  IP:           192.168.53.61
+Controlled By:  ReplicaSet/loan-default-api-65f44b4db9
+Containers:
+  api:
+    Container ID:  containerd://8e0f26c41a34ef8bd5929c3bd59b1d7d8399f967e425eeacf0e9a6bc3a90e677
+    Image:         python:3.10-slim
+    Image ID:      docker.io/library/python@sha256:420fbb0e468d3eaf0f7e93ea6f7a48792cbcadc39d43ac95b96bee2afe4367da
+    Port:          8001/TCP
+    Host Port:     0/TCP
+    Command:
+      /bin/sh
+      -c
+      pip install fastapi uvicorn pydantic pandas numpy &&
+      python /app/main.py
+
+    State:          Running
+      Started:      Mon, 18 Aug 2025 10:30:54 +0530
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     300m
+      memory:  512Mi
+    Requests:
+      cpu:        100m
+      memory:     256Mi
+    Liveness:     http-get http://:8001/health delay=60s timeout=1s period=30s #success=1 #failure=3
+    Readiness:    http-get http://:8001/health delay=30s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /app from api-code (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-tst7g (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  api-code:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      api-code
+    Optional:  false
+  kube-api-access-tst7g:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  14m                default-scheduler  Successfully assigned loan-default/loan-default-api-65f44b4db9-zxlz2 to ip-192-168-50-174.ap-south-1.compute.internal
+  Normal   Pulling    14m                kubelet            Pulling image "python:3.10-slim"
+  Normal   Pulled     14m                kubelet            Successfully pulled image "python:3.10-slim" in 7.598s (7.598s including waiting)  
+  Normal   Created    14m                kubelet            Created container: api
+  Normal   Started    14m                kubelet            Started container api
+  Warning  Unhealthy  13m (x3 over 14m)  kubelet            Readiness probe failed: Get "http://192.168.53.61:8001/health": dial tcp 192.168.53.61:8001: connect: connection refused
+
+
+Name:             loan-default-frontend-7bd64866b6-2klgj
+Namespace:        loan-default
+Priority:         0
+Service Account:  default
+Node:             ip-192-168-73-85.ap-south-1.compute.internal/192.168.73.85
+Start Time:       Mon, 18 Aug 2025 10:43:27 +0530
+Labels:           app=loan-default-frontend
+                  pod-template-hash=7bd64866b6
+Annotations:      <none>
+Status:           Running
+IP:               192.168.64.81
+IPs:
+  IP:           192.168.64.81
+Controlled By:  ReplicaSet/loan-default-frontend-7bd64866b6
+Containers:
+  frontend:
+    Container ID:  containerd://49e5fb024cb15229a03e40678fb23c7656173a6ab6c9a7b7d00e0a8ab7f47191
+    Image:         python:3.10-slim
+    Image ID:      docker.io/library/python@sha256:420fbb0e468d3eaf0f7e93ea6f7a48792cbcadc39d43ac95b96bee2afe4367da
+    Port:          8501/TCP
+    Host Port:     0/TCP
+    Command:
+      /bin/sh
+      -c
+      pip install streamlit requests pandas &&
+      streamlit run /app/app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+
+    State:          Running
+      Started:      Mon, 18 Aug 2025 10:43:36 +0530
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  512Mi
+    Requests:
+      cpu:        100m
+      memory:     256Mi
+    Liveness:     http-get http://:8501/_stcore/health delay=60s timeout=1s period=30s #success=1 #failure=3
+    Readiness:    http-get http://:8501/_stcore/health delay=30s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /app from streamlit-app (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-2x5zk (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  streamlit-app:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      streamlit-app
+    Optional:  false
+  kube-api-access-2x5zk:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                 From               Message
+  ----     ------     ----                ----               -------
+  Normal   Scheduled  2m12s               default-scheduler  Successfully assigned loan-default/loan-default-frontend-7bd64866b6-2klgj to ip-192-168-73-85.ap-south-1.compute.internal
+  Normal   Pulling    2m11s               kubelet            Pulling image "python:3.10-slim"
+  Normal   Pulled     2m3s                kubelet            Successfully pulled image "python:3.10-slim" in 7.715s (7.715s including waiting) 
+  Normal   Created    2m3s                kubelet            Created container: frontend
+  Normal   Started    2m3s                kubelet            Started container frontend
+  Warning  Unhealthy  11s (x10 over 91s)  kubelet            Readiness probe failed: Get "http://192.168.64.81:8501/_stcore/health": dial tcp 192.168.64.81:8501: connect: connection refused
+  Warning  Unhealthy  11s (x2 over 41s)   kubelet            Liveness probe failed: Get "http://192.168.64.81:8501/_stcore/health": dial tcp 192.168.64.81:8501: connect: connection refused
+
+
+Name:             loan-default-frontend-7bd64866b6-s9dcz
+Namespace:        loan-default
+Priority:         0
+Service Account:  default
+Node:             ip-192-168-50-14.ap-south-1.compute.internal/192.168.50.14
+Start Time:       Mon, 18 Aug 2025 10:43:27 +0530
+Labels:           app=loan-default-frontend
+                  pod-template-hash=7bd64866b6
+Annotations:      <none>
+Status:           Running
+IP:               192.168.58.107
+IPs:
+  IP:           192.168.58.107
+Controlled By:  ReplicaSet/loan-default-frontend-7bd64866b6
+Containers:
+  frontend:
+    Container ID:  containerd://cd5869d22b47a6f765ded122502b32a8dd23b2b730410accf7d8493a34179f1f
+    Image:         python:3.10-slim
+    Image ID:      docker.io/library/python@sha256:420fbb0e468d3eaf0f7e93ea6f7a48792cbcadc39d43ac95b96bee2afe4367da
+    Port:          8501/TCP
+    Host Port:     0/TCP
+    Command:
+      /bin/sh
+      -c
+      pip install streamlit requests pandas &&
+      streamlit run /app/app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+
+    State:          Running
+      Started:      Mon, 18 Aug 2025 10:43:36 +0530
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  512Mi
+    Requests:
+      cpu:        100m
+      memory:     256Mi
+    Liveness:     http-get http://:8501/_stcore/health delay=60s timeout=1s period=30s #success=1 #failure=3
+    Readiness:    http-get http://:8501/_stcore/health delay=30s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /app from streamlit-app (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-rgjmr (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  streamlit-app:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      streamlit-app
+    Optional:  false
+  kube-api-access-rgjmr:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  2m12s              default-scheduler  Successfully assigned loan-default/loan-default-frontend-7bd64866b6-s9dcz to ip-192-168-50-14.ap-south-1.compute.internal
+  Normal   Pulling    2m11s              kubelet            Pulling image "python:3.10-slim"
+  Normal   Pulled     2m3s               kubelet            Successfully pulled image "python:3.10-slim" in 7.701s (7.701s including waiting)  
+  Normal   Created    2m3s               kubelet            Created container: frontend
+  Normal   Started    2m3s               kubelet            Started container frontend
+  Warning  Unhealthy  41s                kubelet            Liveness probe failed: Get "http://192.168.58.107:8501/_stcore/health": dial tcp 192.168.58.107:8501: connect: connection refused
+  Warning  Unhealthy  21s (x9 over 91s)  kubelet            Readiness probe failed: Get "http://192.168.58.107:8501/_stcore/health": dial tcp 192.168.58.107:8501: connect: connection refused
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl describe pods -n loan-default -o wide
+error: unknown shorthand flag: 'o' in -o
+See 'kubectl describe --help' for usage.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get pods -n loan-default -o wide     
+NAME                                     READY   STATUS    RESTARTS   AGE     IP               NODE                                            
+NOMINATED NODE   READINESS GATES
+loan-default-api-65f44b4db9-g4t7q        1/1     Running   0          15m     192.168.24.78    ip-192-168-22-12.ap-south-1.compute.internal    <none>           <none>
+loan-default-api-65f44b4db9-zxlz2        1/1     Running   0          15m     192.168.53.61    ip-192-168-50-174.ap-south-1.compute.internal   <none>           <none>
+loan-default-frontend-7bd64866b6-2klgj   1/1     Running   0          2m39s   192.168.64.81    ip-192-168-73-85.ap-south-1.compute.internal    <none>           <none>
+loan-default-frontend-7bd64866b6-s9dcz   1/1     Running   0          2m39s   192.168.58.107   ip-192-168-50-14.ap-south-1.compute.internal    <none>           <none>
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+Now facing the issue while deploying promethus and Grafana pods
+*********************************************************************
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl describe  pods grafana-d9cbcd75b-vk7ks -n monitoring               
+Name:             grafana-d9cbcd75b-vk7ks
+Namespace:        monitoring
+Priority:         0
+Service Account:  default
+Node:             <none>
+Labels:           app=grafana
+                  pod-template-hash=d9cbcd75b
+Annotations:      <none>
+Status:           Pending
+IP:
+IPs:              <none>
+Controlled By:    ReplicaSet/grafana-d9cbcd75b
+Containers:
+  grafana:
+    Image:      grafana/grafana:latest
+    Port:       3000/TCP
+    Host Port:  0/TCP
+    Requests:
+      cpu:      250m
+      memory:   750Mi
+    Liveness:   tcp-socket :3000 delay=30s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:3000/robots.txt delay=10s timeout=2s period=30s #success=1 #failure=3
+    Environment:
+      GF_SECURITY_ADMIN_USER:      admin
+      GF_SECURITY_ADMIN_PASSWORD:  admin123
+      GF_USERS_ALLOW_SIGN_UP:      false
+    Mounts:
+      /var/lib/grafana from grafana-pv (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-9n82v (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False
+Volumes:
+  grafana-pv:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+    SizeLimit:  <unset>
+  kube-api-access-9n82v:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason            Age    From               Message
+  ----     ------            ----   ----               -------
+  Warning  FailedScheduling  3m45s  default-scheduler  0/7 nodes are available: 2 Too many pods, 7 Insufficient memory. preemption: 0/7 nodes are available: 7 No preemption victims found for incoming pod.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Check node resources
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl top nodes
+NAME                                            CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-192-168-22-12.ap-south-1.compute.internal    37m          1%       386Mi           73%
+ip-192-168-3-212.ap-south-1.compute.internal    31m          1%       438Mi           82%
+ip-192-168-43-121.ap-south-1.compute.internal   23m          1%       327Mi           62%
+ip-192-168-50-14.ap-south-1.compute.internal    35m          1%       349Mi           66%
+ip-192-168-50-174.ap-south-1.compute.internal   38m          1%       434Mi           82%
+ip-192-168-73-85.ap-south-1.compute.internal    39m          2%       312Mi           59%
+ip-192-168-80-13.ap-south-1.compute.internal    33m          1%       404Mi           76%
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Check pod resource usage
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl top pods --all-namespaces
+NAMESPACE      NAME                                     CPU(cores)   MEMORY(bytes)   
+kube-system    aws-node-87svk                           3m           60Mi
+kube-system    aws-node-9dr86                           4m           56Mi
+kube-system    aws-node-gbc67                           4m           64Mi
+kube-system    aws-node-kpcwn                           4m           58Mi
+kube-system    aws-node-p56bs                           3m           49Mi
+kube-system    aws-node-sr2hv                           5m           62Mi
+kube-system    aws-node-tblkg                           4m           63Mi
+kube-system    coredns-5d5f56f475-p8g6k                 2m           14Mi
+kube-system    coredns-5d5f56f475-x77v6                 2m           13Mi
+kube-system    kube-proxy-75cf9                         1m           18Mi
+kube-system    kube-proxy-96ws5                         1m           18Mi
+kube-system    kube-proxy-fk5pw                         1m           21Mi
+kube-system    kube-proxy-fm4fh                         1m           22Mi
+kube-system    kube-proxy-rq2xz                         1m           21Mi
+kube-system    kube-proxy-sbzmb                         1m           20Mi
+kube-system    kube-proxy-whrzj                         1m           16Mi
+kube-system    metrics-server-67b57444d4-rpltk          4m           22Mi
+kube-system    metrics-server-67b57444d4-zcdjx          3m           22Mi
+loan-default   loan-default-api-65f44b4db9-g4t7q        3m           76Mi
+loan-default   loan-default-api-65f44b4db9-zxlz2        3m           82Mi
+loan-default   loan-default-frontend-7bd64866b6-2klgj   1m           53Mi
+loan-default   loan-default-frontend-7bd64866b6-s9dcz   1m           75Mi
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Get node information
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get nodes -o wide
+NAME                                            STATUS   ROLES    AGE   VERSION                INTERNAL-IP      EXTERNAL-IP      OS-IMAGE         KERNEL-VERSION                  CONTAINER-RUNTIME
+ip-192-168-22-12.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.22.12    13.203.73.107    Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+ip-192-168-3-212.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.3.212    13.201.175.124   Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+ip-192-168-43-121.ap-south-1.compute.internal   Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.43.121   3.110.213.47     Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+ip-192-168-50-14.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.50.14    65.0.104.145     Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+ip-192-168-50-174.ap-south-1.compute.internal   Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.50.174   3.6.89.4         Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+ip-192-168-73-85.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.73.85    13.233.139.80    Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+ip-192-168-80-13.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1   192.168.80.13    65.0.99.183      Amazon Linux 2   5.10.240-238.959.amzn2.x86_64   containerd://1.7.27
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Check current pods
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get pods --all-namespaces
+NAMESPACE      NAME                                     READY   STATUS    RESTARTS   AGE
+kube-system    aws-node-87svk                           2/2     Running   0          38h
+kube-system    aws-node-9dr86                           2/2     Running   0          38h
+kube-system    aws-node-gbc67                           2/2     Running   0          38h
+kube-system    aws-node-kpcwn                           2/2     Running   0          38h
+kube-system    aws-node-p56bs                           2/2     Running   0          38h
+kube-system    aws-node-sr2hv                           2/2     Running   0          38h
+kube-system    aws-node-tblkg                           2/2     Running   0          38h
+kube-system    coredns-5d5f56f475-p8g6k                 1/1     Running   0          38h
+kube-system    coredns-5d5f56f475-x77v6                 1/1     Running   0          38h
+kube-system    kube-proxy-75cf9                         1/1     Running   0          38h
+kube-system    kube-proxy-96ws5                         1/1     Running   0          38h
+kube-system    kube-proxy-fk5pw                         1/1     Running   0          38h
+kube-system    kube-proxy-fm4fh                         1/1     Running   0          38h
+kube-system    kube-proxy-rq2xz                         1/1     Running   0          38h
+kube-system    kube-proxy-sbzmb                         1/1     Running   0          38h
+kube-system    kube-proxy-whrzj                         1/1     Running   0          38h
+kube-system    metrics-server-67b57444d4-rpltk          1/1     Running   0          38h
+kube-system    metrics-server-67b57444d4-zcdjx          1/1     Running   0          38h
+loan-default   loan-default-api-65f44b4db9-g4t7q        1/1     Running   0          26m
+loan-default   loan-default-api-65f44b4db9-zxlz2        1/1     Running   0          26m
+loan-default   loan-default-frontend-7bd64866b6-2klgj   1/1     Running   0          13m
+loan-default   loan-default-frontend-7bd64866b6-s9dcz   1/1     Running   0          13m
+monitoring     grafana-d9cbcd75b-vk7ks                  0/1     Pending   0          5m2s
+monitoring     prometheus-6486f68bcb-wtcnr              0/1     Pending   0          5m4s
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops>
+
+
+created new nodegroup for monitoring
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> eksctl create nodegroup --cluster=loan-eks-simple --region=ap-south-1 --name=ng-spot --node-type=t3.small --nodes=2 --nodes-min=0 --nodes-max=8 --spot
+   
+Total 9 nodes(2 node group)
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get nodes -w
+NAME                                            STATUS   ROLES    AGE   VERSION
+ip-192-168-22-12.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-3-212.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-43-121.ap-south-1.compute.internal   Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-50-14.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-50-174.ap-south-1.compute.internal   Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-62-137.ap-south-1.compute.internal   Ready    <none>   94s   v1.29.15-eks-3abbec1
+ip-192-168-72-233.ap-south-1.compute.internal   Ready    <none>   99s   v1.29.15-eks-3abbec1
+ip-192-168-73-85.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-80-13.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-50-174.ap-south-1.compute.internal   Ready    <none>   38h   v1.29.15-eks-3abbec1
+ip-192-168-22-12.ap-south-1.compute.internal    Ready    <none>   38h   v1.29.15-eks-3abbec1
+
+
+venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get pods -n monitoring
+NAME                          READY   STATUS    RESTARTS   AGE
+grafana-d9cbcd75b-vk7ks       1/1     Running   0          24m
+prometheus-6486f68bcb-wtcnr   1/1     Running   0          24m
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get all -n monitoring
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/grafana-d9cbcd75b-vk7ks       1/1     Running   0          27m
+pod/prometheus-6486f68bcb-wtcnr   1/1     Running   0          27m
+
+NAME                         TYPE           CLUSTER-IP     EXTERNAL-IP                                                                PORT(S)        AGE
+service/grafana-service      LoadBalancer   10.100.2.249   ad58328844350435bbb23de5548d2cc2-1328828467.ap-south-1.elb.amazonaws.com   80:31158/TCP   27m
+service/prometheus-service   LoadBalancer   10.100.29.18   abf5bfe88aa724b4e831d655eea440de-575270680.ap-south-1.elb.amazonaws.com    80:32381/TCP   27m
+
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/grafana      1/1     1            1           27m
+deployment.apps/prometheus   1/1     1            1           27m
+
+NAME                                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/grafana-d9cbcd75b       1         1         1       27m
+replicaset.apps/prometheus-6486f68bcb   1         1         1       27m
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+promethus and Grafana
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> if ($GRAFANA_URL) {
+>>     Write-Host "📈 Grafana URL: http://$GRAFANA_URL" -ForegroundColor Green
+>>     Write-Host "🔐 Grafana Login: admin / admin123" -ForegroundColor Yellow
+>> } else {
+>>     Write-Host "⏳ Grafana Load Balancer still being created..." -ForegroundColor Yellow
+>> }
+📈 Grafana URL: http://ad58328844350435bbb23de5548d2cc2-1328828467.ap-south-1.elb.amazonaws.com
+🔐 Grafana Login: admin / admin123
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get services -n loan-default
+NAME                            TYPE           CLUSTER-IP      EXTERNAL-IP                                                                PORT(S)        AGE
+loan-default-api-internal       ClusterIP      10.100.32.162   <none>                                                                     8001/TCP       66m
+loan-default-api-service        LoadBalancer   10.100.107.9    a015d0a5e673c47e9b4ff468a0af8419-1590493237.ap-south-1.elb.amazonaws.com   80:32400/TCP   66m
+loan-default-frontend-service   LoadBalancer   10.100.56.98    a373c38531f9c46bfb338ac2cd055cd0-1507148570.ap-south-1.elb.amazonaws.com   80:30468/TCP   37m
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get services -n monitoring
+NAME                 TYPE           CLUSTER-IP     EXTERNAL-IP                                                                PORT(S)        AGE
+grafana-service      LoadBalancer   10.100.2.249   ad58328844350435bbb23de5548d2cc2-1328828467.ap-south-1.elb.amazonaws.com   80:31158/TCP   29m
+prometheus-service   LoadBalancer   10.100.29.18   abf5bfe88aa724b4e831d655eea440de-575270680.ap-south-1.elb.amazonaws.com    80:32381/TCP   29m
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "`n Monitoring setup complete!" -ForegroundColor Green
+
+ Monitoring setup complete!
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "Next: Configure Grafana dashboards and then CI/CD pipeline" -ForegroundColor Cyan
+Next: Configure Grafana dashboards and then CI/CD pipeline
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 

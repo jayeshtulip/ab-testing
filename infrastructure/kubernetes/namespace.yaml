@@ -1,0 +1,8 @@
+﻿apiVersion: v1
+kind: Namespace
+metadata:
+  name: loan-default
+  labels:
+    name: loan-default
+    project: mlops-loan-default
+    environment: production

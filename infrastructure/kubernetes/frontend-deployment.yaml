@@ -1,0 +1,187 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: streamlit-app
+  namespace: loan-default
+data:
+  app.py: |
+    import streamlit as st
+    import requests
+    import json
+    import time
+
+    st.set_page_config(
+        page_title="Loan Default Prediction",
+        page_icon="",
+        layout="wide"
+    )
+
+    # API configuration - use Kubernetes service name
+    API_URL = "http://loan-default-api-service.loan-default.svc.cluster.local:8001"
+
+    def check_api_health():
+        try:
+            response = requests.get(f"{API_URL}/health", timeout=5)
+            return response.status_code == 200, response.json()
+        except:
+            return False, None
+
+    def make_prediction(features):
+        try:
+            response = requests.post(
+                f"{API_URL}/predict",
+                json={"features": features},
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            return response.status_code == 200, response.json()
+        except Exception as e:
+            return False, {"error": str(e)}
+
+    # Main app
+    st.title(" Loan Default Prediction System")
+    st.markdown("### AI-powered loan default risk assessment (Kubernetes Deployment)")
+
+    # Sidebar for system status
+    with st.sidebar:
+        st.header(" System Status")
+        api_healthy, health_data = check_api_health()
+        
+        if api_healthy:
+            st.success(" API Connected")
+            if health_data:
+                st.json(health_data)
+        else:
+            st.error(" API Not Available")
+            st.info(f"API URL: {API_URL}")
+
+    # Main form
+    with st.form("loan_form"):
+        st.subheader(" Loan Application Form")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            attribute1 = st.selectbox("Checking Account Status", ["A11", "A12", "A13", "A14"])
+            duration = st.number_input("Duration (months)", min_value=1, max_value=72, value=24)
+            
+        with col2:
+            attribute3 = st.selectbox("Credit History", ["A30", "A31", "A32", "A33", "A34"], index=2)
+            credit_amount = st.number_input("Credit Amount", min_value=100, max_value=20000, value=3500)
+        
+        submitted = st.form_submit_button(" Predict Default Risk", use_container_width=True)
+        
+        if submitted:
+            if not api_healthy:
+                st.error(" Cannot make prediction - API not available")
+            else:
+                features = {
+                    "Attribute1": attribute1,
+                    "Attribute2": duration,
+                    "Attribute3": attribute3,
+                    "Attribute5": credit_amount
+                }
+                
+                with st.spinner(" Analyzing loan application..."):
+                    success, result = make_prediction(features)
+                
+                if success:
+                    prediction = result.get("prediction", "unknown")
+                    probability = result.get("probability", 0)
+                    
+                    # Display results
+                    col_a, col_b = st.columns(2)
+                    
+                    with col_a:
+                        if prediction == "good":
+                            st.success(" LOW RISK")
+                            st.balloons()
+                        else:
+                            st.error(" HIGH RISK")
+                    
+                    with col_b:
+                        st.metric("Confidence Score", f"{probability:.1%}")
+                    
+                    # Detailed results
+                    with st.expander(" Technical Details"):
+                        st.json(result)
+                else:
+                    st.error(" Prediction Failed")
+                    st.write("Error details:", result)
+
+    # Footer
+    st.markdown("---")
+    st.markdown("** Deployed on Kubernetes** | ** Production MLOps System**")
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loan-default-frontend
+  namespace: loan-default
+  labels:
+    app: loan-default-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: loan-default-frontend
+  template:
+    metadata:
+      labels:
+        app: loan-default-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: python:3.10-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          pip install streamlit requests pandas &&
+          streamlit run /app/app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+        ports:
+        - containerPort: 8501
+        volumeMounts:
+        - name: streamlit-app
+          mountPath: /app
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /_stcore/health
+            port: 8501
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_stcore/health
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: streamlit-app
+        configMap:
+          name: streamlit-app
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loan-default-frontend-service
+  namespace: loan-default
+  labels:
+    app: loan-default-frontend
+spec:
+  selector:
+    app: loan-default-frontend
+  ports:
+  - port: 80
+    targetPort: 8501
+    protocol: TCP
+  type: LoadBalancer

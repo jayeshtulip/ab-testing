@@ -1,0 +1,161 @@
+﻿# DVC Pipeline Configuration
+# This file defines the ML pipeline stages for data versioning and reproducibility
+
+stages:
+  # Stage 1: Data Preparation
+  prepare_data:
+    cmd: python src/data/preprocessing.py
+    deps:
+      - data/raw/X.csv
+      - data/raw/y.csv
+      - src/data/preprocessing.py
+      - params.yaml
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/validation.csv
+    params:
+      - data.test_size
+      - data.validation_size
+      - data.random_state
+      - data.categorical_features
+      - data.numerical_features
+    metrics:
+      - metrics/data_quality.json
+    plots:
+      - plots/data_distribution.png
+      - plots/feature_correlation.png
+
+  # Stage 2: Data Validation
+  validate_data:
+    cmd: python src/data/validation.py
+    deps:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/validation.csv
+      - src/data/validation.py
+      - params.yaml
+    outs:
+      - reports/data_validation_report.html
+    params:
+      - data_validation.missing_value_threshold
+      - data_validation.duplicate_threshold
+    metrics:
+      - metrics/data_validation.json
+
+  # Stage 3: Feature Engineering
+  feature_engineering:
+    cmd: python src/data/feature_engineering.py
+    deps:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/validation.csv
+      - src/data/feature_engineering.py
+      - params.yaml
+    outs:
+      - data/features/X_train.csv
+      - data/features/X_test.csv
+      - data/features/X_validation.csv
+      - data/features/y_train.csv
+      - data/features/y_test.csv
+      - data/features/y_validation.csv
+      - models/preprocessor.joblib
+    params:
+      - data.categorical_features
+      - data.numerical_features
+    plots:
+      - plots/feature_importance.png
+
+  # Stage 4: Model Training
+  train_model:
+    cmd: python src/models/train.py
+    deps:
+      - data/features/X_train.csv
+      - data/features/X_validation.csv
+      - data/features/y_train.csv
+      - data/features/y_validation.csv
+      - models/preprocessor.joblib
+      - src/models/train.py
+      - params.yaml
+    outs:
+      - models/model.joblib
+      - models/model_metadata.json
+    params:
+      - model.algorithm
+      - model.parameters
+      - model.cv_folds
+      - model.scoring_metric
+      - model.hyperparameter_tuning
+    metrics:
+      - metrics/train_metrics.json
+    plots:
+      - plots/training_history.png
+      - plots/feature_importance.png
+
+  # Stage 5: Model Evaluation
+  evaluate_model:
+    cmd: python src/models/evaluate.py
+    deps:
+      - data/features/X_test.csv
+      - data/features/y_test.csv
+      - models/model.joblib
+      - models/preprocessor.joblib
+      - src/models/evaluate.py
+      - params.yaml
+    outs:
+      - reports/model_evaluation_report.html
+    params:
+      - evaluation.metrics
+      - evaluation.threshold
+    metrics:
+      - metrics/test_metrics.json
+    plots:
+      - plots/confusion_matrix.png
+      - plots/roc_curve.png
+      - plots/precision_recall_curve.png
+      - plots/prediction_distribution.png
+
+  # Stage 6: Model Registration
+  register_model:
+    cmd: python src/models/registry.py
+    deps:
+      - models/model.joblib
+      - models/preprocessor.joblib
+      - models/model_metadata.json
+      - metrics/test_metrics.json
+      - src/models/registry.py
+      - params.yaml
+    params:
+      - mlflow.tracking_uri
+      - mlflow.experiment_name
+      - mlflow.model_name
+      - evaluation.retraining_thresholds
+    metrics:
+      - metrics/model_registry.json
+
+  # Stage 7: Data Drift Detection (for retraining pipeline)
+  detect_drift:
+    cmd: python src/data/drift_detection.py
+    deps:
+      - data/processed/train.csv  # reference data
+      - data/new/incoming_data.csv  # new data (when available)
+      - src/data/drift_detection.py
+      - params.yaml
+    outs:
+      - reports/drift_report.html
+    params:
+      - data_validation.drift_detection
+    metrics:
+      - metrics/drift_metrics.json
+    plots:
+      - plots/drift_analysis.png
+
+# DVC Remote Storage Configuration
+# Add your S3 bucket configuration here after setting up AWS
+
+# Example remote configuration:
+# remote:
+#   storage: s3
+#   url: s3://loan-default-dvc-storage/
+#   region: us-east-1
+#   profile: default
