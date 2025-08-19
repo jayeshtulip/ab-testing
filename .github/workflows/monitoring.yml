@@ -1,0 +1,286 @@
+name: 📊 Model Monitoring
+
+on:
+  schedule:
+    # Run monitoring checks every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of monitoring check'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - performance
+        - drift
+        - infrastructure
+      alert_threshold:
+        description: 'Performance threshold for alerts (0.0-1.0)'
+        required: false
+        default: '0.70'
+
+env:
+  PYTHON_VERSION: '3.10'
+  MLFLOW_TRACKING_URI: http://ab124afa4840a4f8298398f9c7fd7c7e-306571921.ap-south-1.elb.amazonaws.com
+
+jobs:
+  infrastructure-health:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'all' || github.event.inputs.check_type == 'infrastructure' || github.event_name == 'schedule'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests mlflow boto3 psutil
+    
+    - name: 🔧 Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+    
+    - name: 🌐 Check MLflow server health
+      id: mlflow_health
+      run: |
+        echo "🌐 Checking MLflow server health..."
+        
+        python -c "
+        import requests
+        import mlflow
+        import time
+        import json
+        
+        mlflow_uri = '${{ env.MLFLOW_TRACKING_URI }}'
+        health_status = {'mlflow_accessible': False, 'response_time': 0, 'experiments_count': 0}
+        
+        try:
+            # Check basic HTTP response
+            start_time = time.time()
+            response = requests.get(f'{mlflow_uri}/health', timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                health_status['mlflow_accessible'] = True
+                health_status['response_time'] = response_time
+                print(f'✅ MLflow server accessible')
+                print(f'⚡ Response time: {response_time:.2f}s')
+            else:
+                print(f'⚠️ MLflow server returned status {response.status_code}')
+            
+            # Check MLflow API functionality
+            mlflow.set_tracking_uri(mlflow_uri)
+            client = mlflow.tracking.MlflowClient()
+            experiments = client.search_experiments()
+            health_status['experiments_count'] = len(experiments)
+            
+            print(f'📊 Found {len(experiments)} experiments')
+            
+            # Check if our models exist
+            try:
+                models = client.search_registered_models()
+                model_names = [model.name for model in models]
+                
+                if 'loan-default-model' in model_names:
+                    print('✅ loan-default-model found in registry')
+                if 'loan-default-dvc-model' in model_names:
+                    print('✅ loan-default-dvc-model found in registry')
+                    
+                health_status['registered_models'] = len(models)
+                
+            except Exception as e:
+                print(f'⚠️ Error checking model registry: {e}')
+            
+        except Exception as e:
+            print(f'❌ MLflow health check failed: {e}')
+            health_status['error'] = str(e)
+        
+        # Save health status
+        with open('mlflow_health.json', 'w') as f:
+            json.dump(health_status, f, indent=2)
+        
+        print(f'Health status: {health_status}')
+        "
+    
+    - name: 🗄️ Check S3 bucket health
+      id: s3_health
+      run: |
+        echo "🗄️ Checking S3 bucket health..."
+        
+        python -c "
+        import boto3
+        import json
+        from botocore.exceptions import ClientError, NoCredentialsError
+        
+        s3_status = {'bucket_accessible': False, 'objects_count': 0, 'total_size_mb': 0}
+        
+        try:
+            s3_client = boto3.client('s3')
+            bucket_name = 'mlflow-artifacts-365021531163-ap-south-1'
+            
+            # Check if bucket exists and is accessible
+            try:
+                s3_client.head_bucket(Bucket=bucket_name)
+                s3_status['bucket_accessible'] = True
+                print(f'✅ S3 bucket {bucket_name} is accessible')
+            except ClientError as e:
+                print(f'❌ S3 bucket access failed: {e}')
+                s3_status['error'] = str(e)
+            
+            # Get bucket statistics (limited to avoid long execution)
+            try:
+                paginator = s3_client.get_paginator('list_objects_v2')
+                page_iterator = paginator.paginate(Bucket=bucket_name, MaxKeys=1000)
+                
+                total_objects = 0
+                total_size = 0
+                
+                for page in page_iterator:
+                    if 'Contents' in page:
+                        total_objects += len(page['Contents'])
+                        total_size += sum(obj['Size'] for obj in page['Contents'])
+                    break  # Only check first 1000 objects for monitoring
+                
+                s3_status['objects_count'] = total_objects
+                s3_status['total_size_mb'] = round(total_size / (1024 * 1024), 2)
+                
+                print(f'📊 Found ~{total_objects} objects')
+                print(f'💾 Total size: {s3_status[\"total_size_mb\"]} MB')
+                
+            except Exception as e:
+                print(f'⚠️ Error getting bucket statistics: {e}')
+        
+        except NoCredentialsError:
+            print('❌ AWS credentials not configured')
+            s3_status['error'] = 'No credentials'
+        except Exception as e:
+            print(f'❌ S3 health check failed: {e}')
+            s3_status['error'] = str(e)
+        
+        # Save S3 status
+        with open('s3_health.json', 'w') as f:
+            json.dump(s3_status, f, indent=2)
+        
+        print(f'S3 status: {s3_status}')
+        "
+    
+    - name: 📊 Generate infrastructure report
+      run: |
+        echo "📊 Generating infrastructure health report..."
+        
+        cat > infrastructure_report.md << EOF
+        # Infrastructure Health Report
+        
+        **Generated**: $(date)
+        **Workflow**: ${{ github.workflow }}
+        **Run ID**: ${{ github.run_id }}
+        
+        ## MLflow Server Status
+        EOF
+        
+        # Add MLflow status
+        if [ -f "mlflow_health.json" ]; then
+          python -c "
+          import json
+          with open('mlflow_health.json', 'r') as f:
+              status = json.load(f)
+          
+          if status.get('mlflow_accessible', False):
+              print('- ✅ MLflow server is accessible')
+              print(f'- ⚡ Response time: {status.get(\"response_time\", 0):.2f}s')
+              print(f'- 📊 Experiments: {status.get(\"experiments_count\", 0)}')
+              print(f'- 🔢 Registered models: {status.get(\"registered_models\", 0)}')
+          else:
+              print('- ❌ MLflow server is not accessible')
+              if 'error' in status:
+                  print(f'- 🔍 Error: {status[\"error\"]}')
+          " >> infrastructure_report.md
+        fi
+        
+        echo "" >> infrastructure_report.md
+        echo "## S3 Storage Status" >> infrastructure_report.md
+        
+        # Add S3 status
+        if [ -f "s3_health.json" ]; then
+          python -c "
+          import json
+          with open('s3_health.json', 'r') as f:
+              status = json.load(f)
+          
+          if status.get('bucket_accessible', False):
+              print('- ✅ S3 bucket is accessible')
+              print(f'- 📦 Objects: ~{status.get(\"objects_count\", 0)}')
+              print(f'- 💾 Size: {status.get(\"total_size_mb\", 0)} MB')
+          else:
+              print('- ❌ S3 bucket is not accessible')
+              if 'error' in status:
+                  print(f'- 🔍 Error: {status[\"error\"]}')
+          " >> infrastructure_report.md
+        fi
+        
+        echo "✅ Infrastructure report generated"
+
+  model-performance-monitoring:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'all' || github.event.inputs.check_type == 'performance' || github.event_name == 'schedule'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mlflow pandas numpy scikit-learn
+    
+    - name: 📊 Check model performance metrics
+      id: performance_check
+      run: |
+        echo "📊 Checking model performance metrics..."
+        
+        python -c "
+        import mlflow
+        import json
+        from datetime import datetime, timedelta
+        
+        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        client = mlflow.tracking.MlflowClient()
+        
+        performance_report = {
+            'timestamp': datetime.now().isoformat(),
+            'models_checked': [],
+            'alerts': [],
+            'threshold': float('${{ github.event.inputs.alert_threshold || \"0.70\" }}')
+        }
+        
+        try:
+            # Check both model registries
+            model_names = ['loan-default-model', 'loan-default-dvc-model']
+            
+            for model_name in model_names:
+                try:
+                    # Get latest production model
+                    latest_versions = client.get_latest_versions(model_name, stages=['Production', 'Staging', 'None'])
+                    
+                    if latest_versions:
+                        latest_version = latest_versions[0]
+                        model_info = {
+                            'name': model_name,
+                            'version': latest_version.version,
+                            '

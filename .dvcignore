@@ -1,2 +1,11 @@
-﻿# Ignore temp or cache in data folders
-data/**/*.tmp
+# DVC ignore file
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+.env
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.tmp

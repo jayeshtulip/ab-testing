@@ -1,0 +1,38 @@
+stages:
+  data_preprocessing:
+    cmd: python scripts/preprocess_data.py
+    deps:
+    - data/raw/X.csv
+    - data/raw/y.csv
+    - scripts/preprocess_data.py
+    outs:
+    - data/processed/X_processed.csv
+    - data/processed/y_processed.csv
+    - data/processed/preprocessing_metadata.json
+  evaluate_model:
+    cmd: python scripts/evaluate_model.py
+    deps:
+    - models/model.pkl
+    - models/preprocessing_pipeline.joblib
+    - data/processed/X_processed.csv
+    - data/processed/y_processed.csv
+    metrics:
+    - metrics/eval_metrics.json
+    plots:
+    - plots/roc_curve.json
+    - plots/precision_recall.json
+  train_model:
+    cmd: python scripts/train_model_dvc.py
+    deps:
+    - data/processed/X_processed.csv
+    - data/processed/y_processed.csv
+    - data/processed/preprocessing_metadata.json
+    - scripts/train_model_dvc.py
+    metrics:
+    - metrics/train_metrics.json
+    outs:
+    - models/model.pkl
+    - models/preprocessing_pipeline.joblib
+    plots:
+    - plots/confusion_matrix.json
+    - plots/feature_importance.json

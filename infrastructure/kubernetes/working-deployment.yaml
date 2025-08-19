@@ -59,8 +59,8 @@ spec:
         app: loan-default-api
     spec:
       containers:
-      - name: api
-        image: python:3.10-slim
+      - name: loan-default-api
+        image: 365021531163.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api:latest
         command: 
         - /bin/sh
         - -c

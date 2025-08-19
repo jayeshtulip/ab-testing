@@ -1,7 +1,12 @@
 [core]
-    remote = myremote
+    remote = s3-storage
+    analytics = false
+    autostage = true
 ['remote "myremote"']
     url = s3://loan-default-mlops-dvc-storage/dvc-storage
     region = us-east-1
     use_ssl = true
     ssl_verify = true
+['remote "s3-storage"']
+    url = s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data
+    region = ap-south-1

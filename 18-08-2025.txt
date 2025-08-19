@@ -1343,3 +1343,325 @@ prometheus-service   LoadBalancer   10.100.29.18   abf5bfe88aa724b4e831d655eea44
 (venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Write-Host "Next: Configure Grafana dashboards and then CI/CD pipeline" -ForegroundColor Cyan
 Next: Configure Grafana dashboards and then CI/CD pipeline
 (venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+
+
+
+
+
+
+CI/CD
+
+
+Since three are 2 files got created in githu, need to puul the remote here and then push it back
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git push origin main
+To https://github.com/jayeshtulip/default_loan_app.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/jayeshtulip/default_loan_app.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+Solution
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git pull origin main --allow-unrelated-histories
+From https://github.com/jayeshtulip/default_loan_app
+ * branch            main       -> FETCH_HEAD
+Auto-merging .gitignore
+CONFLICT (add/add): Merge conflict in .gitignore
+warning: Cannot merge binary files: README.md (HEAD vs. bd1b471f03edc2b1b225915d61cdd191fedf8281)
+Auto-merging README.md
+CONFLICT (add/add): Merge conflict in README.md
+Automatic merge failed; fix conflicts and then commit the result.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git status
+On branch main
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+        both added:      .gitignore
+        both added:      README.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Keep your local versions and ignore the remote versions
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git checkout --ours .gitignore
+Updated 1 path from the index
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git checkout --ours README.md
+Updated 1 path from the index
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Add the resolved files
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git add .gitignore README.md
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git push origin main
+To https://github.com/jayeshtulip/default_loan_app.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/jayeshtulip/default_loan_app.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Add all files (including the resolved conflicts)
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git add .
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Commit the merge resolution
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git commit -m "Resolve merge conflicts: integrate remote repository with local MLOps setup"
+[main 6c6c908] Resolve merge conflicts: integrate remote repository with local MLOps setup
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Now push to GitHub
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git push origin main
+Enumerating objects: 122, done.
+Counting objects: 100% (122/122), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (102/102), done.
+Writing objects: 100% (119/119), 292.30 KiB | 4.30 MiB/s, done.
+Total 119 (delta 9), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (9/9), done.
+To https://github.com/jayeshtulip/default_loan_app.git
+   bd1b471..6c6c908  main -> main
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Make a small test change to trigger the pipeline
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> echo "# MLOps Pipeline Test" >> test-pipeline.md
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git add test-pipeline.md
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git commit -m "test: trigger CI/CD pipeline"
+[main bb3554b] test: trigger CI/CD pipeline
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 test-pipeline.md
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git push origin main
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 338 bytes | 338.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/jayeshtulip/default_loan_app.git
+   6c6c908..bb3554b  main -> main
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> Get-ChildItem .github -Recurse
+
+
+    Directory: C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\.github
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        18-08-2025     12:22                workflows
+
+
+    Directory: C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops\.github\workflows
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        18-08-2025     11:34          11055 ci-cd.yml
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Add the workflow file
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git add .github/workflows/ci-cd.yml
+warning: in the working copy of '.github/workflows/ci-cd.yml', LF will be replaced by CRLF the next time Git touches it
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Commit the workflow
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git commit -m "feat: add GitHub Actions CI/CD workflow"
+[main b5a0f9e] feat: add GitHub Actions CI/CD workflow
+ 1 file changed, 317 insertions(+)
+ create mode 100644 .github/workflows/ci-cd.yml
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> # Push to trigger the workflow
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> git push origin main
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (5/5), 3.52 KiB | 3.52 MiB/s, done.
+Total 5 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/jayeshtulip/default_loan_app.git
+   bb3554b..b5a0f9e  main -> main
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+
+
+
+
+
+
+
+
+
+
+
+Cid cd live /  good learning
+*******************
+
+Deploying to EKS cluster...
+Using image: 365021531163.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api:c33cac61da9e5ca6d383dd49291d7ac49dd3d7d7
+deployment.apps/loan-default-api image updated
+⏳ Waiting for rollout to complete...
+Waiting for deployment "loan-default-api" rollout to finish: 2 out of 3 new replicas have been updated...
+Waiting for deployment "loan-default-api" rollout to finish: 2 out of 3 new replicas have been updated...
+Waiting for deployment "loan-default-api" rollout to finish: 2 out of 3 new replicas have been updated...
+Waiting for deployment "loan-default-api" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "loan-default-api" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "loan-default-api" rollout to finish: 2 of 3 updated replicas are available...
+deployment "loan-default-api" successfully rolled out
+NAME                                READY   STATUS    RESTARTS   AGE
+loan-default-api-6654f8468b-4kv7x   1/1     Running   0          102s
+loan-default-api-6654f8468b-k5stn   1/1     Running   0          51s
+loan-default-api-6654f8468b-p4n7f   1/1     Running   0          102s
+✅ Deployment completed successfully
+
+
+
+
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get pods -n loan-default
+NAME                                     READY   STATUS              RESTARTS   AGE
+loan-default-api-65f44b4db9-g4t7q        1/1     Terminating         0          4h1m
+loan-default-api-65f44b4db9-zxlz2        1/1     Terminating         0          4h1m
+loan-default-api-6654f8468b-4kv7x        1/1     Running             0          51s
+loan-default-api-6654f8468b-k5stn        0/1     ContainerCreating   0          0s
+loan-default-api-6654f8468b-p4n7f        1/1     Running             0          51s
+loan-default-frontend-7bd64866b6-2klgj   1/1     Running             0          3h49m
+loan-default-frontend-7bd64866b6-s9dcz   1/1     Running             0          3h49m
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> 
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops> kubectl get pods -n loan-default
+NAME                                     READY   STATUS    RESTARTS   AGE
+loan-default-api-6654f8468b-4kv7x        1/1     Running   0          2m21s
+loan-default-api-6654f8468b-k5stn        1/1     Running   0          90s
+loan-default-api-6654f8468b-p4n7f        1/1     Running   0          2m21s
+loan-default-frontend-7bd64866b6-2klgj   1/1     Running   0          3h50m
+loan-default-frontend-7bd64866b6-s9dcz   1/1     Running   0          3h50m
+(venv) PS C:\Users\jayes\OneDrive\Desktop\jathakam\ai\calude\loan_Default\loan-default-mlops>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Implementation Priority
+Phase 1: Complete Current Setup (1-2 weeks)
+yaml
+1. Fix any remaining CI/CD issues
+2. Add basic MLflow validation to CI/CD  
+3. Improve monitoring dashboards
+4. Document current system
+
+
+Phase 2: Add MLflow Infrastructure (2-3 weeks)
+yaml
+
+1. Deploy MLflow server to EKS
+2. Set up PostgreSQL RDS
+3. Configure S3 artifacts bucket
+4. Create model registry workflow
+
+
+Phase 3: ML Training Pipeline (3-4 weeks)
+yaml
+
+1. Create separate training workflow
+2. Integrate with DVC data pipeline
+3. Implement model validation
+4. Add automated retraining
+
+
+Phase 4: Advanced Features (4+ weeks)
+yaml
+1. Data drift detection
+2. A/B testing framework
+3. Feature store integration
+4. Advanced monitoring and alerting 
+
+
+
+Real Production Example
+Let me show you how this would work in a real scenario:
+Scenario: 6 Months After Deployment
+Month 1-3: ✅ Everything works great
+
+Model accuracy: 87%
+API response time: 150ms
+Default rate matches predictions
+
+Month 4: ⚠️ Performance starts declining
+
+New economic conditions affect loan patterns
+Model accuracy drops to 82%
+Problem: You wouldn't know this without monitoring!
+
+Month 5: 🚨 Significant drift
+
+Accuracy down to 78%
+Business loses money on bad loan approvals
+Current system: Still uses old model, no alerts
+
+Month 6: 🔧 With proper monitoring
+
+Prometheus would show accuracy decline
+Grafana dashboard would alert team
+Automated retraining would trigger
+New model deployed with 89% accuracy
+
+📊 What You Need to Add for Complete MLOps
+Immediate (2-4 weeks):
+yaml1. Model Performance Tracking:
+   - Log prediction confidence to Prometheus
+   - Track API prediction patterns
+   - Monitor response distributions
+
+2. Basic MLflow Integration:
+   - Deploy MLflow server to EKS
+   - Start logging deployment metrics
+   - Track model versions
+Medium-term (1-2 months):
+yaml3. Retraining Pipeline:
+   - Separate GitHub workflow for training
+   - DVC integration for data monitoring
+   - Automated model validation
+
+4. Performance Monitoring:
+   - Real-world accuracy tracking
+   - Data drift detection
+   - Business metrics correlation
+Advanced (3+ months):
+yaml5. Automated Decision Making:
+   - Auto-trigger retraining on performance drop
+   - A/B testing for model versions
+   - Automated model promotion/rollback

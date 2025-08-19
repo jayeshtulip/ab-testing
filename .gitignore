@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,55 +16,76 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual Environment
+# Virtual environments
 venv/
 env/
 ENV/
+.venv/
+.env
 
-# Environment Variables
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables
 .env
 .env.local
-.env.production
+.env.development.local
+.env.test.local
+.env.production.local
 
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
+# MLflow
+mlruns/
+mlartifacts/
+
+# Model artifacts (large files - use DVC instead)
+*.pkl
+*.joblib
+*.h5
+*.pb
+
+# Data files (use DVC instead)
+*.csv
+*.parquet
+*.json
+!params.yaml
+!dvc.yaml
+!.dvc/
+
 # Logs
-logs/
 *.log
-
-# Data files (DVC will track these)
-data/raw/*.csv
-data/processed/*.csv
-data/features/*.csv
-
-# Model files (MLflow will track these)
-models/*.joblib
-models/*.pkl
+logs/
 
 # Temporary files
 tmp/
 temp/
+*.tmp
 
-# Jupyter Notebooks
-.ipynb_checkpoints/
+# AWS credentials (never commit these!)
+.aws/
+aws_credentials.txt
 
-# MLflow
-mlruns/
-
-# DVC
-.dvc/tmp/
-
-# Docker
-.docker/
+# Secrets
+secrets.yaml
+.secrets
