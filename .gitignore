@@ -59,19 +59,19 @@ Thumbs.db
 mlruns/
 mlartifacts/
 
-# Model artifacts (large files - use DVC instead)
+# Large model files (use DVC instead)
 *.pkl
 *.joblib
 *.h5
 *.pb
+models/*.pkl
+models/*.joblib
 
-# Data files (use DVC instead)
-*.csv
-*.parquet
-*.json
-!params.yaml
-!dvc.yaml
-!.dvc/
+# Data files (tracked by DVC)
+data/raw/*.csv
+data/processed/*.csv
+!data/raw/*.dvc
+!data/processed/*.dvc
 
 # Logs
 *.log
@@ -82,10 +82,22 @@ tmp/
 temp/
 *.tmp
 
-# AWS credentials (never commit these!)
+# AWS credentials (NEVER commit these!)
 .aws/
 aws_credentials.txt
+credentials.json
 
 # Secrets
 secrets.yaml
 .secrets
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# DVC
+/models
+/data/raw
+/data/processed

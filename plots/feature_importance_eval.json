@@ -1,0 +1,64 @@
+{
+  "data": [
+    {
+      "feature": "Attribute1",
+      "importance": 0.13578533714520363
+    },
+    {
+      "feature": "Attribute5",
+      "importance": 0.12173375129890514
+    },
+    {
+      "feature": "Attribute2",
+      "importance": 0.10054739738204406
+    },
+    {
+      "feature": "Attribute13",
+      "importance": 0.09136959853223808
+    },
+    {
+      "feature": "Attribute6",
+      "importance": 0.06371080492891111
+    },
+    {
+      "feature": "Attribute3",
+      "importance": 0.06162586404551664
+    },
+    {
+      "feature": "Attribute4",
+      "importance": 0.05962131995658148
+    },
+    {
+      "feature": "Attribute12",
+      "importance": 0.05198630336146704
+    },
+    {
+      "feature": "Attribute7",
+      "importance": 0.05142065517945772
+    },
+    {
+      "feature": "Attribute8",
+      "importance": 0.04228427022533108
+    },
+    {
+      "feature": "Attribute14",
+      "importance": 0.03798059833647791
+    },
+    {
+      "feature": "Attribute9",
+      "importance": 0.034016710372204745
+    },
+    {
+      "feature": "Attribute11",
+      "importance": 0.030240707205676308
+    },
+    {
+      "feature": "Attribute17",
+      "importance": 0.026118879187094556
+    },
+    {
+      "feature": "Attribute15",
+      "importance": 0.02344845787791488
+    }
+  ]
+}

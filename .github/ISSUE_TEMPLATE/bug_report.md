@@ -7,26 +7,18 @@ assignees: ''
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear description of what the bug is.
 
 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Steps to reproduce the behavior.
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+What you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Environment (please complete the following information):**
+**Environment:**
 - OS: [e.g. Windows, macOS, Linux]
-- Python version: [e.g. 3.8.10]
-- MLflow version: [e.g. 2.0.1]
-- DVC version: [e.g. 2.45.0]
+- Python version: [e.g. 3.10]
+- MLflow version: [e.g. 2.8.0]
 
 **Additional context**
-Add any other context about the problem here.
+Any other context about the problem.
