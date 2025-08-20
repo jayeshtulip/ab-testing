@@ -106,7 +106,7 @@ jobs:
       id: check-data
       run: |
         echo "📥 Pulling latest data from DVC remote..."
-        dvc pull --verbose
+        dvc pull --verbose --force
         
         # Check if data has changed
         DATA_HASH=$(find data/raw -name "*.csv" -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
@@ -214,7 +214,7 @@ jobs:
       run: |
         dvc remote modify s3-storage region $AWS_REGION
         dvc remote list
-        dvc pull --verbose
+        dvc pull --verbose --force
         echo "✅ Data pulled successfully"
     
     - name: 🧪 Test MLflow connection
@@ -323,7 +323,7 @@ jobs:
     - name: 🚀 Push DVC changes
       run: |
         echo "📤 Pushing DVC artifacts to remote storage..."
-        dvc push --verbose
+        dvc push --verbose --force
         echo "✅ DVC artifacts pushed successfully"
     
     - name: 📝 Commit DVC changes
