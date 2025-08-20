@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["Training Pipeline"]
     types: [completed]
-    branches: [ main ]
+    # Branch filter removed - moved to job level due to GitHub Actions bug
   workflow_dispatch:
     inputs:
       environment:
@@ -28,10 +28,60 @@ env:
   ECR_REPOSITORY: 365021531163.dkr.ecr.ap-south-1.amazonaws.com/loan-default-api
 
 jobs:
+  # BRANCH AND SUCCESS CHECK - REPLACES PROBLEMATIC TRIGGER-LEVEL FILTERING
+  check-trigger:
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.check.outputs.deploy }}
+      branch-name: ${{ steps.check.outputs.branch }}
+    steps:
+    - name: 📋 Check trigger conditions
+      id: check
+      run: |
+        echo "Event name: ${{ github.event_name }}"
+        
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "✅ Manual trigger - proceeding with deployment"
+          echo "deploy=true" >> $GITHUB_OUTPUT
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          
+        elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+          echo "🔍 Checking workflow_run trigger..."
+          echo "Workflow conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Source branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "Source repository: ${{ github.event.workflow_run.head_repository.full_name }}"
+          
+          # Check if training pipeline succeeded
+          if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            # Check if it's from main branch  
+            if [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
+              # Check if it's from the same repository (not a fork)
+              if [[ "${{ github.event.workflow_run.head_repository.full_name }}" == "${{ github.repository }}" ]]; then
+                echo "✅ All conditions met - proceeding with deployment"
+                echo "deploy=true" >> $GITHUB_OUTPUT
+                echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+              else
+                echo "❌ Skipping - triggered from fork repository"
+                echo "deploy=false" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "❌ Skipping - not from main branch (was: ${{ github.event.workflow_run.head_branch }})"
+              echo "deploy=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Skipping - training pipeline did not succeed"
+            echo "deploy=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "❌ Unknown trigger event"
+          echo "deploy=false" >> $GITHUB_OUTPUT
+        fi
+
   # PHASE 2C: MODEL VALIDATION GATES
   validate-model:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should-deploy == 'true'
     outputs:
       model-valid: ${{ steps.validation.outputs.valid }}
       model-version: ${{ steps.get-model.outputs.version }}
@@ -177,7 +227,7 @@ jobs:
     needs: validate-model
     if: needs.validate-model.outputs.model-valid == 'true' && (github.event.inputs.environment == 'staging' || github.event.inputs.environment == null)
     environment: staging
-    timeout-minutes: 20  # Extended timeout for your EKS
+    timeout-minutes: 20
     
     steps:
     - name: 📥 Checkout code
@@ -450,14 +500,17 @@ jobs:
   # NOTIFICATIONS
   notify:
     runs-on: ubuntu-latest
-    needs: [validate-model, deploy-staging, deploy-production, rollback]
+    needs: [check-trigger, validate-model, deploy-staging, deploy-production, rollback]
     if: always()
     
     steps:
     - name: 📊 Determine pipeline status
       id: status
       run: |
-        if [[ "${{ needs.validate-model.result }}" == "failure" ]]; then
+        if [[ "${{ needs.check-trigger.outputs.should-deploy }}" == "false" ]]; then
+          echo "status=skipped" >> $GITHUB_OUTPUT
+          echo "message=⏭️ Deployment skipped - conditions not met" >> $GITHUB_OUTPUT
+        elif [[ "${{ needs.validate-model.result }}" == "failure" ]]; then
           echo "status=validation_failed" >> $GITHUB_OUTPUT
           echo "message=❌ Model validation failed - deployment blocked" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.deploy-staging.result }}" == "failure" ]]; then

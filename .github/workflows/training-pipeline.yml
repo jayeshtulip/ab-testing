@@ -76,7 +76,7 @@ jobs:
         
         # Test DVC CLI instead of importing modules directly
         dvc version
-        echo "✅ DVC CLI working"
+        echo "✅ DVC CLI working correctly"
         
         # Don't test dvc.remote import - just ensure DVC CLI works
         python -c "
