@@ -99,7 +99,9 @@ jobs:
     - name: 🔧 Setup DVC
       run: |
         dvc remote modify s3-storage region $AWS_REGION
+        dvc remote default s3-storage
         echo "✅ DVC configured for region: $AWS_REGION"
+        echo "📍 Default remote: $(dvc remote default)"
         dvc remote list
     
     - name: 📊 Pull and validate data
@@ -131,7 +133,26 @@ jobs:
         import os
         
         try:
+            # Debug: Show current directory and contents
+            print(f"🔍 Current working directory: {os.getcwd()}")
+            print("📁 Directory contents:")
+            for root, dirs, files in os.walk('.'):
+                if 'data' in root or any('.csv' in f for f in files):
+                    print(f"  {root}: {files}")
+            
             # Check if data files exist and are valid
+            data_raw_path = 'data/raw'
+            if os.path.exists(data_raw_path):
+                print(f"✅ Found data/raw directory")
+                csv_files = [f for f in os.listdir(data_raw_path) if f.endswith('.csv')]
+                print(f"📊 CSV files in data/raw: {csv_files}")
+            else:
+                print(f"❌ data/raw directory not found")
+                # Try to find CSV files anywhere
+                import glob
+                csv_files = glob.glob('**/*.csv', recursive=True)
+                print(f"🔍 CSV files found anywhere: {csv_files}")
+            
             if os.path.exists('data/raw/X.csv'):
                 X = pd.read_csv('data/raw/X.csv')
                 print(f"✅ Features data: {X.shape}")
@@ -144,6 +165,12 @@ jobs:
             
         except Exception as e:
             print(f"❌ Data validation failed: {e}")
+            print("🔍 Available files:")
+            import glob
+            all_files = glob.glob('**/*', recursive=True)
+            relevant_files = [f for f in all_files if any(ext in f for ext in ['.csv', '.dvc', 'data'])]
+            for f in relevant_files[:20]:  # Show first 20 relevant files
+                print(f"  {f}")
             exit(1)
         PYTHON
 
@@ -213,9 +240,20 @@ jobs:
     - name: 🔧 Setup DVC and pull data
       run: |
         dvc remote modify s3-storage region $AWS_REGION
+        dvc remote default s3-storage
         dvc remote list
+        echo "📍 Default remote: $(dvc remote default)"
         dvc pull --verbose --force
-        echo "✅ Data pulled successfully"
+        
+        echo "🔍 Debugging data location..."
+        echo "📁 Current directory structure:"
+        find . -name "*.csv" -type f | head -10
+        echo "📂 Data directory contents:"
+        ls -la data/ || echo "❌ No data directory"
+        ls -la data/raw/ || echo "❌ No data/raw directory"
+        echo "📋 DVC tracked files:"
+        find . -name "*.dvc" -type f
+        echo "✅ Data pull completed"
     
     - name: 🧪 Test MLflow connection
       run: |
