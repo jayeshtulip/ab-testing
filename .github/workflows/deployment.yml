@@ -387,7 +387,7 @@ jobs:
     
     - name: ⚙️ Configure kubectl for EKS
       run: |
-        aws eks update-kubeconfig --region $AWS_REGION --name loan-default-cluster
+        aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
     - name: 🚀 Deploy to production
       timeout-minutes: 20
@@ -481,7 +481,7 @@ jobs:
     
     - name: ⚙️ Configure kubectl
       run: |
-        aws eks update-kubeconfig --region $AWS_REGION --name loan-default-cluster
+        aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
     - name: 🔄 Execute automatic rollback
       env:
