@@ -51,13 +51,18 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: 📦 Install dependencies
+    - name: 📦 Install dependencies with S3 support
       run: |
-        python -m pip install --upgrade pip
-        pip install dvc pandas numpy scikit-learn mlflow boto3
+        python -m pip install --upgrade pip setuptools wheel
+        pip install "dvc[s3]>=3.40.0"
+        pip install pandas numpy scikit-learn mlflow boto3 pyyaml
+        
+        # Verify DVC S3 support
+        python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
+        python -c "import dvc.remote.s3; print('✅ DVC S3 support available')"
     
     - name: ⚙️ Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -67,12 +72,13 @@ jobs:
       run: |
         dvc remote modify s3-storage region $AWS_REGION
         echo "✅ DVC configured for region: $AWS_REGION"
+        dvc remote list
     
     - name: 📊 Pull and validate data
       id: check-data
       run: |
         echo "📥 Pulling latest data from DVC remote..."
-        dvc pull
+        dvc pull --verbose
         
         # Check if data has changed
         DATA_HASH=$(find data/raw -name "*.csv" -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
@@ -132,13 +138,28 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: 📦 Install dependencies
+    - name: 📦 Install dependencies with S3 support
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip setuptools wheel
+        
+        # Install DVC with S3 support first
+        pip install "dvc[s3]>=3.40.0"
+        
+        # Install other dependencies
+        pip install mlflow psycopg2-binary boto3 pandas scikit-learn numpy pyyaml
+        
+        # Install from requirements.txt if exists
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
+        
+        # Verify installations
+        python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
+        python -c "import dvc.remote.s3; print('✅ DVC S3 support available')"
+        python -c "import mlflow; print(f'✅ MLflow: {mlflow.__version__}')"
     
     - name: ⚙️ Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -147,7 +168,8 @@ jobs:
     - name: 🔧 Setup DVC and pull data
       run: |
         dvc remote modify s3-storage region $AWS_REGION
-        dvc pull
+        dvc remote list
+        dvc pull --verbose
         echo "✅ Data pulled successfully"
     
     - name: 🧪 Test MLflow connection
@@ -166,7 +188,7 @@ jobs:
             print(f"✅ MLflow health check: {response.status_code}")
             
             client = mlflow.MlflowClient()
-            experiments = client.list_experiments()
+            experiments = client.search_experiments()
             print(f"✅ MLflow client working - {len(experiments)} experiments found")
             
         except Exception as e:
@@ -184,8 +206,11 @@ jobs:
         echo "📊 Experiment: $EXPERIMENT_NAME"
         echo "📈 Data hash: ${{ needs.validate-data.outputs.data-hash }}"
         
+        # Check DVC status before running
+        dvc status
+        
         # Run DVC pipeline with MLflow tracking
-        dvc repro
+        dvc repro --verbose
         
         echo "✅ DVC pipeline completed"
     
@@ -253,7 +278,7 @@ jobs:
     - name: 🚀 Push DVC changes
       run: |
         echo "📤 Pushing DVC artifacts to remote storage..."
-        dvc push
+        dvc push --verbose
         echo "✅ DVC artifacts pushed successfully"
     
     - name: 📝 Commit DVC changes
