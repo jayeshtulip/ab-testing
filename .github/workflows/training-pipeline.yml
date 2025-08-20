@@ -344,10 +344,39 @@ jobs:
         echo "📊 Experiment: $EXPERIMENT_NAME"
         echo "📈 Data hash: ${{ needs.validate-data.outputs.data-hash }}"
         
-        # Check DVC status before running
+        echo "🔍 Final verification of data files before training..."
+        ls -la data/raw/
+        
+        # Ensure files exist before running DVC pipeline
+        if [ ! -f "data/raw/X.csv" ] || [ ! -f "data/raw/y.csv" ]; then
+          echo "🚨 Data files missing before training, attempting emergency restore..."
+          
+          # Emergency download from S3
+          mkdir -p data/raw
+          aws s3 cp s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data/files/md5/ff/8c6a3cc47877a80bdacf2ac9791eea data/raw/X.csv || echo "Failed to download X.csv"
+          aws s3 cp s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data/files/md5/e0/32cb8f2af0c97f32f1bf2db30dd7be data/raw/y.csv || echo "Failed to download y.csv"
+          
+          echo "📊 Emergency restore results:"
+          ls -la data/raw/
+        fi
+        
+        # Verify files exist and are not empty
+        if [ -f "data/raw/X.csv" ] && [ -s "data/raw/X.csv" ] && [ -f "data/raw/y.csv" ] && [ -s "data/raw/y.csv" ]; then
+          echo "✅ Data files confirmed present and non-empty"
+          echo "📊 X.csv: $(wc -l < data/raw/X.csv) lines, $(wc -c < data/raw/X.csv) bytes"
+          echo "📊 y.csv: $(wc -l < data/raw/y.csv) lines, $(wc -c < data/raw/y.csv) bytes"
+        else
+          echo "❌ Data files still missing or empty, cannot proceed with training"
+          ls -la data/raw/
+          exit 1
+        fi
+        
+        # Check DVC status before running pipeline
+        echo "🔍 DVC status before training:"
         dvc status
         
         # Run DVC pipeline with MLflow tracking
+        echo "🎯 Running DVC pipeline..."
         dvc repro --verbose
         
         echo "✅ DVC pipeline completed"
