@@ -460,7 +460,7 @@ jobs:
     - name: 🚀 Push DVC changes
       run: |
         echo "📤 Pushing DVC artifacts to remote storage..."
-        dvc push --verbose --force
+        dvc push --verbose
         echo "✅ DVC artifacts pushed successfully"
     
     - name: 📝 Commit DVC changes
