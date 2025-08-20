@@ -394,7 +394,7 @@ jobs:
   setup-prometheus:
     runs-on: ubuntu-latest
     needs: [infrastructure-health, model-performance]
-    if: always()
+    if: always()  # Always run, even if monitoring jobs fail
     
     steps:
     - name: 📥 Checkout code
@@ -457,7 +457,7 @@ jobs:
               
               - job_name: 'loan-default-api'
                 static_configs:
-                  - targets: ['loan-default-api-service.loan-default:8001']
+                  - targets: ['loan-default-api-service.loan-default:80']
                 metrics_path: '/metrics'
                 scrape_interval: 30s
         
@@ -549,7 +549,7 @@ jobs:
   setup-grafana:
     runs-on: ubuntu-latest
     needs: setup-prometheus
-    if: always()
+    if: always()  # Always run, even if prometheus setup fails
     
     steps:
     - name: ⚙️ Configure AWS credentials
