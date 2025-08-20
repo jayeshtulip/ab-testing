@@ -8,6 +8,7 @@ on:
       - 'params.yaml'
       - 'dvc.yaml'
       - 'data/raw/**'
+      - '.github/workflows/training-pipeline.yml'
   pull_request:
     branches: [ main ]
     paths:
