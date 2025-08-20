@@ -110,17 +110,55 @@ jobs:
         echo "📥 Pulling latest data from DVC remote..."
         dvc pull --verbose --force
         
-        echo "🔄 Ensuring data files are checked out..."
+        echo "🔍 Debug: Checking DVC status after pull..."
+        dvc status
+        
+        echo "🔄 Forcing checkout of data files..."
         dvc checkout --force
         
-        # Check if data has changed
+        echo "🔍 Debug: Checking directory structure..."
+        ls -la data/ || echo "No data directory"
+        ls -la data/raw/ || echo "No data/raw directory"
+        
+        echo "🔍 Debug: Looking for CSV files anywhere..."
+        find . -name "*.csv" -type f | head -10
+        
+        echo "🔍 Debug: Checking DVC cache..."
+        ls -la .dvc/cache/files/md5/ff/ || echo "No ff cache directory"
+        ls -la .dvc/cache/files/md5/e0/ || echo "No e0 cache directory"
+        
+        echo "🔄 Manually restoring data files from cache..."
+        mkdir -p data/raw
+        
+        # Manual checkout of specific files
+        if [ -f ".dvc/cache/files/md5/ff/8c6a3cc47877a80bdacf2ac9791eea" ]; then
+          cp .dvc/cache/files/md5/ff/8c6a3cc47877a80bdacf2ac9791eea data/raw/X.csv
+          echo "✅ Manually restored X.csv"
+        else
+          echo "❌ X.csv not found in cache"
+        fi
+        
+        if [ -f ".dvc/cache/files/md5/e0/32cb8f2af0c97f32f1bf2db30dd7be" ]; then
+          cp .dvc/cache/files/md5/e0/32cb8f2af0c97f32f1bf2db30dd7be data/raw/y.csv
+          echo "✅ Manually restored y.csv"
+        else
+          echo "❌ y.csv not found in cache"
+        fi
+        
+        echo "🔍 Final verification..."
+        ls -la data/raw/
+        
+        # Check if data files now exist
         if [ -f "data/raw/X.csv" ] && [ -f "data/raw/y.csv" ]; then
+          echo "✅ Data files successfully restored"
+          echo "📊 X.csv size: $(wc -c < data/raw/X.csv) bytes"
+          echo "📊 y.csv size: $(wc -c < data/raw/y.csv) bytes"
+          
           DATA_HASH=$(find data/raw -name "*.csv" -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
           echo "📊 Current data hash: $DATA_HASH"
           echo "hash=$DATA_HASH" >> $GITHUB_OUTPUT
         else
-          echo "❌ Data files not found after DVC pull"
-          ls -la data/raw/ || echo "No data/raw directory"
+          echo "❌ Data files still not found after manual restore"
           exit 1
         fi
         
