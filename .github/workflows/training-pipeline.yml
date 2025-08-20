@@ -110,12 +110,19 @@ jobs:
         echo "📥 Pulling latest data from DVC remote..."
         dvc pull --verbose --force
         
-        # Check if data has changed
-        DATA_HASH=$(find data/raw -name "*.csv" -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
-        echo "📊 Current data hash: $DATA_HASH"
+        echo "🔄 Ensuring data files are checked out..."
+        dvc checkout --force
         
-        # Store hash for comparison
-        echo "hash=$DATA_HASH" >> $GITHUB_OUTPUT
+        # Check if data has changed
+        if [ -f "data/raw/X.csv" ] && [ -f "data/raw/y.csv" ]; then
+          DATA_HASH=$(find data/raw -name "*.csv" -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+          echo "📊 Current data hash: $DATA_HASH"
+          echo "hash=$DATA_HASH" >> $GITHUB_OUTPUT
+        else
+          echo "❌ Data files not found after DVC pull"
+          ls -la data/raw/ || echo "No data/raw directory"
+          exit 1
+        fi
         
         # Check if we should retrain
         force_retrain="${{ github.event.inputs.force_retrain }}"
@@ -243,17 +250,27 @@ jobs:
         dvc remote default s3-storage
         dvc remote list
         echo "📍 Default remote: $(dvc remote default)"
+        
+        echo "📥 Pulling data from DVC remote..."
         dvc pull --verbose --force
         
-        echo "🔍 Debugging data location..."
-        echo "📁 Current directory structure:"
-        find . -name "*.csv" -type f | head -10
-        echo "📂 Data directory contents:"
-        ls -la data/ || echo "❌ No data directory"
+        echo "🔄 Checking out data files..."
+        dvc checkout --force
+        
+        echo "🔍 Verifying data files exist..."
         ls -la data/raw/ || echo "❌ No data/raw directory"
-        echo "📋 DVC tracked files:"
-        find . -name "*.dvc" -type f
-        echo "✅ Data pull completed"
+        if [ -f "data/raw/X.csv" ]; then
+          echo "✅ X.csv found: $(wc -l < data/raw/X.csv) lines"
+        else
+          echo "❌ X.csv not found"
+        fi
+        if [ -f "data/raw/y.csv" ]; then
+          echo "✅ y.csv found: $(wc -l < data/raw/y.csv) lines"
+        else
+          echo "❌ y.csv not found"
+        fi
+        
+        echo "✅ Data setup completed"
     
     - name: 🧪 Test MLflow connection
       run: |
