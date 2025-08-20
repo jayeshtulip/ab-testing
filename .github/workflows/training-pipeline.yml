@@ -335,6 +335,20 @@ jobs:
             exit(1)
         EOF
     
+    - name: 🧹 Clean up Git/DVC conflicts
+      run: |
+        echo "🧹 Cleaning up any Git/DVC tracking conflicts..."
+        
+        # Remove files that should be DVC-only from Git tracking
+        git rm --cached metrics/train_metrics.json || echo "metrics/train_metrics.json not in Git"
+        git rm --cached plots/confusion_matrix.json || echo "confusion_matrix.json not in Git"
+        git rm --cached plots/feature_importance.json || echo "feature_importance.json not in Git"
+        git rm --cached metrics/eval_metrics.json || echo "eval_metrics.json not in Git"
+        git rm --cached plots/roc_curve.json || echo "roc_curve.json not in Git"
+        git rm --cached plots/precision_recall.json || echo "precision_recall.json not in Git"
+        
+        echo "✅ Git tracking conflicts resolved"
+    
     - name: 🤖 Run DVC training pipeline
       env:
         EXPERIMENT_NAME: ${{ github.event.inputs.experiment_name || 'automated-training' }}
