@@ -8,6 +8,7 @@ on:
       - 'params.yaml'
       - 'dvc.yaml'
       - 'data/raw/**'
+      - '.github/workflows/training-pipeline.yml'
   pull_request:
     branches: [ main ]
     paths:
@@ -54,12 +55,27 @@ jobs:
     - name: 📦 Install dependencies with S3 support
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install "dvc[s3]>=3.40.0"
-        pip install pandas numpy scikit-learn mlflow boto3 pyyaml
         
-        # Verify DVC S3 support
+        # Install DVC with all dependencies and S3 support
+        pip install --no-cache-dir "dvc[s3]==3.51.2"
+        pip install --no-cache-dir boto3 botocore s3fs
+        pip install pandas numpy scikit-learn mlflow pyyaml
+        
+        # Verify installations
         python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
-        python -c "import dvc.remote.s3; print('✅ DVC S3 support available')"
+        python -c "import boto3; print(f'✅ Boto3: {boto3.__version__}')"
+        python -c "import s3fs; print('✅ S3FS available')"
+        
+        # Test DVC S3 import specifically
+        python -c "
+        try:
+            from dvc.cli import main as dvc_main
+            import dvc.remote
+            print('✅ DVC remote module available')
+        except ImportError as e:
+            print(f'❌ DVC import error: {e}')
+            exit(1)
+        "
     
     - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -142,21 +158,33 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         
-        # Install DVC with S3 support first
-        pip install "dvc[s3]>=3.40.0"
+        # Install DVC with all S3 dependencies
+        pip install --no-cache-dir "dvc[s3]==3.51.2"
+        pip install --no-cache-dir boto3 botocore s3fs
         
-        # Install other dependencies
-        pip install mlflow psycopg2-binary boto3 pandas scikit-learn numpy pyyaml
+        # Install ML dependencies
+        pip install mlflow psycopg2-binary pandas scikit-learn numpy pyyaml
         
-        # Install from requirements.txt if exists
+        # Install from requirements.txt if exists (but prioritize explicit versions)
         if [ -f requirements.txt ]; then
-          pip install -r requirements.txt
+          pip install -r requirements.txt --upgrade
         fi
         
-        # Verify installations
+        # Verify critical installations
         python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
-        python -c "import dvc.remote.s3; print('✅ DVC S3 support available')"
+        python -c "import boto3; print(f'✅ Boto3: {boto3.__version__}')"
         python -c "import mlflow; print(f'✅ MLflow: {mlflow.__version__}')"
+        
+        # Test DVC functionality
+        python -c "
+        try:
+            import dvc.cli
+            import dvc.remote
+            print('✅ DVC modules available')
+        except ImportError as e:
+            print(f'❌ DVC import error: {e}')
+            exit(1)
+        "
     
     - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
