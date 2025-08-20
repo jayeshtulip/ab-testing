@@ -253,12 +253,13 @@ jobs:
         pip install --no-cache-dir dvc==3.51.2
         pip install --no-cache-dir dvc-s3
         
-        # Install ML dependencies
-        pip install mlflow psycopg2-binary pandas scikit-learn numpy pyyaml
+        # Install ML dependencies including seaborn
+        pip install mlflow psycopg2-binary pandas scikit-learn numpy pyyaml seaborn matplotlib joblib
         
         # Verify core installations
         python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
         python -c "import boto3; print(f'✅ Boto3: {boto3.__version__}')"
+        python -c "import seaborn; print(f'✅ Seaborn: {seaborn.__version__}')"
         
         # Test DVC CLI functionality (more reliable than module imports)
         dvc version
