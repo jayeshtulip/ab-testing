@@ -13,5 +13,3 @@ model_training:
 model_evaluation:
   classification_threshold: 0.5
   metrics: ['accuracy', 'precision', 'recall', 'f1', 'auc']
-
-# Phase 2C pipeline test
