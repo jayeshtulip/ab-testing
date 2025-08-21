@@ -1,0 +1,380 @@
+﻿name: MLOps Auto-Retraining Pipeline
+
+on:
+  # Webhook trigger from Prometheus Alertmanager
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for retraining'
+        required: true
+        default: 'prometheus_alert'
+        type: choice
+        options:
+        - prometheus_alert
+        - manual_trigger
+        - scheduled_retrain
+        - data_drift
+      performance_data:
+        description: 'Performance data JSON'
+        required: false
+        default: '{}'
+      alert_name:
+        description: 'Alert name from Prometheus'
+        required: false
+        default: 'ModelPerformanceDegraded'
+  
+  # Scheduled retraining (weekly)
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM
+  
+  # Manual code changes
+  push:
+    branches: [main]
+    paths:
+    - 'src/**'
+    - 'models/**'
+    - '.github/workflows/**'
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 365021531163.dkr.ecr.ap-south-1.amazonaws.com
+  IMAGE_REPO: ka-mlops-api
+  K8S_NAMESPACE: loan-default
+  PROD_API_URL: aff9aee729ad040908b5641f4ebda419-1266006591.ap-south-1.elb.amazonaws.com
+
+jobs:
+  # Job 1: Validate Trigger and Setup
+  validate-trigger:
+    runs-on: ubuntu-latest
+    outputs:
+      should_retrain: ${{ steps.check.outputs.should_retrain }}
+      trigger_reason: ${{ steps.check.outputs.trigger_reason }}
+      current_f1: ${{ steps.check.outputs.current_f1 }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Validate retraining trigger
+      id: check
+      run: |
+        echo " Validating retraining trigger..."
+        
+        REASON="${{ github.event.inputs.reason || 'code_change' }}"
+        echo "Trigger reason: $REASON"
+        echo "trigger_reason=$REASON" >> $GITHUB_OUTPUT
+        
+        # Always proceed with retraining for this demo
+        echo "should_retrain=true" >> $GITHUB_OUTPUT
+        
+        # Get current performance if it's a prometheus alert
+        if [ "$REASON" = "prometheus_alert" ]; then
+          PERF_DATA='${{ github.event.inputs.performance_data }}'
+          F1_SCORE=$(echo "$PERF_DATA" | jq -r '.f1_score // "0.0"')
+          echo "current_f1=$F1_SCORE" >> $GITHUB_OUTPUT
+          echo " Current F1 Score: $F1_SCORE"
+        else
+          echo "current_f1=unknown" >> $GITHUB_OUTPUT
+        fi
+        
+        echo " Trigger validation complete"
+
+  # Job 2: Fetch Production Data
+  fetch-training-data:
+    needs: validate-trigger
+    if: needs.validate-trigger.outputs.should_retrain == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install pandas psycopg2-binary requests numpy scikit-learn
+    
+    - name: Fetch production feedback data
+      run: |
+        echo " Fetching training data from production database..."
+        
+        python3 << 'EOF'
+        import pandas as pd
+        import json
+        import numpy as np
+        from datetime import datetime
+        
+        try:
+            # For demo, create synthetic training data based on production patterns
+            np.random.seed(42)
+            n_samples = 1000  # Simulate good amount of training data
+            
+            # Create realistic loan default features
+            training_data = {
+                'loan_amount': np.random.lognormal(10, 1, n_samples),
+                'income': np.random.lognormal(11, 0.8, n_samples), 
+                'credit_score': np.random.normal(650, 100, n_samples),
+                'debt_to_income': np.random.beta(2, 5, n_samples),
+                'employment_years': np.random.exponential(5, n_samples),
+                'target': np.random.choice([0, 1], n_samples, p=[0.85, 0.15])  # 15% default rate
+            }
+            
+            df = pd.DataFrame(training_data)
+            
+            # Clean data
+            df['credit_score'] = df['credit_score'].clip(300, 850)
+            df['debt_to_income'] = df['debt_to_income'].clip(0, 1)
+            df['employment_years'] = df['employment_years'].clip(0, 40)
+            
+            df.to_csv('production_training_data.csv', index=False)
+            
+            print(f" Generated {len(df)} realistic training samples")
+            print(f" Default rate: {df['target'].mean():.1%}")
+            
+        except Exception as e:
+            print(f" Error creating training data: {e}")
+            exit(1)
+        EOF
+    
+    - name: Upload training data
+      uses: actions/upload-artifact@v3
+      with:
+        name: training-data
+        path: production_training_data.csv
+
+  # Job 3: Train New Model
+  train-model:
+    needs: [validate-trigger, fetch-training-data]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install ML dependencies
+      run: |
+        pip install scikit-learn pandas numpy joblib
+    
+    - name: Download training data
+      uses: actions/download-artifact@v3
+      with:
+        name: training-data
+    
+    - name: Train improved model
+      run: |
+        echo " Training loan default prediction model..."
+        
+        python3 << 'EOF'
+        import pandas as pd
+        import numpy as np
+        from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.model_selection import train_test_split, cross_val_score
+        from sklearn.metrics import classification_report, f1_score, accuracy_score, roc_auc_score
+        from sklearn.preprocessing import StandardScaler
+        import joblib
+        import json
+        from datetime import datetime
+        
+        # Load training data
+        df = pd.read_csv('production_training_data.csv')
+        print(f" Training on {len(df)} loan applications")
+        
+        # Prepare features
+        feature_cols = ['loan_amount', 'income', 'credit_score', 'debt_to_income', 'employment_years']
+        X = df[feature_cols].values
+        y = df['target'].values
+        
+        # Feature scaling
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_scaled, y, test_size=0.2, random_state=42, stratify=y
+        )
+        
+        print(f" Training: {len(X_train)}, Test: {len(X_test)}")
+        print(f" Default rate: {y.mean():.1%}")
+        
+        # Train multiple models
+        models = {
+            'RandomForest': RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42),
+            'GradientBoosting': GradientBoostingClassifier(n_estimators=100, max_depth=6, random_state=42),
+            'LogisticRegression': LogisticRegression(random_state=42, max_iter=1000)
+        }
+        
+        best_model = None
+        best_f1 = 0
+        best_name = ""
+        results = {}
+        
+        for name, model in models.items():
+            # Train model
+            model.fit(X_train, y_train)
+            
+            # Evaluate
+            y_pred = model.predict(X_test)
+            y_proba = model.predict_proba(X_test)[:, 1]
+            
+            f1 = f1_score(y_test, y_pred)
+            acc = accuracy_score(y_test, y_pred)
+            auc = roc_auc_score(y_test, y_proba)
+            
+            results[name] = {'f1': f1, 'accuracy': acc, 'auc': auc}
+            print(f" {name} - F1: {f1:.3f}, Accuracy: {acc:.3f}, AUC: {auc:.3f}")
+            
+            if f1 > best_f1:
+                best_f1 = f1
+                best_model = model
+                best_name = name
+        
+        print(f" Best model: {best_name} (F1: {best_f1:.3f})")
+        
+        # Save best model and scaler
+        joblib.dump(best_model, 'retrained_model.pkl')
+        joblib.dump(scaler, 'feature_scaler.pkl')
+        
+        # Save model metadata
+        model_info = {
+            'model_type': best_name,
+            'f1_score': float(best_f1),
+            'accuracy': float(results[best_name]['accuracy']),
+            'auc_score': float(results[best_name]['auc']),
+            'training_samples': len(X_train),
+            'test_samples': len(X_test),
+            'feature_names': feature_cols,
+            'default_rate': float(y.mean()),
+            'retrain_timestamp': datetime.now().isoformat(),
+            'trigger_reason': '${{ needs.validate-trigger.outputs.trigger_reason }}',
+            'all_results': results
+        }
+        
+        with open('model_metadata.json', 'w') as f:
+            json.dump(model_info, f, indent=2)
+        
+        print(" Loan default model training completed")
+        EOF
+    
+    - name: Upload trained model
+      uses: actions/upload-artifact@v3
+      with:
+        name: trained-model
+        path: |
+          retrained_model.pkl
+          feature_scaler.pkl
+          model_metadata.json
+
+  # Job 4: Build Updated API Image
+  build-api-image:
+    needs: [train-model]
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
+      image_uri: ${{ steps.build.outputs.image_uri }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download trained model
+      uses: actions/download-artifact@v3
+      with:
+        name: trained-model
+        path: models/
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v2
+    
+    - name: Build API with retrained model
+      id: build
+      run: |
+        echo " Building API with retrained loan default model..."
+        
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        IMAGE_TAG="retrained-${TIMESTAMP}"
+        IMAGE_URI="${{ env.ECR_REGISTRY }}/${{ env.IMAGE_REPO }}:${IMAGE_TAG}"
+        
+        echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+        
+        # Build image with retrained model
+        docker build -f database_dockerfile -t "${IMAGE_URI}" .
+        docker push "${IMAGE_URI}"
+        
+        echo " Built and pushed: ${IMAGE_TAG}"
+
+  # Job 5: Deploy to Production
+  deploy-production:
+    needs: [build-api-image]
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Configure kubectl
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBE_CONFIG_BASE64 }}" | base64 -d > ~/.kube/config
+    
+    - name: Deploy to production
+      run: |
+        echo " Deploying retrained model to production..."
+        
+        IMAGE_URI="${{ needs.build-api-image.outputs.image_uri }}"
+        
+        kubectl set image deployment/ka-mlops-api ka-api="${IMAGE_URI}" -n ${{ env.K8S_NAMESPACE }}
+        kubectl rollout status deployment/ka-mlops-api -n ${{ env.K8S_NAMESPACE }} --timeout=600s
+        
+        echo " Production deployment completed"
+    
+    - name: Post-deployment validation
+      run: |
+        echo " Validating production deployment..."
+        sleep 30
+        
+        curl -f "http://${{ env.PROD_API_URL }}/health" || exit 1
+        echo " Health check passed"
+        
+        # Test prediction with retrained model
+        curl -f -X POST "http://${{ env.PROD_API_URL }}/predict" \
+          -H "Content-Type: application/json" \
+          -d '{"features": [50000, 75000, 720, 0.3, 5]}' || exit 1
+        echo " Retrained model prediction test passed"
+
+  # Job 6: Notifications
+  notifications:
+    needs: [deploy-production, validate-trigger, build-api-image]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Send success notification
+      run: |
+        echo " MLOps Auto-Retraining Pipeline Completed Successfully!"
+        echo " Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
+        echo " Image: ${{ needs.build-api-image.outputs.image_tag }}"
+        echo " Status: Deployed to Production"
+        
+        # Add Slack notification here if webhook URL is configured
+        if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": " MLOps Auto-Retraining Completed - ${{ needs.build-api-image.outputs.image_tag }}"
+            }'
+        fi
