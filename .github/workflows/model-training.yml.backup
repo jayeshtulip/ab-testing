@@ -1,22 +1,3 @@
-﻿# ===========================================
-# DISABLED - REPLACED BY ka_mlops_cicd_fixed.yml
-# ===========================================
-# This workflow has been replaced by the Ka-MLOps pipeline
-# Only keeping for reference - will not run automatically
-# Last disabled: 2025-08-21 07:32:58
-
-on:
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Manual run reason (legacy testing only)'
-        required: false
-        default: 'Legacy testing - use ka_mlops_cicd_fixed.yml instead'
-
-# ==================================================
-# ORIGINAL TRIGGERS DISABLED - COMMENTED OUT BELOW:
-# ==================================================
-
 name: Model Training Pipeline
 
 on:
@@ -38,7 +19,7 @@ env:
 jobs:
   train-model:
     runs-on: ubuntu-latest
-    name: ðŸ¤– Train and Deploy Model
+    name: 🤖 Train and Deploy Model
     
     steps:
     - name: Checkout code
@@ -68,10 +49,10 @@ jobs:
         
     - name: Train Model
       run: |
-        echo "ðŸš€ Starting MLflow tracked training..."
+        echo "🚀 Starting MLflow tracked training..."
         python scripts/train_model_mlflow.py
         
     - name: Deploy Model
       run: |
-        echo "ðŸš€ Deploying trained model..."
+        echo "🚀 Deploying trained model..."
         python scripts/deploy_model.py

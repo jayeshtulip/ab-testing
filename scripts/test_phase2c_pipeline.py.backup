@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Phase 2C Pipeline Test Script - FIXED VERSION
 Tests all components before running the full CI/CD pipeline
@@ -13,7 +13,7 @@ from datetime import datetime
 
 def test_mlflow_connection():
     """Test MLflow server connectivity"""
-    print("ðŸ” Testing MLflow Connection...")
+    print("🔍 Testing MLflow Connection...")
     
     mlflow_uri = "http://ab124afa4840a4f8298398f9c7fd7c7e-306571921.ap-south-1.elb.amazonaws.com"
     
@@ -21,9 +21,9 @@ def test_mlflow_connection():
         # Test health endpoint
         response = requests.get(f"{mlflow_uri}/health", timeout=10)
         if response.status_code == 200:
-            print("âœ… MLflow health endpoint accessible")
+            print("✅ MLflow health endpoint accessible")
         else:
-            print(f"âš ï¸  MLflow health returned: {response.status_code}")
+            print(f"⚠️  MLflow health returned: {response.status_code}")
         
         # Test with MLflow client - FIXED API CALLS
         import mlflow
@@ -33,36 +33,36 @@ def test_mlflow_connection():
         # Use correct method name
         try:
             experiments = client.search_experiments()  # Fixed: was list_experiments()
-            print(f"âœ… MLflow client working - found {len(experiments)} experiments")
+            print(f"✅ MLflow client working - found {len(experiments)} experiments")
         except AttributeError:
             # Fallback for older MLflow versions
             experiments = client.list_experiments()
-            print(f"âœ… MLflow client working - found {len(experiments)} experiments")
+            print(f"✅ MLflow client working - found {len(experiments)} experiments")
         
         # Check for existing models
         try:
             models = client.search_registered_models()
-            print(f"âœ… Found {len(models)} registered models")
+            print(f"✅ Found {len(models)} registered models")
             
             # Check for loan-default-model specifically
             loan_models = [m for m in models if "loan-default-model" in m.name]
             if loan_models:
-                print(f"âœ… Found loan-default-model with {len(loan_models[0].latest_versions)} versions")
+                print(f"✅ Found loan-default-model with {len(loan_models[0].latest_versions)} versions")
             else:
-                print("âš ï¸  loan-default-model not found - will be created during training")
+                print("⚠️  loan-default-model not found - will be created during training")
                 
         except Exception as e:
-            print(f"âš ï¸  Could not check models: {e}")
+            print(f"⚠️  Could not check models: {e}")
         
         return True
         
     except Exception as e:
-        print(f"âŒ MLflow connection failed: {e}")
+        print(f"❌ MLflow connection failed: {e}")
         return False
 
 def test_aws_credentials():
     """Test AWS credentials and access"""
-    print("\nðŸ” Testing AWS Credentials...")
+    print("\n🔍 Testing AWS Credentials...")
     
     try:
         import boto3
@@ -70,7 +70,7 @@ def test_aws_credentials():
         # Test ECR access
         ecr_client = boto3.client('ecr', region_name='ap-south-1')
         repos = ecr_client.describe_repositories()
-        print(f"âœ… ECR accessible - found {len(repos['repositories'])} repositories")
+        print(f"✅ ECR accessible - found {len(repos['repositories'])} repositories")
         
         # Check for our specific repository
         our_repo = None
@@ -80,24 +80,24 @@ def test_aws_credentials():
                 break
         
         if our_repo:
-            print(f"âœ… Found loan-default-api repository: {our_repo['repositoryUri']}")
+            print(f"✅ Found loan-default-api repository: {our_repo['repositoryUri']}")
         else:
-            print("âš ï¸  loan-default-api repository not found")
+            print("⚠️  loan-default-api repository not found")
         
         # Test S3 access
         s3_client = boto3.client('s3', region_name='ap-south-1')
         buckets = s3_client.list_buckets()
-        print(f"âœ… S3 accessible - found {len(buckets['Buckets'])} buckets")
+        print(f"✅ S3 accessible - found {len(buckets['Buckets'])} buckets")
         
         return True
         
     except Exception as e:
-        print(f"âŒ AWS access failed: {e}")
+        print(f"❌ AWS access failed: {e}")
         return False
 
 def test_kubernetes_connection():
     """Test Kubernetes cluster access"""
-    print("\nðŸ” Testing Kubernetes Access...")
+    print("\n🔍 Testing Kubernetes Access...")
     
     try:
         # Test kubectl command
@@ -105,50 +105,50 @@ def test_kubernetes_connection():
                               capture_output=True, text=True, timeout=30)
         
         if result.returncode == 0:
-            print("âœ… kubectl working - cluster accessible")
+            print("✅ kubectl working - cluster accessible")
             
             # Check namespaces
             result = subprocess.run(['kubectl', 'get', 'ns'], 
                                   capture_output=True, text=True, timeout=10)
             if 'loan-default' in result.stdout:
-                print("âœ… loan-default namespace found")
+                print("✅ loan-default namespace found")
             else:
-                print("âš ï¸  loan-default namespace not found - will be created")
+                print("⚠️  loan-default namespace not found - will be created")
             
             # Check deployments
             result = subprocess.run(['kubectl', 'get', 'deployment', '-n', 'loan-default'], 
                                   capture_output=True, text=True, timeout=10)
             if 'loan-default-api' in result.stdout:
-                print("âœ… loan-default-api deployment found")
+                print("✅ loan-default-api deployment found")
             else:
-                print("âš ï¸  loan-default-api deployment not found")
+                print("⚠️  loan-default-api deployment not found")
             
             return True
         else:
-            print(f"âŒ kubectl failed: {result.stderr}")
+            print(f"❌ kubectl failed: {result.stderr}")
             return False
             
     except subprocess.TimeoutExpired:
-        print("âŒ kubectl command timed out")
+        print("❌ kubectl command timed out")
         return False
     except FileNotFoundError:
-        print("âŒ kubectl not found - please install kubectl")
+        print("❌ kubectl not found - please install kubectl")
         return False
     except Exception as e:
-        print(f"âŒ Kubernetes test failed: {e}")
+        print(f"❌ Kubernetes test failed: {e}")
         return False
 
 def test_validation_script():
     """Test the model validation script"""
-    print("\nðŸ” Testing Model Validation Script...")
+    print("\n🔍 Testing Model Validation Script...")
     
     try:
         # Check if validation script exists
         if not os.path.exists('scripts/validate_model.py'):
-            print("âŒ scripts/validate_model.py not found")
+            print("❌ scripts/validate_model.py not found")
             return False
         
-        print("âœ… Validation script found")
+        print("✅ Validation script found")
         
         # Try to import and test
         sys.path.append('scripts')
@@ -159,69 +159,69 @@ def test_validation_script():
         # Test dry run (import only)
         try:
             import validate_model
-            print("âœ… Validation script imports successfully")
+            print("✅ Validation script imports successfully")
             
             # Test validator initialization
             validator = validate_model.ModelValidator()
             if validator.test_mlflow_connection():
-                print("âœ… Validator can connect to MLflow")
+                print("✅ Validator can connect to MLflow")
             else:
-                print("âš ï¸  Validator connection issue (but script works)")
+                print("⚠️  Validator connection issue (but script works)")
             
             return True
             
         except Exception as e:
-            print(f"âŒ Validation script test failed: {e}")
+            print(f"❌ Validation script test failed: {e}")
             return False
             
     except Exception as e:
-        print(f"âŒ Validation script error: {e}")
+        print(f"❌ Validation script error: {e}")
         return False
 
 def test_dvc_setup():
     """Test DVC configuration"""
-    print("\nðŸ” Testing DVC Setup...")
+    print("\n🔍 Testing DVC Setup...")
     
     try:
         # Check if DVC is configured
         if os.path.exists('.dvc'):
-            print("âœ… DVC initialized")
+            print("✅ DVC initialized")
             
             # Check DVC config
             result = subprocess.run(['dvc', 'remote', 'list'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
-                print("âœ… DVC remotes configured")
+                print("✅ DVC remotes configured")
                 print(f"   Remotes: {result.stdout.strip()}")
             else:
-                print("âš ï¸  No DVC remotes configured")
+                print("⚠️  No DVC remotes configured")
             
             # Check if dvc.yaml exists
             if os.path.exists('dvc.yaml'):
-                print("âœ… DVC pipeline configuration found")
+                print("✅ DVC pipeline configuration found")
             else:
-                print("âš ï¸  dvc.yaml not found")
+                print("⚠️  dvc.yaml not found")
             
             return True
         else:
-            print("âš ï¸  DVC not initialized")
+            print("⚠️  DVC not initialized")
             return False
             
     except FileNotFoundError:
-        print("âŒ DVC not installed")
+        print("❌ DVC not installed")
         return False
     except Exception as e:
-        print(f"âŒ DVC test failed: {e}")
+        print(f"❌ DVC test failed: {e}")
         return False
 
 def test_github_workflows():
     """Test GitHub workflow files - FIXED ENCODING"""
-    print("\nðŸ” Testing GitHub Workflow Files...")
+    print("\n🔍 Testing GitHub Workflow Files...")
     
     workflows_dir = '.github/workflows'
     required_workflows = [
         'deployment.yml',
-        # 'training-pipeline.yml',  # DISABLED
+        'training-pipeline.yml',
         'model-training.yml',
         'monitoring.yml',
         'testing-quality.yml'
@@ -230,13 +230,13 @@ def test_github_workflows():
     all_good = True
     
     if not os.path.exists(workflows_dir):
-        print("âŒ .github/workflows directory not found")
+        print("❌ .github/workflows directory not found")
         return False
     
     for workflow in required_workflows:
         workflow_path = os.path.join(workflows_dir, workflow)
         if os.path.exists(workflow_path):
-            print(f"âœ… {workflow} found")
+            print(f"✅ {workflow} found")
             
             # Basic validation - check for required sections with proper encoding
             try:
@@ -244,21 +244,21 @@ def test_github_workflows():
                     content = f.read()
                     
                 if 'MLFLOW_TRACKING_URI' in content:
-                    print(f"   âœ… MLflow URI configured in {workflow}")
+                    print(f"   ✅ MLflow URI configured in {workflow}")
                 else:
-                    print(f"   âš ï¸  MLflow URI not found in {workflow}")
+                    print(f"   ⚠️  MLflow URI not found in {workflow}")
             except Exception as e:
-                print(f"   âš ï¸  Could not read {workflow}: {e}")
+                print(f"   ⚠️  Could not read {workflow}: {e}")
                 
         else:
-            print(f"âŒ {workflow} not found")
+            print(f"❌ {workflow} not found")
             all_good = False
     
     return all_good
 
 def run_comprehensive_test():
     """Run all tests and provide summary"""
-    print("ðŸš€ Phase 2C Pipeline Comprehensive Test")
+    print("🚀 Phase 2C Pipeline Comprehensive Test")
     print("=" * 50)
     
     tests = [
@@ -276,19 +276,19 @@ def run_comprehensive_test():
         try:
             results[test_name] = test_func()
         except Exception as e:
-            print(f"\nâŒ {test_name} test crashed: {e}")
+            print(f"\n❌ {test_name} test crashed: {e}")
             results[test_name] = False
     
     # Summary
     print("\n" + "=" * 50)
-    print("ðŸ“Š Test Results Summary:")
+    print("📊 Test Results Summary:")
     print("=" * 50)
     
     passed = 0
     total = len(results)
     
     for test_name, result in results.items():
-        status = "âœ… PASS" if result else "âŒ FAIL"
+        status = "✅ PASS" if result else "❌ FAIL"
         print(f"   {test_name:20s}: {status}")
         if result:
             passed += 1
@@ -301,8 +301,8 @@ def run_comprehensive_test():
     critical_total = len(critical_tests)
     
     if critical_passed >= critical_total - 1:  # Allow 1 critical test to fail
-        print("\nðŸŽ‰ SUFFICIENT TESTS PASSED! Phase 2C is ready to deploy!")
-        print("\nðŸ“‹ Next Steps:")
+        print("\n🎉 SUFFICIENT TESTS PASSED! Phase 2C is ready to deploy!")
+        print("\n📋 Next Steps:")
         print("   1. Commit and push your changes:")
         print("      git add .")
         print("      git commit -m 'Complete Phase 2C: Model Validation Pipeline'")
@@ -313,14 +313,14 @@ def run_comprehensive_test():
         print("      gh workflow run \"Model Deployment\" -f environment=staging")
         
         if not results.get("MLflow Connection", False):
-            print("\nâš ï¸  Note: MLflow connection test failed, but this is often due to API version differences.")
+            print("\n⚠️  Note: MLflow connection test failed, but this is often due to API version differences.")
             print("   The actual pipeline should work fine with the workflow YAML configuration.")
         
         return True
     else:
-        print(f"\nâš ï¸  Too many critical tests failed. Please fix issues before proceeding.")
+        print(f"\n⚠️  Too many critical tests failed. Please fix issues before proceeding.")
         print(f"   Critical tests passed: {critical_passed}/{critical_total}")
-        print("\nðŸ”§ Common fixes:")
+        print("\n🔧 Common fixes:")
         print("   - Ensure AWS credentials are configured")
         print("   - Verify kubectl is configured for your EKS cluster")
         print("   - Check that all workflow files are in place")

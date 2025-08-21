@@ -1,22 +1,3 @@
-﻿# ===========================================
-# DISABLED - REPLACED BY ka_mlops_cicd_fixed.yml
-# ===========================================
-# This workflow has been replaced by the Ka-MLOps pipeline
-# Only keeping for reference - will not run automatically
-# Last disabled: 2025-08-21 07:32:58
-
-on:
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Manual run reason (legacy testing only)'
-        required: false
-        default: 'Legacy testing - use ka_mlops_cicd_fixed.yml instead'
-
-# ==================================================
-# ORIGINAL TRIGGERS DISABLED - COMMENTED OUT BELOW:
-# ==================================================
-
 name: Model Deployment
 
 on:
@@ -54,18 +35,18 @@ jobs:
       should-deploy: ${{ steps.check.outputs.deploy }}
       branch-name: ${{ steps.check.outputs.branch }}
     steps:
-    - name: ðŸ“‹ Check trigger conditions
+    - name: 📋 Check trigger conditions
       id: check
       run: |
         echo "Event name: ${{ github.event_name }}"
         
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "âœ… Manual trigger - proceeding with deployment"
+          echo "✅ Manual trigger - proceeding with deployment"
           echo "deploy=true" >> $GITHUB_OUTPUT
           echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           
         elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-          echo "ðŸ” Checking workflow_run trigger..."
+          echo "🔍 Checking workflow_run trigger..."
           echo "Workflow conclusion: ${{ github.event.workflow_run.conclusion }}"
           echo "Source branch: ${{ github.event.workflow_run.head_branch }}"
           echo "Source repository: ${{ github.event.workflow_run.head_repository.full_name }}"
@@ -76,23 +57,23 @@ jobs:
             if [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
               # Check if it's from the same repository (not a fork)
               if [[ "${{ github.event.workflow_run.head_repository.full_name }}" == "${{ github.repository }}" ]]; then
-                echo "âœ… All conditions met - proceeding with deployment"
+                echo "✅ All conditions met - proceeding with deployment"
                 echo "deploy=true" >> $GITHUB_OUTPUT
                 echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
               else
-                echo "âŒ Skipping - triggered from fork repository"
+                echo "❌ Skipping - triggered from fork repository"
                 echo "deploy=false" >> $GITHUB_OUTPUT
               fi
             else
-              echo "âŒ Skipping - not from main branch (was: ${{ github.event.workflow_run.head_branch }})"
+              echo "❌ Skipping - not from main branch (was: ${{ github.event.workflow_run.head_branch }})"
               echo "deploy=false" >> $GITHUB_OUTPUT
             fi
           else
-            echo "âŒ Skipping - training pipeline did not succeed"
+            echo "❌ Skipping - training pipeline did not succeed"
             echo "deploy=false" >> $GITHUB_OUTPUT
           fi
         else
-          echo "âŒ Unknown trigger event"
+          echo "❌ Unknown trigger event"
           echo "deploy=false" >> $GITHUB_OUTPUT
         fi
 
@@ -107,20 +88,20 @@ jobs:
       model-metrics: ${{ steps.validation.outputs.metrics }}
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install MLflow dependencies
+    - name: 📦 Install MLflow dependencies
       run: |
         pip install mlflow boto3 requests pandas scikit-learn numpy
     
-    - name: ðŸ” Get latest model from MLflow
+    - name: 🔍 Get latest model from MLflow
       id: get-model
       run: |
         python << 'EOF'
@@ -139,7 +120,7 @@ jobs:
                     models = client.get_latest_versions(model_name, stages=[stage])
                     if models:
                         model = models[0]
-                        print(f"âœ… Found {stage} model: v{model.version}")
+                        print(f"✅ Found {stage} model: v{model.version}")
                         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                             f.write(f"version={model.version}\n")
                             f.write(f"run_id={model.run_id}\n")
@@ -150,11 +131,11 @@ jobs:
                 raise Exception("No model versions found")
                 
         except Exception as e:
-            print(f"âŒ Error getting model: {e}")
+            print(f"❌ Error getting model: {e}")
             sys.exit(1)
         EOF
     
-    - name: âœ… Validate Model Performance - PHASE 2C QUALITY GATES
+    - name: ✅ Validate Model Performance - PHASE 2C QUALITY GATES
       id: validation
       run: |
         python << 'EOF'
@@ -172,7 +153,7 @@ jobs:
         force_deploy = "${{ github.event.inputs.force_deploy }}" == "true"
         
         if force_deploy:
-            print("ðŸš¨ Force deployment enabled - skipping validation gates")
+            print("🚨 Force deployment enabled - skipping validation gates")
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write("valid=true\n")
                 f.write("metrics={}\n")
@@ -185,7 +166,7 @@ jobs:
             model_version = "${{ steps.get-model.outputs.version }}"
             run_id = "${{ steps.get-model.outputs.run_id }}"
             
-            print(f"ðŸ” Validating model version {model_version}")
+            print(f"🔍 Validating model version {model_version}")
             
             # Get model metrics from training run
             run = client.get_run(run_id)
@@ -196,7 +177,7 @@ jobs:
             precision = metrics.get('precision', 0)
             recall = metrics.get('recall', 0)
             
-            print(f"ðŸ“Š Model Performance Metrics:")
+            print(f"📊 Model Performance Metrics:")
             print(f"   Accuracy:  {accuracy:.4f} (min: {MIN_ACCURACY})")
             print(f"   F1-Score:  {f1_score:.4f} (min: {MIN_F1})")
             print(f"   Precision: {precision:.4f} (min: {MIN_PRECISION})")
@@ -218,15 +199,15 @@ jobs:
             
             if core_passed:
                 status = "EXCELLENT" if all_passed else "GOOD"
-                print(f"âœ… Model validation PASSED - {status}")
-                print(f"ðŸš€ Model ready for deployment")
+                print(f"✅ Model validation PASSED - {status}")
+                print(f"🚀 Model ready for deployment")
                 
                 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                     f.write("valid=true\n")
                     f.write(f"metrics={json.dumps(metrics_summary)}\n")
             else:
-                print(f"âŒ Model validation FAILED")
-                print(f"ðŸš« Deployment blocked - Core metrics below thresholds")
+                print(f"❌ Model validation FAILED")
+                print(f"🚫 Deployment blocked - Core metrics below thresholds")
                 
                 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                     f.write("valid=false\n")
@@ -234,7 +215,7 @@ jobs:
                 sys.exit(1)
                 
         except Exception as e:
-            print(f"ðŸ’¥ Validation error: {e}")
+            print(f"💥 Validation error: {e}")
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write("valid=false\n")
             sys.exit(1)
@@ -249,25 +230,25 @@ jobs:
     timeout-minutes: 20
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ” Login to Amazon ECR
+    - name: 🔐 Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v1
     
-    - name: ðŸ—ï¸ Build and push Docker image
+    - name: 🏗️ Build and push Docker image
       env:
         IMAGE_TAG: ${{ github.sha }}
         MODEL_VERSION: ${{ needs.validate-model.outputs.model-version }}
       run: |
-        echo "ðŸš€ Building image with validated model v$MODEL_VERSION"
+        echo "🚀 Building image with validated model v$MODEL_VERSION"
         
         docker build \
           --build-arg MODEL_VERSION=$MODEL_VERSION \
@@ -279,25 +260,25 @@ jobs:
         docker push $ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REPOSITORY:staging-latest
         
-        echo "âœ… Image pushed successfully"
+        echo "✅ Image pushed successfully"
     
-    - name: ðŸ”§ Setup kubectl
+    - name: 🔧 Setup kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
     
-    - name: âš™ï¸ Configure kubectl for EKS
+    - name: ⚙️ Configure kubectl for EKS
       run: |
         aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
-    - name: ðŸš€ Deploy to staging environment
+    - name: 🚀 Deploy to staging environment
       timeout-minutes: 15
       env:
         IMAGE_TAG: ${{ github.sha }}
         NAMESPACE: loan-default-staging
         MODEL_VERSION: ${{ needs.validate-model.outputs.model-version }}
       run: |
-        echo "ðŸŽ¯ Deploying validated model to staging"
+        echo "🎯 Deploying validated model to staging"
         
         # Ensure namespace exists
         kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
@@ -313,20 +294,20 @@ jobs:
           -p '{"spec":{"template":{"metadata":{"labels":{"model-version":"'$MODEL_VERSION'","validation-status":"passed"}}}}}'
         
         # Wait for rollout - EXTENDED TIMEOUT
-        echo "â³ Waiting for deployment rollout..."
+        echo "⏳ Waiting for deployment rollout..."
         kubectl rollout status deployment/loan-default-api \
           -n $NAMESPACE \
           --timeout=600s
         
         kubectl get pods -l app=loan-default-api -n $NAMESPACE
-        echo "âœ… Staging deployment completed"
+        echo "✅ Staging deployment completed"
     
-    - name: ðŸ§ª Run staging validation tests
+    - name: 🧪 Run staging validation tests
       timeout-minutes: 5
       env:
         NAMESPACE: loan-default-staging
       run: |
-        echo "ðŸ” Running staging validation tests"
+        echo "🔍 Running staging validation tests"
         
         # Wait for pods to be ready
         kubectl wait --for=condition=ready pod \
@@ -342,9 +323,9 @@ jobs:
         # Test health endpoint
         echo "Testing health endpoint..."
         if curl -f -s http://localhost:8080/health; then
-          echo "âœ… Health check passed"
+          echo "✅ Health check passed"
         else
-          echo "âŒ Health check failed"
+          echo "❌ Health check failed"
           kill $PF_PID 2>/dev/null || true
           exit 1
         fi
@@ -354,15 +335,15 @@ jobs:
         if curl -f -s -X POST http://localhost:8080/predict \
           -H "Content-Type: application/json" \
           -d '{"features": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]}'; then
-          echo "âœ… Prediction test passed"
+          echo "✅ Prediction test passed"
         else
-          echo "âŒ Prediction test failed"
+          echo "❌ Prediction test failed"
           kill $PF_PID 2>/dev/null || true
           exit 1
         fi
         
         kill $PF_PID 2>/dev/null || true
-        echo "ðŸŽ‰ All staging tests passed"
+        echo "🎉 All staging tests passed"
 
   # DEPLOY TO PRODUCTION (Manual only)
   deploy-production:
@@ -373,24 +354,24 @@ jobs:
     timeout-minutes: 25
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ” Login to Amazon ECR
+    - name: 🔐 Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v1
     
-    - name: ðŸ·ï¸ Promote staging image to production
+    - name: 🏷️ Promote staging image to production
       env:
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        echo "ðŸ·ï¸ Promoting validated staging image to production"
+        echo "🏷️ Promoting validated staging image to production"
         
         docker pull $ECR_REPOSITORY:$IMAGE_TAG
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REPOSITORY:production-latest
@@ -399,24 +380,24 @@ jobs:
         docker push $ECR_REPOSITORY:production-latest
         docker push $ECR_REPOSITORY:prod-${{ github.sha }}
     
-    - name: ðŸ”§ Setup kubectl
+    - name: 🔧 Setup kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
     
-    - name: âš™ï¸ Configure kubectl for EKS
+    - name: ⚙️ Configure kubectl for EKS
       run: |
         aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
-    - name: ðŸš€ Deploy to production
+    - name: 🚀 Deploy to production
       timeout-minutes: 20
       env:
         IMAGE_TAG: ${{ github.sha }}
         NAMESPACE: loan-default
         MODEL_VERSION: ${{ needs.validate-model.outputs.model-version }}
       run: |
-        echo "ðŸŽ¯ Deploying validated model to PRODUCTION"
-        echo "ðŸ“Š Model metrics: ${{ needs.validate-model.outputs.model-metrics }}"
+        echo "🎯 Deploying validated model to PRODUCTION"
+        echo "📊 Model metrics: ${{ needs.validate-model.outputs.model-metrics }}"
         
         # Update deployment
         kubectl set image deployment/loan-default-api \
@@ -433,7 +414,7 @@ jobs:
           }}}}}'
         
         # Wait for rollout - EXTENDED TIMEOUT FOR PRODUCTION
-        echo "â³ Waiting for production rollout..."
+        echo "⏳ Waiting for production rollout..."
         kubectl rollout status deployment/loan-default-api \
           -n $NAMESPACE \
           --timeout=900s
@@ -444,14 +425,14 @@ jobs:
           --timeout=300s
         
         kubectl get pods -l app=loan-default-api -n $NAMESPACE
-        echo "âœ… Production deployment completed"
+        echo "✅ Production deployment completed"
     
-    - name: ðŸ©º Production health verification
+    - name: 🩺 Production health verification
       timeout-minutes: 10
       env:
         NAMESPACE: loan-default
       run: |
-        echo "ðŸ©º Running production health verification"
+        echo "🩺 Running production health verification"
         
         # Extended health checks for production
         for attempt in {1..5}; do
@@ -462,21 +443,21 @@ jobs:
           sleep 5
           
           if curl -f -s http://localhost:8080/health; then
-            echo "âœ… Production health check passed"
+            echo "✅ Production health check passed"
             kill $PF_PID 2>/dev/null || true
             break
           else
-            echo "âŒ Health check failed, retrying..."
+            echo "❌ Health check failed, retrying..."
             kill $PF_PID 2>/dev/null || true
             if [ $attempt -eq 5 ]; then
-              echo "ðŸ’¥ All production health checks failed"
+              echo "💥 All production health checks failed"
               exit 1
             fi
             sleep 10
           fi
         done
         
-        echo "ðŸŽ‰ Production deployment verified!"
+        echo "🎉 Production deployment verified!"
 
   # AUTOMATIC ROLLBACK ON FAILURE
   rollback:
@@ -486,35 +467,35 @@ jobs:
     timeout-minutes: 10
     
     steps:
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ”§ Setup kubectl
+    - name: 🔧 Setup kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
     
-    - name: âš™ï¸ Configure kubectl
+    - name: ⚙️ Configure kubectl
       run: |
         aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
-    - name: ðŸ”„ Execute automatic rollback
+    - name: 🔄 Execute automatic rollback
       env:
         NAMESPACE: ${{ github.event.inputs.environment == 'production' && 'loan-default' || 'loan-default-staging' }}
       run: |
-        echo "ðŸš¨ Deployment failed - initiating automatic rollback"
+        echo "🚨 Deployment failed - initiating automatic rollback"
         
         kubectl rollout undo deployment/loan-default-api -n $NAMESPACE
         
-        echo "â³ Waiting for rollback to complete..."
+        echo "⏳ Waiting for rollback to complete..."
         kubectl rollout status deployment/loan-default-api -n $NAMESPACE --timeout=300s
         
         kubectl get pods -l app=loan-default-api -n $NAMESPACE
-        echo "âœ… Rollback completed successfully"
+        echo "✅ Rollback completed successfully"
 
   # NOTIFICATIONS
   notify:
@@ -523,41 +504,40 @@ jobs:
     if: always()
     
     steps:
-    - name: ðŸ“Š Determine pipeline status
+    - name: 📊 Determine pipeline status
       id: status
       run: |
         if [[ "${{ needs.check-trigger.outputs.should-deploy }}" == "false" ]]; then
           echo "status=skipped" >> $GITHUB_OUTPUT
-          echo "message=â­ï¸ Deployment skipped - conditions not met" >> $GITHUB_OUTPUT
+          echo "message=⏭️ Deployment skipped - conditions not met" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.validate-model.result }}" == "failure" ]]; then
           echo "status=validation_failed" >> $GITHUB_OUTPUT
-          echo "message=âŒ Model validation failed - deployment blocked" >> $GITHUB_OUTPUT
+          echo "message=❌ Model validation failed - deployment blocked" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.deploy-staging.result }}" == "failure" ]]; then
           echo "status=staging_failed" >> $GITHUB_OUTPUT  
-          echo "message=âŒ Staging deployment failed" >> $GITHUB_OUTPUT
+          echo "message=❌ Staging deployment failed" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.deploy-production.result }}" == "failure" ]]; then
           echo "status=production_failed" >> $GITHUB_OUTPUT
-          echo "message=âŒ Production deployment failed" >> $GITHUB_OUTPUT
+          echo "message=❌ Production deployment failed" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.rollback.result }}" == "success" ]]; then
           echo "status=rolled_back" >> $GITHUB_OUTPUT
-          echo "message=ðŸ”„ Deployment failed but rollback successful" >> $GITHUB_OUTPUT
+          echo "message=🔄 Deployment failed but rollback successful" >> $GITHUB_OUTPUT
         elif [[ "${{ github.event.inputs.environment }}" == "production" && "${{ needs.deploy-production.result }}" == "success" ]]; then
           echo "status=production_success" >> $GITHUB_OUTPUT
-          echo "message=ðŸŽ‰ Production deployment successful" >> $GITHUB_OUTPUT
+          echo "message=🎉 Production deployment successful" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
           echo "status=staging_success" >> $GITHUB_OUTPUT
-          echo "message=âœ… Staging deployment successful" >> $GITHUB_OUTPUT
+          echo "message=✅ Staging deployment successful" >> $GITHUB_OUTPUT
         else
           echo "status=unknown" >> $GITHUB_OUTPUT
-          echo "message=â“ Pipeline completed with unknown status" >> $GITHUB_OUTPUT
+          echo "message=❓ Pipeline completed with unknown status" >> $GITHUB_OUTPUT
         fi
     
-    - name: ðŸ“¢ Send deployment notification
+    - name: 📢 Send deployment notification
       run: |
-        echo "ðŸ“¢ Deployment Status: ${{ steps.status.outputs.message }}"
-        echo "ðŸŽ¯ Environment: ${{ github.event.inputs.environment || 'staging' }}"
-        echo "ðŸ“¦ Model Version: ${{ needs.validate-model.outputs.model-version }}"
-        echo "ðŸ“Š Model Metrics: ${{ needs.validate-model.outputs.model-metrics }}"
-        echo "ðŸ‘¤ Triggered by: ${{ github.actor }}"
-        echo "ðŸ”— Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
+        echo "📢 Deployment Status: ${{ steps.status.outputs.message }}"
+        echo "🎯 Environment: ${{ github.event.inputs.environment || 'staging' }}"
+        echo "📦 Model Version: ${{ needs.validate-model.outputs.model-version }}"
+        echo "📊 Model Metrics: ${{ needs.validate-model.outputs.model-metrics }}"
+        echo "👤 Triggered by: ${{ github.actor }}"
+        echo "🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"

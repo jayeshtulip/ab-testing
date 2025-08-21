@@ -1,3 +1,22 @@
+﻿# ===========================================
+# DISABLED - REPLACED BY ka_mlops_cicd_fixed.yml
+# ===========================================
+# This workflow has been replaced by the Ka-MLOps pipeline
+# Only keeping for reference - will not run automatically
+# Last disabled: 2025-08-21 07:32:58
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Manual run reason (legacy testing only)'
+        required: false
+        default: 'Legacy testing - use ka_mlops_cicd_fixed.yml instead'
+
+# ==================================================
+# ORIGINAL TRIGGERS DISABLED - COMMENTED OUT BELOW:
+# ==================================================
+
 name: Testing & Quality
 
 on:
@@ -17,16 +36,16 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: 📥 Checkout code
+    - name: ðŸ“¥ Checkout code
       uses: actions/checkout@v4
     
-    - name: 🐍 Set up Python
+    - name: ðŸ Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: 📦 Install dependencies
+    - name: ðŸ“¦ Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -34,6 +53,7 @@ jobs:
     
     - name: Placeholder Testing Step
       run: |
-        echo "🚧 This is a placeholder testing workflow"
-        echo "📋 Replace this file with the complete Testing & Quality Workflow content"
-        echo "💡 Running basic quality checks..."
+        echo "ðŸš§ This is a placeholder testing workflow"
+        echo "ðŸ“‹ Replace this file with the complete Testing & Quality Workflow content"
+        echo "ðŸ’¡ Running basic quality checks..."
+

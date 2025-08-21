@@ -1,22 +1,3 @@
-﻿# ===========================================
-# DISABLED - REPLACED BY ka_mlops_cicd_fixed.yml
-# ===========================================
-# This workflow has been replaced by the Ka-MLOps pipeline
-# Only keeping for reference - will not run automatically
-# Last disabled: 2025-08-21 07:32:58
-
-on:
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Manual run reason (legacy testing only)'
-        required: false
-        default: 'Legacy testing - use ka_mlops_cicd_fixed.yml instead'
-
-# ==================================================
-# ORIGINAL TRIGGERS DISABLED - COMMENTED OUT BELOW:
-# ==================================================
-
 name: Model Monitoring
 
 on:
@@ -60,36 +41,36 @@ jobs:
       pod-metrics: ${{ steps.health.outputs.metrics }}
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install monitoring dependencies
+    - name: 📦 Install monitoring dependencies
       run: |
         pip install requests pandas numpy prometheus-client boto3 psutil
     
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ”§ Setup kubectl
+    - name: 🔧 Setup kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
     
-    - name: âš™ï¸ Configure kubectl for EKS
+    - name: ⚙️ Configure kubectl for EKS
       run: |
         aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
-    - name: ðŸ©º Check infrastructure health
+    - name: 🩺 Check infrastructure health
       id: health
       env:
         NAMESPACE: ${{ github.event.inputs.environment == 'staging' && 'loan-default-staging' || 'loan-default' }}
@@ -102,7 +83,7 @@ jobs:
         from datetime import datetime
         
         namespace = os.environ['NAMESPACE']
-        print(f"ðŸ” Monitoring infrastructure health for {namespace}")
+        print(f"🔍 Monitoring infrastructure health for {namespace}")
         
         # Check pod health
         try:
@@ -175,10 +156,10 @@ jobs:
             health_percentage = (healthy_pods / total_pods * 100) if total_pods > 0 else 0
             overall_healthy = health_percentage >= 66 and service_healthy  # At least 2/3 pods healthy
             
-            print(f"ðŸ“Š Infrastructure Health Report:")
+            print(f"📊 Infrastructure Health Report:")
             print(f"   Healthy Pods: {healthy_pods}/{total_pods} ({health_percentage:.1f}%)")
-            print(f"   Service Endpoints: {'âœ… Healthy' if service_healthy else 'âŒ Unhealthy'}")
-            print(f"   Overall Status: {'âœ… Healthy' if overall_healthy else 'âŒ Unhealthy'}")
+            print(f"   Service Endpoints: {'✅ Healthy' if service_healthy else '❌ Unhealthy'}")
+            print(f"   Overall Status: {'✅ Healthy' if overall_healthy else '❌ Unhealthy'}")
             
             # Output for next jobs
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
@@ -186,11 +167,11 @@ jobs:
                 f.write(f"metrics={json.dumps(pod_metrics)}\n")
             
             if not overall_healthy:
-                print("ðŸš¨ Infrastructure health check failed!")
+                print("🚨 Infrastructure health check failed!")
                 sys.exit(1)
                 
         except Exception as e:
-            print(f"ðŸ’¥ Infrastructure health check error: {e}")
+            print(f"💥 Infrastructure health check error: {e}")
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write("healthy=false\n")
                 f.write("metrics=[]\n")
@@ -206,20 +187,20 @@ jobs:
       alerts: ${{ steps.perf.outputs.alerts }}
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install dependencies
+    - name: 📦 Install dependencies
       run: |
         pip install mlflow pandas numpy scikit-learn requests matplotlib seaborn
     
-    - name: ðŸ“Š Monitor model performance
+    - name: 📊 Monitor model performance
       id: perf
       env:
         API_URL: http://a015d0a5e673c47e9b4ff468a0af8419-1590493237.ap-south-1.elb.amazonaws.com
@@ -233,7 +214,7 @@ jobs:
         import os
         from datetime import datetime, timedelta
         
-        print("ðŸ“Š Starting model performance monitoring...")
+        print("📊 Starting model performance monitoring...")
         
         # Set MLflow tracking URI
         mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_URI'])
@@ -248,9 +229,9 @@ jobs:
             
             if model_info_response.status_code == 200:
                 model_info = model_info_response.json()
-                print(f"ðŸ“¦ Current model: {model_info}")
+                print(f"📦 Current model: {model_info}")
             else:
-                alerts.append("âŒ Could not retrieve model info from API")
+                alerts.append("❌ Could not retrieve model info from API")
             
             # Test API health and response time
             start_time = datetime.now()
@@ -258,11 +239,11 @@ jobs:
             response_time = (datetime.now() - start_time).total_seconds()
             
             if health_response.status_code == 200:
-                print(f"âœ… API health check passed (response time: {response_time:.2f}s)")
+                print(f"✅ API health check passed (response time: {response_time:.2f}s)")
                 if response_time > 2.0:
-                    alerts.append(f"âš ï¸ API response time high: {response_time:.2f}s")
+                    alerts.append(f"⚠️ API response time high: {response_time:.2f}s")
             else:
-                alerts.append("âŒ API health check failed")
+                alerts.append("❌ API health check failed")
             
             # Test prediction endpoint
             test_features = [1.0] * 20  # Sample features
@@ -276,14 +257,14 @@ jobs:
             
             if pred_response.status_code == 200:
                 pred_result = pred_response.json()
-                print(f"âœ… Prediction test passed (time: {pred_time:.2f}s)")
+                print(f"✅ Prediction test passed (time: {pred_time:.2f}s)")
                 print(f"   Prediction: {pred_result['prediction']}")
                 print(f"   Probability: {pred_result['probability']:.4f}")
                 
                 if pred_time > 1.0:
-                    alerts.append(f"âš ï¸ Prediction latency high: {pred_time:.2f}s")
+                    alerts.append(f"⚠️ Prediction latency high: {pred_time:.2f}s")
             else:
-                alerts.append("âŒ Prediction endpoint failed")
+                alerts.append("❌ Prediction endpoint failed")
             
             # Get latest model metrics from MLflow
             try:
@@ -295,28 +276,28 @@ jobs:
                     run = client.get_run(latest_model.run_id)
                     metrics = run.data.metrics
                     
-                    print(f"ðŸ“ˆ Latest model metrics:")
+                    print(f"📈 Latest model metrics:")
                     for metric, value in metrics.items():
                         print(f"   {metric}: {value:.4f}")
                     
                     # Performance thresholds
                     if metrics.get('accuracy', 0) < 0.70:
-                        alerts.append(f"âš ï¸ Model accuracy below threshold: {metrics.get('accuracy', 0):.4f}")
+                        alerts.append(f"⚠️ Model accuracy below threshold: {metrics.get('accuracy', 0):.4f}")
                     
                     if metrics.get('f1_score', 0) < 0.30:  # Using relaxed threshold
-                        alerts.append(f"âš ï¸ Model F1-score below threshold: {metrics.get('f1_score', 0):.4f}")
+                        alerts.append(f"⚠️ Model F1-score below threshold: {metrics.get('f1_score', 0):.4f}")
                 
             except Exception as e:
-                alerts.append(f"âŒ Could not retrieve model metrics: {str(e)}")
+                alerts.append(f"❌ Could not retrieve model metrics: {str(e)}")
             
             # Calculate overall performance score
             base_score = 100
             score_deductions = len(alerts) * 15  # 15 points per alert
             performance_score = max(0, base_score - score_deductions)
             
-            print(f"ðŸ“Š Performance Score: {performance_score}/100")
+            print(f"📊 Performance Score: {performance_score}/100")
             if alerts:
-                print("ðŸš¨ Alerts:")
+                print("🚨 Alerts:")
                 for alert in alerts:
                     print(f"   {alert}")
             
@@ -326,8 +307,8 @@ jobs:
                 f.write(f"alerts={json.dumps(alerts)}\n")
             
         except Exception as e:
-            print(f"ðŸ’¥ Performance monitoring error: {e}")
-            alerts.append(f"ðŸ’¥ Monitoring system error: {str(e)}")
+            print(f"💥 Performance monitoring error: {e}")
+            alerts.append(f"💥 Monitoring system error: {str(e)}")
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write("score=0\n")
                 f.write(f"alerts={json.dumps(alerts)}\n")
@@ -342,20 +323,20 @@ jobs:
       drift-score: ${{ steps.drift.outputs.score }}
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install drift detection dependencies
+    - name: 📦 Install drift detection dependencies
       run: |
         pip install pandas numpy scipy scikit-learn requests mlflow
     
-    - name: ðŸ” Detect data drift
+    - name: 🔍 Detect data drift
       id: drift
       run: |
         python << 'EOF'
@@ -366,7 +347,7 @@ jobs:
         import os
         from datetime import datetime
         
-        print("ðŸ” Starting data drift detection...")
+        print("🔍 Starting data drift detection...")
         
         # This is a simplified drift detection
         # In production, you'd compare incoming data with training data
@@ -398,10 +379,10 @@ jobs:
         drift_detected = drift_percentage > 20  # Alert if >20% of features show drift
         overall_drift_score = np.mean(drift_scores)
         
-        print(f"ðŸ“Š Drift Analysis Results:")
+        print(f"📊 Drift Analysis Results:")
         print(f"   Features with significant drift: {significant_drifts}/20 ({drift_percentage:.1f}%)")
         print(f"   Overall drift score: {overall_drift_score:.4f}")
-        print(f"   Drift detected: {'âš ï¸ YES' if drift_detected else 'âœ… NO'}")
+        print(f"   Drift detected: {'⚠️ YES' if drift_detected else '✅ NO'}")
         
         # Output results
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
@@ -416,26 +397,26 @@ jobs:
     if: always()  # Always run, even if monitoring jobs fail
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ”§ Setup kubectl
+    - name: 🔧 Setup kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
     
-    - name: âš™ï¸ Configure kubectl
+    - name: ⚙️ Configure kubectl
       run: |
         aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
-    - name: ðŸ“Š Deploy Prometheus monitoring stack
+    - name: 📊 Deploy Prometheus monitoring stack
       run: |
         # Create monitoring namespace
         kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
@@ -562,7 +543,7 @@ jobs:
           type: LoadBalancer
         EOL
         
-        echo "âœ… Prometheus deployed successfully"
+        echo "✅ Prometheus deployed successfully"
 
   # GRAFANA SETUP
   setup-grafana:
@@ -571,23 +552,23 @@ jobs:
     if: always()  # Always run, even if prometheus setup fails
     
     steps:
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ”§ Setup kubectl
+    - name: 🔧 Setup kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
     
-    - name: âš™ï¸ Configure kubectl
+    - name: ⚙️ Configure kubectl
       run: |
         aws eks update-kubeconfig --region $AWS_REGION --name loan-eks-simple
     
-    - name: ðŸ“ˆ Deploy Grafana
+    - name: 📈 Deploy Grafana
       run: |
         # Deploy Grafana
         cat << 'EOL' | kubectl apply -f -
@@ -635,8 +616,8 @@ jobs:
           type: LoadBalancer
         EOL
         
-        echo "âœ… Grafana deployed successfully"
-        echo "ðŸ“Š Default login: admin/admin123"
+        echo "✅ Grafana deployed successfully"
+        echo "📊 Default login: admin/admin123"
 
   # MONITORING REPORT
   monitoring-report:
@@ -645,41 +626,41 @@ jobs:
     if: always()
     
     steps:
-    - name: ðŸ“Š Generate monitoring report
+    - name: 📊 Generate monitoring report
       run: |
-        echo "ðŸ” ML System Monitoring Report - $(date)"
+        echo "🔍 ML System Monitoring Report - $(date)"
         echo "================================================"
         
-        echo "ðŸ—ï¸ Infrastructure Health:"
-        echo "   Status: ${{ needs.infrastructure-health.outputs.cluster-healthy == 'true' && 'âœ… Healthy' || 'âŒ Unhealthy' }}"
+        echo "🏗️ Infrastructure Health:"
+        echo "   Status: ${{ needs.infrastructure-health.outputs.cluster-healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }}"
         
-        echo "ðŸ“Š Model Performance:"
+        echo "📊 Model Performance:"
         echo "   Score: ${{ needs.model-performance.outputs.performance-score }}/100"
         echo "   Alerts: ${{ needs.model-performance.outputs.alerts }}"
         
-        echo "ðŸ” Data Drift:"
-        echo "   Detected: ${{ needs.data-drift.outputs.drift-detected == 'true' && 'âš ï¸ YES' || 'âœ… NO' }}"
+        echo "🔍 Data Drift:"
+        echo "   Detected: ${{ needs.data-drift.outputs.drift-detected == 'true' && '⚠️ YES' || '✅ NO' }}"
         echo "   Score: ${{ needs.data-drift.outputs.drift-score }}"
         
-        echo "ðŸ“ˆ Monitoring Stack:"
+        echo "📈 Monitoring Stack:"
         echo "   Prometheus: ${{ needs.setup-prometheus.result }}"
         echo "   Grafana: ${{ needs.setup-grafana.result }}"
         
         echo ""
-        echo "ðŸ”— Access URLs:"
+        echo "🔗 Access URLs:"
         echo "   Get LoadBalancer URLs with:"
         echo "   kubectl get svc -n monitoring"
     
-    - name: ðŸ“¢ Send monitoring alerts
+    - name: 📢 Send monitoring alerts
       if: needs.infrastructure-health.outputs.cluster-healthy == 'false' || needs.model-performance.outputs.performance-score < 70 || needs.data-drift.outputs.drift-detected == 'true'
       run: |
-        echo "ðŸš¨ MONITORING ALERT TRIGGERED!"
+        echo "🚨 MONITORING ALERT TRIGGERED!"
         echo "One or more monitoring checks failed:"
         echo "- Infrastructure: ${{ needs.infrastructure-health.outputs.cluster-healthy }}"
         echo "- Performance Score: ${{ needs.model-performance.outputs.performance-score }}"
         echo "- Data Drift: ${{ needs.data-drift.outputs.drift-detected }}"
         echo ""
-        echo "ðŸ”§ Recommended Actions:"
+        echo "🔧 Recommended Actions:"
         echo "1. Check pod logs: kubectl logs -l app=loan-default-api -n loan-default"
         echo "2. Check resource usage: kubectl top pods -n loan-default"
         echo "3. Review model metrics in MLflow"

@@ -1,22 +1,3 @@
-﻿# ===========================================
-# DISABLED - REPLACED BY ka_mlops_cicd_fixed.yml
-# ===========================================
-# This workflow has been replaced by the Ka-MLOps pipeline
-# Only keeping for reference - will not run automatically
-# Last disabled: 2025-08-21 07:32:58
-
-on:
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Manual run reason (legacy testing only)'
-        required: false
-        default: 'Legacy testing - use ka_mlops_cicd_fixed.yml instead'
-
-# ==================================================
-# ORIGINAL TRIGGERS DISABLED - COMMENTED OUT BELOW:
-# ==================================================
-
 name: Training Pipeline
 
 on:
@@ -60,18 +41,18 @@ jobs:
       data-hash: ${{ steps.check-data.outputs.hash }}
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install dependencies with S3 support
+    - name: 📦 Install dependencies with S3 support
       run: |
         python -m pip install --upgrade pip setuptools wheel
         
@@ -90,104 +71,104 @@ jobs:
         pip install mlflow psycopg2-binary pandas scikit-learn numpy pyyaml
         
         # Verify installations step by step
-        python -c "import dvc; print(f'âœ… DVC: {dvc.__version__}')"
-        python -c "import boto3; print(f'âœ… Boto3: {boto3.__version__}')"
+        python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
+        python -c "import boto3; print(f'✅ Boto3: {boto3.__version__}')"
         
         # Test DVC CLI instead of importing modules directly
         dvc version
-        echo "âœ… DVC CLI working c"
+        echo "✅ DVC CLI working c"
         
         # Don't test dvc.remote import - just ensure DVC CLI works
         python -c "
         import subprocess
         result = subprocess.run(['dvc', '--help'], capture_output=True, text=True)
         if result.returncode == 0:
-            print('âœ… DVC command line interface working')
+            print('✅ DVC command line interface working')
         else:
-            print('âŒ DVC CLI not working')
+            print('❌ DVC CLI not working')
             exit(1)
         "
     
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ”§ Setup DVC
+    - name: 🔧 Setup DVC
       run: |
         dvc remote modify s3-storage region $AWS_REGION
         dvc remote default s3-storage
-        echo "âœ… DVC configured for region: $AWS_REGION"
-        echo "ðŸ“ Default remote: $(dvc remote default)"
+        echo "✅ DVC configured for region: $AWS_REGION"
+        echo "📍 Default remote: $(dvc remote default)"
         dvc remote list
     
-    - name: ðŸ“Š Pull and validate data
+    - name: 📊 Pull and validate data
       id: check-data
       run: |
-        echo "ðŸ“¥ Pulling latest data from DVC remote..."
+        echo "📥 Pulling latest data from DVC remote..."
         dvc pull --verbose --force
         
-        echo "ðŸ” Debug: Checking what was actually downloaded..."
+        echo "🔍 Debug: Checking what was actually downloaded..."
         find .dvc/cache -name "*" -type f | head -20
         
-        echo "ðŸ”„ Force downloading specific data files..."
+        echo "🔄 Force downloading specific data files..."
         # Force pull specific files
         dvc pull data/raw/X.csv.dvc --force --verbose
         dvc pull data/raw/y.csv.dvc --force --verbose
         
-        echo "ðŸ”„ Forcing checkout of all files..."
+        echo "🔄 Forcing checkout of all files..."
         dvc checkout --force --verbose
         
-        echo "ðŸ” Checking if files are now in cache..."
+        echo "🔍 Checking if files are now in cache..."
         find .dvc/cache -name "*8c6a3cc47877a80bdacf2ac9791eea*" -type f || echo "X.csv hash not in cache"
         find .dvc/cache -name "*32cb8f2af0c97f32f1bf2db30dd7be*" -type f || echo "y.csv hash not in cache"
         
-        echo "ðŸ” Checking raw data directory..."
+        echo "🔍 Checking raw data directory..."
         ls -la data/raw/
         
         # If files still don't exist, download directly from S3
         if [ ! -f "data/raw/X.csv" ]; then
-          echo "ðŸš¨ Downloading X.csv directly from S3..."
+          echo "🚨 Downloading X.csv directly from S3..."
           aws s3 cp s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data/files/md5/ff/8c6a3cc47877a80bdacf2ac9791eea data/raw/X.csv
         fi
         
         if [ ! -f "data/raw/y.csv" ]; then
-          echo "ðŸš¨ Downloading y.csv directly from S3..."
+          echo "🚨 Downloading y.csv directly from S3..."
           aws s3 cp s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data/files/md5/e0/32cb8f2af0c97f32f1bf2db30dd7be data/raw/y.csv
         fi
         
-        echo "ðŸ” Final verification..."
+        echo "🔍 Final verification..."
         ls -la data/raw/
         
         # Check if data files now exist
         if [ -f "data/raw/X.csv" ] && [ -f "data/raw/y.csv" ]; then
-          echo "âœ… Data files successfully restored"
-          echo "ðŸ“Š X.csv size: $(wc -c < data/raw/X.csv) bytes"
-          echo "ðŸ“Š y.csv size: $(wc -c < data/raw/y.csv) bytes"
+          echo "✅ Data files successfully restored"
+          echo "📊 X.csv size: $(wc -c < data/raw/X.csv) bytes"
+          echo "📊 y.csv size: $(wc -c < data/raw/y.csv) bytes"
           
           # Verify file integrity
-          echo "ðŸ“Š X.csv first 3 lines:"
+          echo "📊 X.csv first 3 lines:"
           head -3 data/raw/X.csv
-          echo "ðŸ“Š y.csv first 3 lines:"
+          echo "📊 y.csv first 3 lines:"
           head -3 data/raw/y.csv
           
           DATA_HASH=$(find data/raw -name "*.csv" -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
-          echo "ðŸ“Š Current data hash: $DATA_HASH"
+          echo "📊 Current data hash: $DATA_HASH"
           echo "hash=$DATA_HASH" >> $GITHUB_OUTPUT
         else
-          echo "âŒ Data files still not found after direct S3 download"
+          echo "❌ Data files still not found after direct S3 download"
           exit 1
         fi
         
         # Check if we should retrain
         force_retrain="${{ github.event.inputs.force_retrain }}"
         if [[ "$force_retrain" == "true" ]]; then
-          echo "ðŸ”„ Force retrain enabled"
+          echo "🔄 Force retrain enabled"
           echo "changed=true" >> $GITHUB_OUTPUT
         else
-          echo "ðŸ“ˆ Data validation passed"
+          echo "📈 Data validation passed"
           echo "changed=true" >> $GITHUB_OUTPUT  # Always true for now, add logic later
         fi
         
@@ -198,8 +179,8 @@ jobs:
         
         try:
             # Debug: Show current directory and contents
-            print(f"ðŸ” Current working directory: {os.getcwd()}")
-            print("ðŸ“ Directory contents:")
+            print(f"🔍 Current working directory: {os.getcwd()}")
+            print("📁 Directory contents:")
             for root, dirs, files in os.walk('.'):
                 if 'data' in root or any('.csv' in f for f in files):
                     print(f"  {root}: {files}")
@@ -207,29 +188,29 @@ jobs:
             # Check if data files exist and are valid
             data_raw_path = 'data/raw'
             if os.path.exists(data_raw_path):
-                print(f"âœ… Found data/raw directory")
+                print(f"✅ Found data/raw directory")
                 csv_files = [f for f in os.listdir(data_raw_path) if f.endswith('.csv')]
-                print(f"ðŸ“Š CSV files in data/raw: {csv_files}")
+                print(f"📊 CSV files in data/raw: {csv_files}")
             else:
-                print(f"âŒ data/raw directory not found")
+                print(f"❌ data/raw directory not found")
                 # Try to find CSV files anywhere
                 import glob
                 csv_files = glob.glob('**/*.csv', recursive=True)
-                print(f"ðŸ” CSV files found anywhere: {csv_files}")
+                print(f"🔍 CSV files found anywhere: {csv_files}")
             
             if os.path.exists('data/raw/X.csv'):
                 X = pd.read_csv('data/raw/X.csv')
-                print(f"âœ… Features data: {X.shape}")
+                print(f"✅ Features data: {X.shape}")
                 
             if os.path.exists('data/raw/y.csv'):
                 y = pd.read_csv('data/raw/y.csv')
-                print(f"âœ… Target data: {y.shape}")
+                print(f"✅ Target data: {y.shape}")
                 
-            print("âœ… Data validation passed")
+            print("✅ Data validation passed")
             
         except Exception as e:
-            print(f"âŒ Data validation failed: {e}")
-            print("ðŸ” Available files:")
+            print(f"❌ Data validation failed: {e}")
+            print("🔍 Available files:")
             import glob
             all_files = glob.glob('**/*', recursive=True)
             relevant_files = [f for f in all_files if any(ext in f for ext in ['.csv', '.dvc', 'data'])]
@@ -246,18 +227,18 @@ jobs:
     timeout-minutes: 30
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install dependencies with S3 support
+    - name: 📦 Install dependencies with S3 support
       run: |
         python -m pip install --upgrade pip setuptools wheel
         
@@ -276,61 +257,61 @@ jobs:
         pip install mlflow psycopg2-binary pandas scikit-learn numpy pyyaml seaborn matplotlib joblib
         
         # Verify core installations
-        python -c "import dvc; print(f'âœ… DVC: {dvc.__version__}')"
-        python -c "import boto3; print(f'âœ… Boto3: {boto3.__version__}')"
-        python -c "import seaborn; print(f'âœ… Seaborn: {seaborn.__version__}')"
+        python -c "import dvc; print(f'✅ DVC: {dvc.__version__}')"
+        python -c "import boto3; print(f'✅ Boto3: {boto3.__version__}')"
+        python -c "import seaborn; print(f'✅ Seaborn: {seaborn.__version__}')"
         
         # Test DVC CLI functionality (more reliable than module imports)
         dvc version
-        echo "âœ… DVC CLI working"
+        echo "✅ DVC CLI working"
         
         # Test that DVC can handle S3 (without importing modules)
         python -c "
         import subprocess
         result = subprocess.run(['dvc', 'remote', '-h'], capture_output=True, text=True)
         if result.returncode == 0:
-            print('âœ… DVC remote commands available')
+            print('✅ DVC remote commands available')
         else:
-            print('âŒ DVC remote commands not working')
+            print('❌ DVC remote commands not working')
             exit(1)
         "
     
-    - name: âš™ï¸ Configure AWS credentials
+    - name: ⚙️ Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: ðŸ”§ Setup DVC and pull data
+    - name: 🔧 Setup DVC and pull data
       run: |
         dvc remote modify s3-storage region $AWS_REGION
         dvc remote default s3-storage
         dvc remote list
-        echo "ðŸ“ Default remote: $(dvc remote default)"
+        echo "📍 Default remote: $(dvc remote default)"
         
-        echo "ðŸ“¥ Pulling data from DVC remote..."
+        echo "📥 Pulling data from DVC remote..."
         dvc pull --verbose --force
         
-        echo "ðŸ”„ Checking out data files..."
+        echo "🔄 Checking out data files..."
         dvc checkout --force
         
-        echo "ðŸ” Verifying data files exist..."
-        ls -la data/raw/ || echo "âŒ No data/raw directory"
+        echo "🔍 Verifying data files exist..."
+        ls -la data/raw/ || echo "❌ No data/raw directory"
         if [ -f "data/raw/X.csv" ]; then
-          echo "âœ… X.csv found: $(wc -l < data/raw/X.csv) lines"
+          echo "✅ X.csv found: $(wc -l < data/raw/X.csv) lines"
         else
-          echo "âŒ X.csv not found"
+          echo "❌ X.csv not found"
         fi
         if [ -f "data/raw/y.csv" ]; then
-          echo "âœ… y.csv found: $(wc -l < data/raw/y.csv) lines"
+          echo "✅ y.csv found: $(wc -l < data/raw/y.csv) lines"
         else
-          echo "âŒ y.csv not found"
+          echo "❌ y.csv not found"
         fi
         
-        echo "âœ… Data setup completed"
+        echo "✅ Data setup completed"
     
-    - name: ðŸ§ª Test MLflow connection
+    - name: 🧪 Test MLflow connection
       run: |
         python << 'EOF'
         import mlflow
@@ -343,20 +324,20 @@ jobs:
         # Test connection
         try:
             response = requests.get(f"{mlflow_uri}/health", timeout=10)
-            print(f"âœ… MLflow health check: {response.status_code}")
+            print(f"✅ MLflow health check: {response.status_code}")
             
             client = mlflow.MlflowClient()
             experiments = client.search_experiments()
-            print(f"âœ… MLflow client working - {len(experiments)} experiments found")
+            print(f"✅ MLflow client working - {len(experiments)} experiments found")
             
         except Exception as e:
-            print(f"âŒ MLflow connection failed: {e}")
+            print(f"❌ MLflow connection failed: {e}")
             exit(1)
         EOF
     
-    - name: ðŸ§¹ Clean up Git/DVC conflicts
+    - name: 🧹 Clean up Git/DVC conflicts
       run: |
-        echo "ðŸ§¹ Cleaning up any Git/DVC tracking conflicts..."
+        echo "🧹 Cleaning up any Git/DVC tracking conflicts..."
         
         # Remove files that should be DVC-only from Git tracking
         git rm --cached metrics/train_metrics.json || echo "metrics/train_metrics.json not in Git"
@@ -366,77 +347,77 @@ jobs:
         git rm --cached plots/roc_curve.json || echo "roc_curve.json not in Git"
         git rm --cached plots/precision_recall.json || echo "precision_recall.json not in Git"
         
-        echo "âœ… Git tracking conflicts resolved"
+        echo "✅ Git tracking conflicts resolved"
     
-    - name: ðŸ¤– Run DVC training pipeline
+    - name: 🤖 Run DVC training pipeline
       env:
         EXPERIMENT_NAME: ${{ github.event.inputs.experiment_name || 'automated-training' }}
         GITHUB_SHA: ${{ github.sha }}
         GITHUB_ACTOR: ${{ github.actor }}
       run: |
-        echo "ðŸš€ Starting training pipeline..."
-        echo "ðŸ“Š Experiment: $EXPERIMENT_NAME"
-        echo "ðŸ“ˆ Data hash: ${{ needs.validate-data.outputs.data-hash }}"
+        echo "🚀 Starting training pipeline..."
+        echo "📊 Experiment: $EXPERIMENT_NAME"
+        echo "📈 Data hash: ${{ needs.validate-data.outputs.data-hash }}"
         
-        echo "ðŸ” Final verification of data files before training..."
+        echo "🔍 Final verification of data files before training..."
         ls -la data/raw/
         
         # Ensure files exist before running DVC pipeline
         if [ ! -f "data/raw/X.csv" ] || [ ! -f "data/raw/y.csv" ]; then
-          echo "ðŸš¨ Data files missing before training, attempting emergency restore..."
+          echo "🚨 Data files missing before training, attempting emergency restore..."
           
           # Emergency download from S3
           mkdir -p data/raw
           aws s3 cp s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data/files/md5/ff/8c6a3cc47877a80bdacf2ac9791eea data/raw/X.csv || echo "Failed to download X.csv"
           aws s3 cp s3://mlflow-artifacts-365021531163-ap-south-1/dvc-data/files/md5/e0/32cb8f2af0c97f32f1bf2db30dd7be data/raw/y.csv || echo "Failed to download y.csv"
           
-          echo "ðŸ“Š Emergency restore results:"
+          echo "📊 Emergency restore results:"
           ls -la data/raw/
         fi
         
         # Verify files exist and are not empty
         if [ -f "data/raw/X.csv" ] && [ -s "data/raw/X.csv" ] && [ -f "data/raw/y.csv" ] && [ -s "data/raw/y.csv" ]; then
-          echo "âœ… Data files confirmed present and non-empty"
-          echo "ðŸ“Š X.csv: $(wc -l < data/raw/X.csv) lines, $(wc -c < data/raw/X.csv) bytes"
-          echo "ðŸ“Š y.csv: $(wc -l < data/raw/y.csv) lines, $(wc -c < data/raw/y.csv) bytes"
+          echo "✅ Data files confirmed present and non-empty"
+          echo "📊 X.csv: $(wc -l < data/raw/X.csv) lines, $(wc -c < data/raw/X.csv) bytes"
+          echo "📊 y.csv: $(wc -l < data/raw/y.csv) lines, $(wc -c < data/raw/y.csv) bytes"
         else
-          echo "âŒ Data files still missing or empty, cannot proceed with training"
+          echo "❌ Data files still missing or empty, cannot proceed with training"
           ls -la data/raw/
           exit 1
         fi
         
         # Check DVC status before running pipeline
-        echo "ðŸ” DVC status before training:"
+        echo "🔍 DVC status before training:"
         dvc status
         
         # Run DVC pipeline with MLflow tracking
-        echo "ðŸŽ¯ Running DVC pipeline..."
+        echo "🎯 Running DVC pipeline..."
         dvc repro --verbose
         
-        echo "âœ… DVC pipeline completed"
+        echo "✅ DVC pipeline completed"
     
-    - name: ðŸ“Š Log training results
+    - name: 📊 Log training results
       run: |
-        echo "ðŸ“ˆ Training pipeline completed successfully!"
+        echo "📈 Training pipeline completed successfully!"
         
         # Check if models were created
         if [ -d "models" ]; then
-          echo "ðŸ“¦ Models directory contents:"
+          echo "📦 Models directory contents:"
           ls -la models/
         fi
         
         # Check if metrics were generated
         if [ -d "metrics" ]; then
-          echo "ðŸ“Š Metrics directory contents:"
+          echo "📊 Metrics directory contents:"
           ls -la metrics/
           
           if [ -f "metrics/train_metrics.json" ]; then
-            echo "ðŸ“ˆ Training metrics:"
+            echo "📈 Training metrics:"
             cat metrics/train_metrics.json
           fi
         fi
     
-    - name: ðŸ” Validate trained model
+    - name: 🔍 Validate trained model
       run: |
         python << 'EOF'
         import mlflow
@@ -455,8 +436,8 @@ jobs:
                 latest_model = latest_versions[0]
                 run = client.get_run(latest_model.run_id)
                 
-                print(f"âœ… Latest model: v{latest_model.version}")
-                print(f"ðŸ“Š Model metrics:")
+                print(f"✅ Latest model: v{latest_model.version}")
+                print(f"📊 Model metrics:")
                 
                 metrics = run.data.metrics
                 for metric, value in metrics.items():
@@ -465,24 +446,24 @@ jobs:
                 # Basic quality check
                 accuracy = metrics.get('accuracy', 0)
                 if accuracy > 0.7:
-                    print(f"âœ… Model quality acceptable: {accuracy:.4f}")
+                    print(f"✅ Model quality acceptable: {accuracy:.4f}")
                 else:
-                    print(f"âš ï¸  Model quality below threshold: {accuracy:.4f}")
+                    print(f"⚠️  Model quality below threshold: {accuracy:.4f}")
                     
             else:
-                print("âš ï¸  No models found in registry")
+                print("⚠️  No models found in registry")
                 
         except Exception as e:
-            print(f"âš ï¸  Could not validate model: {e}")
+            print(f"⚠️  Could not validate model: {e}")
         EOF
     
-    - name: ðŸš€ Push DVC changes
+    - name: 🚀 Push DVC changes
       run: |
-        echo "ðŸ“¤ Pushing DVC artifacts to remote storage..."
+        echo "📤 Pushing DVC artifacts to remote storage..."
         dvc push --verbose
-        echo "âœ… DVC artifacts pushed successfully"
+        echo "✅ DVC artifacts pushed successfully"
     
-    - name: ðŸ“ Commit DVC changes
+    - name: 📝 Commit DVC changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -491,10 +472,10 @@ jobs:
         git add dvc.lock metrics/ plots/ -f 2>/dev/null || true
         
         if git diff --staged --quiet; then
-          echo "ðŸ“ No DVC changes to commit"
+          echo "📝 No DVC changes to commit"
         else
           git commit -m "Update DVC pipeline results - ${{ github.event.inputs.experiment_name || 'automated' }}"
-          echo "âœ… DVC changes committed"
+          echo "✅ DVC changes committed"
         fi
 
   # MODEL EVALUATION AND COMPARISON
@@ -504,20 +485,20 @@ jobs:
     if: needs.training.result == 'success'
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
-    - name: ðŸ“¦ Install dependencies
+    - name: 📦 Install dependencies
       run: |
         pip install mlflow pandas numpy scikit-learn boto3
     
-    - name: ðŸ“Š Evaluate model performance
+    - name: 📊 Evaluate model performance
       run: |
         python << 'EOF'
         import mlflow
@@ -534,15 +515,15 @@ jobs:
             latest_versions = client.get_latest_versions(model_name, stages=["None"])
             
             if not latest_versions:
-                print("âŒ No models found for evaluation")
+                print("❌ No models found for evaluation")
                 exit(1)
             
             latest_model = latest_versions[0]
             run = client.get_run(latest_model.run_id)
             metrics = run.data.metrics
             
-            print(f"ðŸ“Š Evaluating model v{latest_model.version}")
-            print(f"ðŸ” Run ID: {latest_model.run_id}")
+            print(f"📊 Evaluating model v{latest_model.version}")
+            print(f"🔍 Run ID: {latest_model.run_id}")
             
             # Performance evaluation
             performance_report = {
@@ -557,7 +538,7 @@ jobs:
             accuracy = metrics.get('accuracy', 0)
             f1_score = metrics.get('f1_score', 0)
             
-            print(f"ðŸ“ˆ Performance Summary:")
+            print(f"📈 Performance Summary:")
             print(f"   Accuracy: {accuracy:.4f}")
             print(f"   F1-Score: {f1_score:.4f}")
             
@@ -578,20 +559,20 @@ jobs:
             performance_report['recommendation'] = recommendation
             performance_report['quality_level'] = quality_level
             
-            print(f"ðŸŽ¯ Recommendation: {recommendation}")
+            print(f"🎯 Recommendation: {recommendation}")
             
             # Save evaluation report
             with open('model_evaluation_report.json', 'w') as f:
                 json.dump(performance_report, f, indent=2, default=str)
             
-            print("âœ… Model evaluation completed")
+            print("✅ Model evaluation completed")
             
         except Exception as e:
-            print(f"âŒ Model evaluation failed: {e}")
+            print(f"❌ Model evaluation failed: {e}")
             exit(1)
         EOF
     
-    - name: ðŸ“¤ Upload evaluation report
+    - name: 📤 Upload evaluation report
       uses: actions/upload-artifact@v4
       with:
         name: model-evaluation-report
@@ -605,18 +586,18 @@ jobs:
     if: needs.evaluate-model.result == 'success'
     
     steps:
-    - name: ðŸ“¥ Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: ðŸ Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: ðŸ“¦ Install MLflow
+    - name: 📦 Install MLflow
       run: pip install mlflow boto3
     
-    - name: ðŸ† Promote model to staging
+    - name: 🏆 Promote model to staging
       run: |
         python << 'EOF'
         import mlflow
@@ -632,7 +613,7 @@ jobs:
             latest_versions = client.get_latest_versions(model_name, stages=["None"])
             
             if not latest_versions:
-                print("âŒ No models found for promotion")
+                print("❌ No models found for promotion")
                 exit(1)
             
             latest_model = latest_versions[0]
@@ -642,7 +623,7 @@ jobs:
             accuracy = metrics.get('accuracy', 0)
             f1_score = metrics.get('f1_score', 0)
             
-            print(f"ðŸ” Evaluating model v{latest_model.version} for promotion")
+            print(f"🔍 Evaluating model v{latest_model.version} for promotion")
             print(f"   Accuracy: {accuracy:.4f}")
             print(f"   F1-Score: {f1_score:.4f}")
             
@@ -655,19 +636,19 @@ jobs:
                     stage="Staging",
                     archive_existing_versions=True
                 )
-                print(f"âœ… Model v{latest_model.version} promoted to Staging")
+                print(f"✅ Model v{latest_model.version} promoted to Staging")
                 
                 # If really good, consider for production
                 if accuracy >= 0.80 and f1_score >= 0.75:
-                    print(f"ðŸŽ¯ Model quality excellent - candidate for production promotion")
+                    print(f"🎯 Model quality excellent - candidate for production promotion")
                     
             else:
-                print(f"âš ï¸  Model quality below promotion threshold")
-                print(f"   Required: Accuracy â‰¥ 0.75, F1 â‰¥ 0.70")
+                print(f"⚠️  Model quality below promotion threshold")
+                print(f"   Required: Accuracy ≥ 0.75, F1 ≥ 0.70")
                 print(f"   Actual:   Accuracy = {accuracy:.4f}, F1 = {f1_score:.4f}")
                 
         except Exception as e:
-            print(f"âŒ Model promotion failed: {e}")
+            print(f"❌ Model promotion failed: {e}")
         EOF
 
   # TRIGGER DEPLOYMENT PIPELINE
@@ -677,19 +658,19 @@ jobs:
     if: needs.promote-model.result == 'success'
     
     steps:
-    - name: ðŸš€ Trigger deployment pipeline
+    - name: 🚀 Trigger deployment pipeline
       run: |
-        echo "ðŸš€ Training pipeline completed successfully!"
-        echo "ðŸ“Š Model has been trained and evaluated"
-        echo "ðŸŽ¯ Deployment pipeline will be triggered automatically"
+        echo "🚀 Training pipeline completed successfully!"
+        echo "📊 Model has been trained and evaluated"
+        echo "🎯 Deployment pipeline will be triggered automatically"
         echo ""
-        echo "ðŸ“‹ Training Summary:"
-        echo "   âœ… Data validation passed"
-        echo "   âœ… Model training completed"  
-        echo "   âœ… Model evaluation completed"
-        echo "   âœ… Model promoted to staging"
+        echo "📋 Training Summary:"
+        echo "   ✅ Data validation passed"
+        echo "   ✅ Model training completed"  
+        echo "   ✅ Model evaluation completed"
+        echo "   ✅ Model promoted to staging"
         echo ""
-        echo "â­ï¸  Next: Model Deployment pipeline will validate and deploy the model"
+        echo "⏭️  Next: Model Deployment pipeline will validate and deploy the model"
 
   # NOTIFICATION
   notify:
@@ -698,34 +679,34 @@ jobs:
     if: always()
     
     steps:
-    - name: ðŸ“Š Determine training status
+    - name: 📊 Determine training status
       id: status
       run: |
         if [[ "${{ needs.training.result }}" == "success" && "${{ needs.evaluate-model.result }}" == "success" ]]; then
           echo "status=success" >> $GITHUB_OUTPUT
-          echo "message=âœ… Training pipeline completed successfully" >> $GITHUB_OUTPUT
+          echo "message=✅ Training pipeline completed successfully" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.validate-data.result }}" == "failure" ]]; then
           echo "status=data_failed" >> $GITHUB_OUTPUT
-          echo "message=âŒ Data validation failed" >> $GITHUB_OUTPUT
+          echo "message=❌ Data validation failed" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.training.result }}" == "failure" ]]; then
           echo "status=training_failed" >> $GITHUB_OUTPUT
-          echo "message=âŒ Model training failed" >> $GITHUB_OUTPUT
+          echo "message=❌ Model training failed" >> $GITHUB_OUTPUT
         elif [[ "${{ needs.evaluate-model.result }}" == "failure" ]]; then
           echo "status=evaluation_failed" >> $GITHUB_OUTPUT
-          echo "message=âŒ Model evaluation failed" >> $GITHUB_OUTPUT
+          echo "message=❌ Model evaluation failed" >> $GITHUB_OUTPUT
         else
           echo "status=unknown" >> $GITHUB_OUTPUT
-          echo "message=â“ Training pipeline completed with unknown status" >> $GITHUB_OUTPUT
+          echo "message=❓ Training pipeline completed with unknown status" >> $GITHUB_OUTPUT
         fi
     
-    - name: ðŸ“¢ Send training notification
+    - name: 📢 Send training notification
       run: |
-        echo "ðŸ“¢ Training Pipeline Status: ${{ steps.status.outputs.message }}"
-        echo "ðŸ§ª Experiment: ${{ github.event.inputs.experiment_name || 'automated-training' }}"
-        echo "ðŸ“Š Data Hash: ${{ needs.validate-data.outputs.data-hash }}"
-        echo "ðŸ‘¤ Triggered by: ${{ github.actor }}"
-        echo "ðŸ”— Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "📢 Training Pipeline Status: ${{ steps.status.outputs.message }}"
+        echo "🧪 Experiment: ${{ github.event.inputs.experiment_name || 'automated-training' }}"
+        echo "📊 Data Hash: ${{ needs.validate-data.outputs.data-hash }}"
+        echo "👤 Triggered by: ${{ github.actor }}"
+        echo "🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         echo ""
         if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
-          echo "â­ï¸  Next: Deployment pipeline will be triggered automatically"
+          echo "⏭️  Next: Deployment pipeline will be triggered automatically"
         fi
