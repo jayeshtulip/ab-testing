@@ -138,7 +138,7 @@ jobs:
       id: validation
       run: |
         F1_SCORE="${{ steps.training.outputs.f1-score }}"
-        echo "✅ Validating Ka model performance: $F1_SCORE"
+        echo "✅ Validatin Ka model performance: $F1_SCORE"
         
         if [ -z "$F1_SCORE" ]; then
           echo "❌ Could not extract F1 score"
