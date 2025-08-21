@@ -1,0 +1,18 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install FastAPI and Uvicorn
+RUN pip install fastapi uvicorn joblib pandas scikit-learn
+
+# Copy the main.py file directly to /app
+COPY src/ka_api/main.py ./main.py
+
+# Create dummy directories for model paths (if needed)
+RUN mkdir -p /app/models/ka_models /app/metrics/ka_metrics
+
+# Expose port
+EXPOSE 8000
+
+# Simple command - no module path issues
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
