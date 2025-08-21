@@ -1,0 +1,39 @@
+﻿# Ka-MLOps DVC Pipeline Configuration
+stages:
+  ka_data_preprocessing:
+    cmd: python src/ka_modules/ka_data_preprocessing.py
+    deps:
+    - src/ka_modules/ka_data_preprocessing.py
+    - data/raw/ka_lending_club_dataset.csv
+    outs:
+    - data/processed/ka_files/ka_X_train.csv
+    - data/processed/ka_files/ka_X_test.csv
+    - data/processed/ka_files/ka_y_train.csv
+    - data/processed/ka_files/ka_y_test.csv
+    - models/ka_models/ka_preprocessor.pkl
+
+  ka_model_training:
+    cmd: python src/ka_modules/ka_model_training.py
+    deps:
+    - src/ka_modules/ka_model_training.py
+    - data/processed/ka_files/ka_X_train.csv
+    - data/processed/ka_files/ka_X_test.csv
+    - data/processed/ka_files/ka_y_train.csv
+    - data/processed/ka_files/ka_y_test.csv
+    - models/ka_models/ka_preprocessor.pkl
+    outs:
+    - models/ka_models/ka_loan_default_model.pkl
+    metrics:
+    - metrics/ka_metrics/ka_train_metrics.json
+
+  ka_model_evaluation:
+    cmd: python scripts/ka_scripts/ka_evaluate_model.py
+    deps:
+    - scripts/ka_scripts/ka_evaluate_model.py
+    - models/ka_models/ka_loan_default_model.pkl
+    - data/processed/ka_files/ka_X_test.csv
+    - data/processed/ka_files/ka_y_test.csv
+    outs:
+    - reports/ka_reports/ka_model_performance.html
+    metrics:
+    - metrics/ka_metrics/ka_test_metrics.json

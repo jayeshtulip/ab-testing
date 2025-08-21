@@ -1,0 +1,74 @@
+﻿# Ka-MLOps Kubernetes Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ka-mlops-api
+  namespace: loan-default
+  labels:
+    app: ka-mlops-api
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ka-mlops-api
+  template:
+    metadata:
+      labels:
+        app: ka-mlops-api
+        version: v1
+    spec:
+      containers:
+      - name: ka-api
+        image: 365021531163.dkr.ecr.ap-south-1.amazonaws.com/ka-mlops-api:latest
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MODEL_PATH
+          value: "/app/models/ka_models/ka_loan_default_model.pkl"
+        - name: PREPROCESSOR_PATH
+          value: "/app/models/ka_models/ka_preprocessor.pkl"
+        - name: PYTHONPATH
+          value: "/app"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /ka-health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ka-health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ka-mlops-api-service
+  namespace: loan-default
+  labels:
+    app: ka-mlops-api
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: ka-mlops-api

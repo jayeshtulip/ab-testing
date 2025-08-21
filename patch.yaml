@@ -1,0 +1,12 @@
+﻿spec:
+  template:
+    spec:
+      containers:
+      - name: api
+        image: python:3.10-slim
+        command: ["/bin/sh", "-c", "pip install fastapi uvicorn prometheus-client && python /app/main.py"]
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: api-code
+          mountPath: /app

@@ -1,0 +1,37 @@
+﻿# Ka-MLOps Production Dockerfile
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY ka_requirements.txt .
+RUN pip install --no-cache-dir -r ka_requirements.txt
+
+# Copy Ka application code
+COPY src/ ./src/
+COPY models/ka_models/ ./models/ka_models/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/metrics /app/reports
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV MODEL_PATH=/app/models/ka_models/ka_loan_default_model.pkl
+ENV PREPROCESSOR_PATH=/app/models/ka_models/ka_preprocessor.pkl
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/ka-health || exit 1
+
+# Run Ka API
+CMD ["python", "-m", "uvicorn", "src.ka_api.ka_main:app", "--host", "0.0.0.0", "--port", "8000"]
