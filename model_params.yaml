@@ -1,0 +1,23 @@
+# Ka Model Parameters
+train:
+  n_estimators: 100
+  max_depth: 8
+  min_samples_split: 20
+  min_samples_leaf: 10
+  max_features: sqrt
+  class_weight: balanced
+  random_state: 42
+
+evaluate:
+  test_size: 0.2
+  random_state: 42
+  stratify: true
+
+mlflow:
+  experiment_name: ka-loan-default-retraining
+  model_name: KaLoanDefaultModel
+  tracking_uri: http://ab124afa4840a4f8298398f9c7fd7c7e-306571921.ap-south-1.elb.amazonaws.com
+
+performance:
+  min_f1_score: 0.65
+  target_f1_score: 0.75

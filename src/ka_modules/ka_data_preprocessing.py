@@ -1,195 +1,179 @@
-﻿# Ka-MLOps Data Preprocessing Pipeline
+﻿# Ka Data Preprocessing with DVC Integration
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
-import joblib
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+import yaml
+import json
+import os
 from pathlib import Path
 
-class KaLendingClubPreprocessor:
-    def __init__(self):
-        self.scaler = StandardScaler()
-        self.label_encoders = {}
-        
-        # Define feature columns based on our Ka dataset
-        self.numerical_features = [
-            'loan_amnt', 'int_rate', 'annual_inc', 'dti', 'fico_range_low', 
-            'fico_range_high', 'installment', 'delinq_2yrs', 'inq_last_6mths', 
-            'open_acc', 'pub_rec', 'revol_bal', 'revol_util', 'total_acc', 
-            'mort_acc', 'pub_rec_bankruptcies'
-        ]
-        
-        self.categorical_features = [
-            'grade', 'term', 'emp_length', 'home_ownership', 
-            'verification_status', 'purpose', 'addr_state'
-        ]
-        
-    def load_and_clean_data(self, file_path):
-        '''Load and clean Ka Lending Club dataset'''
-        print(f'🔄 Loading Ka dataset from: {file_path}')
-        df = pd.read_csv(file_path)
-        
-        print(f' Loaded dataset shape: {df.shape}')
-        
-        # Create binary target variable
-        df['ka_target'] = (df['loan_status'] == 'Charged Off').astype(int)
-        
-        # Handle missing values
-        df = self._handle_missing_values(df)
-        
-        # Feature engineering
-        df = self._feature_engineering(df)
-        
-        print(f'✅ Ka dataset processed: {len(df):,} samples')
-        return df
-    
-    def _handle_missing_values(self, df):
-        '''Handle missing values in Ka dataset'''
-        print(' Handling missing values...')
-        
-        # Fill numerical missing values with median
-        for col in self.numerical_features:
-            if col in df.columns and df[col].isnull().any():
-                median_val = df[col].median()
-                df[col].fillna(median_val, inplace=True)
-        
-        # Fill categorical missing values with mode
-        for col in self.categorical_features:
-            if col in df.columns and df[col].isnull().any():
-                mode_val = df[col].mode()[0]
-                df[col].fillna(mode_val, inplace=True)
-        
-        return df
-    
-    def _feature_engineering(self, df):
-        '''Create new features for Ka model'''
-        print(' Engineering new features...')
-        
-        # FICO average
-        df['ka_fico_avg'] = (df['fico_range_low'] + df['fico_range_high']) / 2
-        
-        # Income to loan ratio
-        df['ka_income_loan_ratio'] = df['annual_inc'] / df['loan_amnt']
-        
-        # Debt burden (installment as % of monthly income)
-        monthly_income = df['annual_inc'] / 12
-        df['ka_debt_burden'] = df['installment'] / monthly_income
-        
-        # Credit utilization risk score
-        df['ka_credit_risk'] = df['revol_util'] / 100 * df['revol_bal'] / 10000
-        
-        # Add engineered features to numerical list
-        self.numerical_features.extend([
-            'ka_fico_avg', 'ka_income_loan_ratio', 'ka_debt_burden', 'ka_credit_risk'
-        ])
-        
-        return df
-    
-    def prepare_features(self, df, is_training=True):
-        '''Prepare features for Ka model training/prediction'''
-        print(' Preparing features for modeling...')
-        
-        # Select features that exist in the dataset
-        available_numerical = [col for col in self.numerical_features if col in df.columns]
-        available_categorical = [col for col in self.categorical_features if col in df.columns]
-        
-        # Create feature matrix
-        X_numerical = df[available_numerical].copy()
-        X_categorical = df[available_categorical].copy()
-        
-        # Encode categorical variables
-        for col in available_categorical:
-            if is_training:
-                self.label_encoders[col] = LabelEncoder()
-                X_categorical[col] = self.label_encoders[col].fit_transform(X_categorical[col].astype(str))
-            else:
-                if col in self.label_encoders:
-                    # Handle unseen categories
-                    known_categories = self.label_encoders[col].classes_
-                    X_categorical[col] = X_categorical[col].astype(str).apply(
-                        lambda x: x if x in known_categories else known_categories[0]
-                    )
-                    X_categorical[col] = self.label_encoders[col].transform(X_categorical[col])
-        
-        # Combine numerical and categorical features
-        X = pd.concat([X_numerical, X_categorical], axis=1)
-        
-        # Scale features
-        if is_training:
-            X_scaled = self.scaler.fit_transform(X)
-        else:
-            X_scaled = self.scaler.transform(X)
-        
-        # Return as DataFrame
-        return pd.DataFrame(X_scaled, columns=X.columns, index=X.index)
-    
-    def save_preprocessor(self, path):
-        '''Save Ka preprocessor objects'''
-        joblib.dump({
-            'scaler': self.scaler,
-            'label_encoders': self.label_encoders,
-            'numerical_features': self.numerical_features,
-            'categorical_features': self.categorical_features
-        }, path)
-        print(f' Saved Ka preprocessor to: {path}')
-    
-    def load_preprocessor(self, path):
-        '''Load Ka preprocessor objects'''
-        objects = joblib.load(path)
-        self.scaler = objects['scaler']
-        self.label_encoders = objects['label_encoders']
-        self.numerical_features = objects['numerical_features']
-        self.categorical_features = objects['categorical_features']
-        print(f' Loaded Ka preprocessor from: {path}')
+def load_params():
+    """Load parameters from model_params.yaml"""
+    try:
+        with open('model_params.yaml', 'r') as f:
+            params = yaml.safe_load(f)
+        return params
+    except FileNotFoundError:
+        print("⚠️ model_params.yaml not found, using defaults")
+        return {
+            'evaluate': {
+                'test_size': 0.2,
+                'random_state': 42,
+                'stratify': True
+            }
+        }
 
-def main():
-    '''Main Ka preprocessing pipeline'''
-    print(' Ka-MLOps Data Preprocessing Pipeline')
+def preprocess_ka_data():
+    """Enhanced Ka data preprocessing with DVC tracking"""
+    print('⚙️ Ka Data Preprocessing with DVC Integration')
     print('=' * 50)
     
-    # Initialize Ka preprocessor
-    ka_preprocessor = KaLendingClubPreprocessor()
+    # Load parameters
+    params = load_params()
+    eval_params = params.get('evaluate', {})
     
-    # Load and process Ka data
-    ka_df = ka_preprocessor.load_and_clean_data('data/raw/ka_lending_club_dataset.csv')
+    # Load raw data
+    try:
+        print('📥 Loading raw Ka dataset...')
+        df = pd.read_csv('data/raw/ka_lending_club_dataset.csv')
+        print(f'📊 Raw data shape: {df.shape}')
+    except FileNotFoundError:
+        print('❌ Raw data not found!')
+        print('🔧 Run data generation first: python scripts/ka_scripts/generate_training_data.py')
+        return False
     
-    # Prepare features and target
-    X = ka_preprocessor.prepare_features(ka_df, is_training=True)
-    y = ka_df['ka_target']
+    # Data quality checks
+    print('\n🔍 Data Quality Assessment:')
+    print(f'   Total samples: {len(df):,}')
+    print(f'   Missing values: {df.isnull().sum().sum()}')
+    print(f'   Duplicate rows: {df.duplicated().sum()}')
     
-    print(f' Feature matrix shape: {X.shape}')
-    print(f' Target distribution: {y.value_counts().to_dict()}')
+    # Target distribution
+    target_dist = df['loan_status'].value_counts()
+    default_rate = (df['loan_status'] == 'Charged Off').mean()
+    print(f'   Default rate: {default_rate:.1%}')
+    print(f'   Target distribution: {dict(target_dist)}')
     
-    # Split data
+    # Feature engineering
+    print('\n🔧 Feature Engineering:')
+    
+    # Select features
+    numerical_features = [
+        'loan_amnt', 'int_rate', 'annual_inc', 'dti', 
+        'fico_range_low', 'fico_range_high', 'installment',
+        'delinq_2yrs', 'inq_last_6mths', 'open_acc', 
+        'pub_rec', 'revol_bal', 'revol_util', 'total_acc',
+        'mort_acc', 'pub_rec_bankruptcies'
+    ]
+    
+    categorical_features = [
+        'grade', 'term', 'home_ownership', 
+        'verification_status', 'purpose'
+    ]
+    
+    # Prepare feature matrix
+    available_numerical = [col for col in numerical_features if col in df.columns]
+    available_categorical = [col for col in categorical_features if col in df.columns]
+    
+    print(f'   Numerical features: {len(available_numerical)}')
+    print(f'   Categorical features: {len(available_categorical)}')
+    
+    # Create feature matrix
+    X = df[available_numerical + available_categorical].copy()
+    
+    # Handle missing values
+    print('\n🔧 Handling Missing Values:')
+    for col in available_numerical:
+        if X[col].isnull().sum() > 0:
+            median_val = X[col].median()
+            X[col] = X[col].fillna(median_val)
+            print(f'   {col}: filled {X[col].isnull().sum()} missing values with median {median_val:.2f}')
+    
+    # Encode categorical features
+    print('\n🔧 Encoding Categorical Features:')
+    label_encoders = {}
+    for col in available_categorical:
+        if X[col].isnull().sum() > 0:
+            X[col] = X[col].fillna('Unknown')
+        
+        le = LabelEncoder()
+        X[col] = le.fit_transform(X[col].astype(str))
+        label_encoders[col] = le
+        print(f'   {col}: {len(le.classes_)} unique values encoded')
+    
+    # Create target variable
+    y = (df['loan_status'] == 'Charged Off').astype(int)
+    
+    # Train-test split
+    print('\n📊 Creating Train-Test Split:')
+    test_size = eval_params.get('test_size', 0.2)
+    random_state = eval_params.get('random_state', 42)
+    stratify = y if eval_params.get('stratify', True) else None
+    
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
+        X, y, 
+        test_size=test_size, 
+        random_state=random_state, 
+        stratify=stratify
     )
     
-    # Create directories
-    Path('data/processed/ka_files').mkdir(parents=True, exist_ok=True)
-    Path('models/ka_models').mkdir(parents=True, exist_ok=True)
+    print(f'   Training set: {X_train.shape[0]:,} samples')
+    print(f'   Test set: {X_test.shape[0]:,} samples')
+    print(f'   Train default rate: {y_train.mean():.1%}')
+    print(f'   Test default rate: {y_test.mean():.1%}')
     
     # Save processed data
-    X_train.to_csv('data/processed/ka_files/ka_X_train.csv', index=False)
-    X_test.to_csv('data/processed/ka_files/ka_X_test.csv', index=False)
-    y_train.to_csv('data/processed/ka_files/ka_y_train.csv', index=False)
-    y_test.to_csv('data/processed/ka_files/ka_y_test.csv', index=False)
+    print('\n💾 Saving Processed Data:')
+    output_dir = Path('data/processed/ka_files')
+    output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Save preprocessor
-    ka_preprocessor.save_preprocessor('models/ka_models/ka_preprocessor.pkl')
+    X_train.to_csv(output_dir / 'ka_X_train.csv', index=False)
+    X_test.to_csv(output_dir / 'ka_X_test.csv', index=False)
+    pd.DataFrame(y_train, columns=['loan_status']).to_csv(output_dir / 'ka_y_train.csv', index=False)
+    pd.DataFrame(y_test, columns=['loan_status']).to_csv(output_dir / 'ka_y_test.csv', index=False)
     
-    # Show results
-    train_samples = len(X_train)
-    test_samples = len(X_test)
-    feature_count = X.shape[1]
-    default_rate = y.mean()
+    # Save preprocessing metadata
+    preprocessing_info = {
+        'timestamp': pd.Timestamp.now().isoformat(),
+        'raw_data_shape': df.shape,
+        'processed_features': list(X.columns),
+        'numerical_features': available_numerical,
+        'categorical_features': available_categorical,
+        'train_samples': len(X_train),
+        'test_samples': len(X_test),
+        'default_rate_train': float(y_train.mean()),
+        'default_rate_test': float(y_test.mean()),
+        'test_size': test_size,
+        'random_state': random_state,
+        'label_encoders': {col: list(le.classes_) for col, le in label_encoders.items()}
+    }
     
-    print(' Ka preprocessing completed!')
-    print(f' Training samples: {train_samples:,}')
-    print(f' Test samples: {test_samples:,}')
-    print(f' Total features: {feature_count}')
-    print(f' Default rate: {default_rate:.1%}')
-    print(' Files saved to: data/processed/ka_files/')
+    with open(output_dir / 'preprocessing_info.json', 'w') as f:
+        json.dump(preprocessing_info, f, indent=2)
+    
+    print(f'   ✅ X_train.csv: {X_train.shape}')
+    print(f'   ✅ X_test.csv: {X_test.shape}')
+    print(f'   ✅ y_train.csv: {y_train.shape}')
+    print(f'   ✅ y_test.csv: {y_test.shape}')
+    print(f'   ✅ preprocessing_info.json')
+    
+    print('\n🎉 Ka Data Preprocessing Complete!')
+    return True
 
-if __name__ == '__main__':
-    main()
+def main():
+    """Main preprocessing function"""
+    try:
+        success = preprocess_ka_data()
+        if success:
+            print('✅ Preprocessing completed successfully!')
+            return 0
+        else:
+            print('❌ Preprocessing failed!')
+            return 1
+    except Exception as e:
+        print(f'❌ Error during preprocessing: {e}')
+        return 1
+
+if __name__ == "__main__":
+    exit(main())

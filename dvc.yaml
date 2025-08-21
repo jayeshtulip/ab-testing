@@ -1,38 +1,32 @@
+# Ka-MLOps DVC Pipeline Configuration (Fixed)
 stages:
+  data_generation:
+    cmd: python scripts/ka_scripts/generate_training_data.py 1
+    deps:
+    - scripts/ka_scripts/generate_training_data.py
+    outs:
+    - data/raw/ka_lending_club_dataset.csv
+    
   data_preprocessing:
-    cmd: python scripts/preprocess_data.py
+    cmd: python src/ka_modules/ka_data_preprocessing.py
     deps:
-    - data/raw/X.csv
-    - data/raw/y.csv
-    - scripts/preprocess_data.py
+    - data/raw/ka_lending_club_dataset.csv
+    - src/ka_modules/ka_data_preprocessing.py
     outs:
-    - data/processed/X_processed.csv
-    - data/processed/y_processed.csv
-    - data/processed/preprocessing_metadata.json
-  evaluate_model:
-    cmd: python scripts/evaluate_model.py
+    - data/processed/ka_files/ka_X_train.csv
+    - data/processed/ka_files/ka_X_test.csv
+    - data/processed/ka_files/ka_y_train.csv
+    - data/processed/ka_files/ka_y_test.csv
+    
+  model_training:
+    cmd: python src/ka_modules/ka_model_training.py
     deps:
-    - models/model.pkl
-    - models/preprocessing_pipeline.joblib
-    - data/processed/X_processed.csv
-    - data/processed/y_processed.csv
-    metrics:
-    - metrics/eval_metrics.json
-    plots:
-    - plots/roc_curve.json
-    - plots/precision_recall.json
-  train_model:
-    cmd: python scripts/train_model_dvc.py
-    deps:
-    - data/processed/X_processed.csv
-    - data/processed/y_processed.csv
-    - data/processed/preprocessing_metadata.json
-    - scripts/train_model_dvc.py
-    metrics:
-    - metrics/train_metrics.json
+    - data/processed/ka_files/ka_X_train.csv
+    - data/processed/ka_files/ka_X_test.csv
+    - data/processed/ka_files/ka_y_train.csv
+    - data/processed/ka_files/ka_y_test.csv
+    - src/ka_modules/ka_model_training.py
     outs:
-    - models/model.pkl
-    - models/preprocessing_pipeline.joblib
-    plots:
-    - plots/confusion_matrix.json
-    - plots/feature_importance.json
+    - models/ka_models/ka_loan_default_model.joblib
+    metrics:
+    - metrics/ka_metrics/ka_model_metrics.json

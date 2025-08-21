@@ -1,102 +1,74 @@
 schema: '2.0'
 stages:
+  data_generation:
+    cmd: python scripts/ka_scripts/generate_training_data.py 1
+    deps:
+    - path: scripts/ka_scripts/generate_training_data.py
+      hash: md5
+      md5: 1d2dc487f81b8e40157ab7cb9c1ed66c
+      size: 5329
+    outs:
+    - path: data/raw/ka_lending_club_dataset.csv
+      hash: md5
+      md5: 728cb9369324f5159b2d741d3d149bfe
+      size: 1747802
   data_preprocessing:
-    cmd: python scripts/preprocess_data.py
+    cmd: python src/ka_modules/ka_data_preprocessing.py
     deps:
-    - path: data/raw/X.csv
+    - path: data/raw/ka_lending_club_dataset.csv
       hash: md5
-      md5: ff8c6a3cc47877a80bdacf2ac9791eea
-      size: 79025
-    - path: data/raw/y.csv
+      md5: 728cb9369324f5159b2d741d3d149bfe
+      size: 1747802
+    - path: src/ka_modules/ka_data_preprocessing.py
       hash: md5
-      md5: e032cb8f2af0c97f32f1bf2db30dd7be
-      size: 3007
-    - path: scripts/preprocess_data.py
-      hash: md5
-      md5: 63b6aac00fca8235f6d733bc0e6d3a7c
-      size: 8954
+      md5: 45f40d805f7fc11a587f4ba397b8dabc
+      size: 6375
     outs:
-    - path: data/processed/X_processed.csv
+    - path: data/processed/ka_files/ka_X_test.csv
       hash: md5
-      md5: 435d00e450117efbdfefe5a32a36e615
-      size: 169421
-    - path: data/processed/preprocessing_metadata.json
+      md5: 2d717fd10432092e17f20a32e78e83fc
+      size: 257601
+    - path: data/processed/ka_files/ka_X_train.csv
       hash: md5
-      md5: 7093f63095de41a3caff4aa683037dca
-      size: 2286
-    - path: data/processed/y_processed.csv
+      md5: c13e8b8093895b167c37845c42b4a64c
+      size: 1030634
+    - path: data/processed/ka_files/ka_y_test.csv
       hash: md5
-      md5: beeb683d4ab9441e090c4162986b4f58
-      size: 8814
-  train_model:
-    cmd: python scripts/train_model_dvc.py
+      md5: 5e443ba1cd716c8449baa4810991f85c
+      size: 4813
+    - path: data/processed/ka_files/ka_y_train.csv
+      hash: md5
+      md5: a4bd1b04437d75098ca7d1558c65bf79
+      size: 19213
+  model_training:
+    cmd: python src/ka_modules/ka_model_training.py
     deps:
-    - path: data/processed/X_processed.csv
+    - path: data/processed/ka_files/ka_X_test.csv
       hash: md5
-      md5: 435d00e450117efbdfefe5a32a36e615
-      size: 169421
-    - path: data/processed/preprocessing_metadata.json
+      md5: 2d717fd10432092e17f20a32e78e83fc
+      size: 257601
+    - path: data/processed/ka_files/ka_X_train.csv
       hash: md5
-      md5: 7093f63095de41a3caff4aa683037dca
-      size: 2286
-    - path: data/processed/y_processed.csv
+      md5: c13e8b8093895b167c37845c42b4a64c
+      size: 1030634
+    - path: data/processed/ka_files/ka_y_test.csv
       hash: md5
-      md5: beeb683d4ab9441e090c4162986b4f58
-      size: 8814
-    - path: scripts/train_model_dvc.py
+      md5: 5e443ba1cd716c8449baa4810991f85c
+      size: 4813
+    - path: data/processed/ka_files/ka_y_train.csv
       hash: md5
-      md5: 59ac2dddd9d80ad71e8d20f4ac386e1f
-      size: 10996
+      md5: a4bd1b04437d75098ca7d1558c65bf79
+      size: 19213
+    - path: src/ka_modules/ka_model_training.py
+      hash: md5
+      md5: 0cee96b3bf9f3956df31fc7e5e64598c
+      size: 22681
     outs:
-    - path: metrics/train_metrics.json
+    - path: metrics/ka_metrics/ka_model_metrics.json
       hash: md5
-      md5: 35147219bbb07a2ac89b28a59871728f
-      size: 308
-    - path: models/model.pkl
+      md5: 25bc908e86022f0e6910feb0918804c3
+      size: 172
+    - path: models/ka_models/ka_loan_default_model.joblib
       hash: md5
-      md5: 14efb1fef6bc009a708ecdae6ca0a7b3
-      size: 1490345
-    - path: models/preprocessing_pipeline.joblib
-      hash: md5
-      md5: 1e6f4b246c9c737c9c42030112fbf90f
-      size: 6248
-    - path: plots/confusion_matrix.json
-      hash: md5
-      md5: 5f5ff1c4cbc5bc87f4b5c79a5a565340
-      size: 330
-    - path: plots/feature_importance.json
-      hash: md5
-      md5: 9242ff4b914fb0e9250894c59e153dc4
-      size: 903
-  evaluate_model:
-    cmd: python scripts/evaluate_model.py
-    deps:
-    - path: data/processed/X_processed.csv
-      hash: md5
-      md5: 435d00e450117efbdfefe5a32a36e615
-      size: 169421
-    - path: data/processed/y_processed.csv
-      hash: md5
-      md5: beeb683d4ab9441e090c4162986b4f58
-      size: 8814
-    - path: models/model.pkl
-      hash: md5
-      md5: 14efb1fef6bc009a708ecdae6ca0a7b3
-      size: 1490345
-    - path: models/preprocessing_pipeline.joblib
-      hash: md5
-      md5: 1e6f4b246c9c737c9c42030112fbf90f
-      size: 6248
-    outs:
-    - path: metrics/eval_metrics.json
-      hash: md5
-      md5: d787d4ac78d53813a68e3d1f46aa5596
-      size: 1147
-    - path: plots/precision_recall.json
-      hash: md5
-      md5: 0e6de49750f556915af00cdb9b0f4774
-      size: 16941
-    - path: plots/roc_curve.json
-      hash: md5
-      md5: 424cf4b90df5686c024da93ba475c58d
-      size: 5488
+      md5: 43213df1055949128ee362a50aa4463f
+      size: 1616153
