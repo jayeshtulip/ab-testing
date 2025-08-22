@@ -234,8 +234,8 @@ jobs:
       with:
         name: training-data
         path: |
-          data/production_training_data*.csv
-          data/production_training_data.csv.dvc
+          data/
+          *.dvc
 
   # Job 3: Train New Model with MLflow + DVC Integration
   train-model:
@@ -271,6 +271,16 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: training-data
+        path: .
+    
+    - name: Debug - Check downloaded files
+      run: |
+        echo "Checking downloaded files:"
+        ls -la
+        echo "Checking data directory:"
+        ls -la data/ || echo "No data directory found"
+        echo "Looking for CSV files:"
+        find . -name "*.csv" || echo "No CSV files found"
     
     - name: Setup DVC for model versioning
       run: |
@@ -312,6 +322,31 @@ jobs:
         # Set MLflow tracking
         mlflow.set_tracking_uri("${{ env.MLFLOW_TRACKING_URI }}")
         mlflow.set_experiment("${{ env.MLFLOW_EXPERIMENT_NAME }}")
+        
+        # Create data directory and generate training data if not exists
+        os.makedirs('data', exist_ok=True)
+        
+        if not os.path.exists('data/production_training_data.csv'):
+            print("📊 Training data not found, generating synthetic data...")
+            # Generate training data (same as in fetch-training-data)
+            np.random.seed(42)
+            n_samples = 1000
+            
+            training_data = {
+                'loan_amount': np.random.lognormal(10, 1, n_samples),
+                'income': np.random.lognormal(11, 0.8, n_samples), 
+                'credit_score': np.random.normal(650, 100, n_samples),
+                'debt_to_income': np.random.beta(2, 5, n_samples),
+                'employment_years': np.random.exponential(5, n_samples),
+                'target': np.random.choice([0, 1], n_samples, p=[0.85, 0.15])
+            }
+            
+            df = pd.DataFrame(training_data)
+            df['credit_score'] = df['credit_score'].clip(300, 850)
+            df['debt_to_income'] = df['debt_to_income'].clip(0, 1)
+            df['employment_years'] = df['employment_years'].clip(0, 40)
+            df.to_csv('data/production_training_data.csv', index=False)
+            print("✅ Training data generated")
         
         # Load training data
         df = pd.read_csv('data/production_training_data.csv')
