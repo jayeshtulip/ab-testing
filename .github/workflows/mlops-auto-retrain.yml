@@ -585,7 +585,7 @@ jobs:
           models/*.dvc
           metrics.json
 
-  # Job 4: Build Updated API Image
+  # Job 4: Build Updated API Image (OPTIMIZED WITH CACHING)
   build-api-image:
     needs: [train-model]
     runs-on: ubuntu-latest
@@ -613,10 +613,33 @@ jobs:
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v2
     
-    - name: Build API with retrained model (MLflow + DVC)
+    # NEW: Add Docker Buildx for advanced caching
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    # NEW: Cache Docker layers
+    - name: Cache Docker layers
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-mlops-${{ hashFiles('**/requirements*.txt', 'src/ka_api/database_auto_retrain.py') }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-mlops-
+          ${{ runner.os }}-buildx-
+    
+    # NEW: Cache pip packages
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Build API with retrained model (OPTIMIZED)
       id: build
       run: |
-        echo "🐳 Building API with retrained loan default model (MLflow + DVC integrated)..."
+        echo "🐳 Building API with retrained loan default model (CACHED & OPTIMIZED)..."
         
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         IMAGE_TAG="retrained-${TIMESTAMP}-mlflow-dvc"
@@ -625,36 +648,64 @@ jobs:
         echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
         
-        # Create dockerfile for retrained model API with MLflow + DVC
+        # Create optimized requirements file for better caching
+        cat > requirements.txt << 'EOF'
+        fastapi==0.104.1
+        uvicorn==0.24.0
+        prometheus-client==0.19.0
+        pydantic==2.5.0
+        psycopg2-binary==2.9.9
+        numpy==1.24.3
+        scikit-learn==1.3.0
+        joblib==1.3.2
+        mlflow==2.8.1
+        dvc[s3]==3.30.0
+        boto3==1.34.0
+        EOF
+        
+        # Create OPTIMIZED dockerfile with better layer caching
         cat > Dockerfile.retrained << 'EOF'
-        FROM python:3.9-slim
-        WORKDIR /app
+        # Use multi-stage build for smaller final image
+        FROM python:3.9-slim as builder
         
         # Install system dependencies
         RUN apt-get update && apt-get install -y \
             gcc \
             libpq-dev \
             git \
-            && rm -rf /var/lib/apt/lists/*
+            && rm -rf /var/lib/apt/lists/* \
+            && apt-get clean
         
-        # Install Python packages
-        RUN pip install --no-cache-dir \
-            fastapi==0.104.1 \
-            uvicorn==0.24.0 \
-            prometheus-client==0.19.0 \
-            pydantic \
-            psycopg2-binary \
-            numpy==1.24.3 \
-            scikit-learn \
-            joblib \
-            mlflow \
-            dvc[s3] \
-            boto3
+        # Create virtual environment
+        RUN python -m venv /opt/venv
+        ENV PATH="/opt/venv/bin:$PATH"
         
-        # Copy the database-enabled API
+        # Copy requirements FIRST for better layer caching
+        COPY requirements.txt /tmp/requirements.txt
+        
+        # Install Python packages with optimizations
+        RUN pip install --upgrade pip && \
+            pip install --no-cache-dir -r /tmp/requirements.txt
+        
+        # Final stage
+        FROM python:3.9-slim
+        
+        # Copy virtual environment from builder
+        COPY --from=builder /opt/venv /opt/venv
+        ENV PATH="/opt/venv/bin:$PATH"
+        
+        # Install only runtime system dependencies
+        RUN apt-get update && apt-get install -y \
+            libpq5 \
+            && rm -rf /var/lib/apt/lists/* \
+            && apt-get clean
+        
+        WORKDIR /app
+        
+        # Copy application files (these change more frequently)
         COPY src/ka_api/database_auto_retrain.py ./main.py
         
-        # Copy the retrained models and DVC files
+        # Copy models (these change when models are retrained)
         COPY models/ ./models/
         
         # Set environment variables for MLflow and DVC
@@ -674,10 +725,25 @@ jobs:
         CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
         EOF
         
-        # Build image with retrained model
-        docker build -f Dockerfile.retrained -t "${IMAGE_URI}" .
+        # Build with BuildKit and comprehensive caching
+        echo "🔧 Building with Docker Buildx and layer caching..."
+        docker buildx build \
+          --cache-from type=local,src=/tmp/.buildx-cache \
+          --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+          --platform linux/amd64 \
+          -f Dockerfile.retrained \
+          -t "${IMAGE_URI}" \
+          --load .
+        
+        # Push the built image
+        echo "📤 Pushing image to ECR..."
         docker push "${IMAGE_URI}"
         
+        # Rotate cache to prevent bloat
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache 2>/dev/null || true
+        
+        echo "✅ Build completed successfully!"
         echo "📦 Built and pushed: ${IMAGE_TAG}"
         echo "📊 MLflow Run: ${{ needs.train-model.outputs.mlflow_run_id }}"
         echo "📦 DVC Model Version: ${{ needs.train-model.outputs.model_version }}"
