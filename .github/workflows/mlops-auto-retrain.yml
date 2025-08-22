@@ -930,4 +930,4 @@ jobs:
         echo "• ✅ Kubernetes production deployment"
         echo "• ✅ Full audit trail and reproducibility"
         echo ""
-        echo "🚀 Enterprise-grade MLOps automation is now LIVE!"
+        echo "🚀 Enterprise-grade MLOps automation is now LIVE"
