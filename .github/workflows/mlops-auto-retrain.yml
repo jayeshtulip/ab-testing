@@ -11,11 +11,11 @@ on:
         type: choice
         options:
         - prometheus_alert
-        - grafana_alert
+        - grafana_alert        # Added this for your webhook
         - manual_trigger
         - scheduled_retrain
         - data_drift
-        - alert
+        - alert               # Added generic alert option
       performance_data:
         description: 'Performance data JSON'
         required: false
@@ -314,7 +314,7 @@ jobs:
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         IMAGE_TAG="retrained-${TIMESTAMP}"
         IMAGE_URI="${{ env.ECR_REGISTRY }}/${{ env.IMAGE_REPO }}:${IMAGE_TAG}"
-    
+        
         echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
         
