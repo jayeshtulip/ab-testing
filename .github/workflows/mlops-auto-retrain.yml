@@ -307,20 +307,26 @@ jobs:
     - name: Build API with retrained model
       id: build
       run: |
-        echo " Building API with retrained loan default model..."
-        
+        echo "🐳 Building API with retrained loan default model..."
+    
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         IMAGE_TAG="retrained-${TIMESTAMP}"
         IMAGE_URI="${{ env.ECR_REGISTRY }}/${{ env.IMAGE_REPO }}:${IMAGE_TAG}"
-        
+    
         echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
-        
+    
+        # Debug: Check files exist
+        echo "Checking files..."
+        ls -la
+        ls -la src/ka_api/ || echo "src/ka_api not found"
+        cat database_dockerfile || echo "database_dockerfile not found"
+    
         # Build image with retrained model
         docker build -f database_dockerfile -t "${IMAGE_URI}" .
         docker push "${IMAGE_URI}"
-        
-        echo " Built and pushed: ${IMAGE_TAG}"
+    
+        echo "📦 Built and pushed: ${IMAGE_TAG}"
 
   # Job 5: Deploy to Production
   deploy-production:
