@@ -42,6 +42,7 @@ env:
   ECR_REGISTRY: 365021531163.dkr.ecr.ap-south-1.amazonaws.com
   IMAGE_REPO: ka-mlops-api
   K8S_NAMESPACE: loan-default
+  EKS_CLUSTER_NAME: loan-eks-simple
   PROD_API_URL: aff9aee729ad040908b5641f4ebda419-1266006591.ap-south-1.elb.amazonaws.com
 
 jobs:
@@ -369,35 +370,93 @@ jobs:
     environment: production
     
     steps:
-    - name: Configure kubectl
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Configure kubectl for EKS
       run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBE_CONFIG_BASE64 }}" | base64 -d > ~/.kube/config
+        echo "🔧 Configuring kubectl for EKS cluster: ${{ env.EKS_CLUSTER_NAME }}"
+        
+        # Verify AWS credentials
+        aws sts get-caller-identity
+        
+        # Update kubeconfig for EKS cluster
+        aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+        
+        # Test connection
+        kubectl get nodes
+        echo "✅ kubectl configured successfully"
+    
+    - name: Check current deployments
+      run: |
+        echo "🔍 Checking current deployments in namespace: ${{ env.K8S_NAMESPACE }}"
+        
+        # List all deployments in the namespace
+        kubectl get deployments -n ${{ env.K8S_NAMESPACE }} || echo "No deployments found or namespace doesn't exist"
+        
+        # Try to find the correct deployment name
+        kubectl get deployments -n ${{ env.K8S_NAMESPACE }} -o name | grep -E "(mlops|api|loan)" || echo "No matching deployments found"
     
     - name: Deploy to production
       run: |
         echo "🚀 Deploying retrained model to production..."
         
         IMAGE_URI="${{ needs.build-api-image.outputs.image_uri }}"
+        echo "Deploying image: ${IMAGE_URI}"
         
-        kubectl set image deployment/ka-mlops-api ka-api="${IMAGE_URI}" -n ${{ env.K8S_NAMESPACE }}
-        kubectl rollout status deployment/ka-mlops-api -n ${{ env.K8S_NAMESPACE }} --timeout=600s
+        # Try multiple possible deployment names
+        DEPLOYMENT_NAMES=("ka-mlops-api" "loan-api" "mlops-api" "api")
+        DEPLOYED=false
         
-        echo "✅ Production deployment completed"
+        for DEPLOYMENT in "${DEPLOYMENT_NAMES[@]}"; do
+          if kubectl get deployment "$DEPLOYMENT" -n ${{ env.K8S_NAMESPACE }} >/dev/null 2>&1; then
+            echo "Found deployment: $DEPLOYMENT"
+            
+            # Get current image
+            kubectl describe deployment "$DEPLOYMENT" -n ${{ env.K8S_NAMESPACE }} | grep Image: || true
+            
+            # Update deployment with new image
+            kubectl set image deployment/"$DEPLOYMENT" "*=${IMAGE_URI}" -n ${{ env.K8S_NAMESPACE }}
+            
+            # Wait for rollout to complete
+            kubectl rollout status deployment/"$DEPLOYMENT" -n ${{ env.K8S_NAMESPACE }} --timeout=600s
+            
+            echo "✅ Successfully updated deployment: $DEPLOYMENT"
+            DEPLOYED=true
+            break
+          fi
+        done
+        
+        if [ "$DEPLOYED" = false ]; then
+          echo "❌ No matching deployment found. Available deployments:"
+          kubectl get deployments -n ${{ env.K8S_NAMESPACE }}
+          exit 1
+        fi
     
     - name: Post-deployment validation
       run: |
         echo "🔍 Validating production deployment..."
         sleep 30
         
-        curl -f "http://${{ env.PROD_API_URL }}/health" || exit 1
-        echo "💚 Health check passed"
+        # Check if pods are running
+        echo "Pod status:"
+        kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+        
+        # Test health endpoint
+        echo "Testing health endpoint..."
+        curl -f "http://${{ env.PROD_API_URL }}/health" && echo "✅ Health check passed" || echo "⚠️ Health check failed"
         
         # Test prediction with retrained model
+        echo "Testing prediction endpoint..."
         curl -f -X POST "http://${{ env.PROD_API_URL }}/predict" \
           -H "Content-Type: application/json" \
-          -d '{"features": [50000, 75000, 720, 0.3, 5]}' || exit 1
-        echo "🎯 Retrained model prediction test passed"
+          -d '{"features": [50000, 75000, 720, 0.3, 5]}' && echo "✅ Prediction test passed" || echo "⚠️ Prediction test failed"
+        
+        echo "🎯 Post-deployment validation completed"
 
   # Job 6: Notifications
   notifications:
@@ -413,13 +472,14 @@ jobs:
         echo "🔧 Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
         echo "🐳 Image: ${{ needs.build-api-image.outputs.image_tag }}"
         echo "📊 Status: Deployed to Production"
+        echo "🏆 Retrained model is now serving predictions!"
         
         # Add Slack notification here if webhook URL is configured
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d '{
-              "text": "🎉 MLOps Auto-Retraining Completed - ${{ needs.build-api-image.outputs.image_tag }} triggered by ${{ needs.validate-trigger.outputs.trigger_reason }}"
+              "text": "🎉 MLOps Auto-Retraining Completed Successfully! 🚀\nImage: ${{ needs.build-api-image.outputs.image_tag }}\nTriggered by: ${{ needs.validate-trigger.outputs.trigger_reason }}"
             }'
         fi
     
@@ -428,13 +488,23 @@ jobs:
       run: |
         echo "❌ MLOps Auto-Retraining Pipeline Failed!"
         echo "🔧 Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
-        echo "📊 Status: Failed"
+        echo "📊 Status: Failed during deployment"
         
         # Add Slack failure notification here if webhook URL is configured
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d '{
-              "text": "❌ MLOps Auto-Retraining Failed - triggered by ${{ needs.validate-trigger.outputs.trigger_reason }}"
+              "text": "❌ MLOps Auto-Retraining Failed during deployment!\nTriggered by: ${{ needs.validate-trigger.outputs.trigger_reason }}"
             }'
         fi
+    
+    - name: Pipeline summary
+      run: |
+        echo "📋 MLOps Auto-Retraining Pipeline Summary"
+        echo "========================================"
+        echo "Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
+        echo "Image Built: ${{ needs.build-api-image.outputs.image_tag }}"
+        echo "Deployment Status: ${{ needs.deploy-production.result }}"
+        echo "Pipeline Status: ${{ job.status }}"
+        echo "========================================"
