@@ -11,9 +11,11 @@ on:
         type: choice
         options:
         - prometheus_alert
+        - grafana_alert
         - manual_trigger
         - scheduled_retrain
         - data_drift
+        - alert
       performance_data:
         description: 'Performance data JSON'
         required: false
