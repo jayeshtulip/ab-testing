@@ -1,7 +1,7 @@
 ﻿name: MLOps Auto-Retraining Pipeline
 
 on:
-  # Webhook trigger from Prometheus Alertmanager
+  # Webhook trigger from Prometheus Alertmanager or Grafana
   workflow_dispatch:
     inputs:
       reason:
@@ -21,7 +21,7 @@ on:
         required: false
         default: '{}'
       alert_name:
-        description: 'Alert name from Prometheus'
+        description: 'Alert name from Prometheus/Grafana'
         required: false
         default: 'ModelPerformanceDegraded'
   
@@ -60,7 +60,7 @@ jobs:
     - name: Validate retraining trigger
       id: check
       run: |
-        echo " Validating retraining trigger..."
+        echo "🔍 Validating retraining trigger..."
         
         REASON="${{ github.event.inputs.reason || 'code_change' }}"
         echo "Trigger reason: $REASON"
@@ -69,17 +69,18 @@ jobs:
         # Always proceed with retraining for this demo
         echo "should_retrain=true" >> $GITHUB_OUTPUT
         
-        # Get current performance if it's a prometheus alert
-        if [ "$REASON" = "prometheus_alert" ]; then
+        # Get current performance if it's a prometheus or grafana alert
+        if [ "$REASON" = "prometheus_alert" ] || [ "$REASON" = "grafana_alert" ] || [ "$REASON" = "alert" ]; then
           PERF_DATA='${{ github.event.inputs.performance_data }}'
-          F1_SCORE=$(echo "$PERF_DATA" | jq -r '.f1_score // "0.0"')
+          F1_SCORE=$(echo "$PERF_DATA" | jq -r '.f1_score // "0.0"' 2>/dev/null || echo "0.0")
           echo "current_f1=$F1_SCORE" >> $GITHUB_OUTPUT
-          echo " Current F1 Score: $F1_SCORE"
+          echo "📊 Current F1 Score: $F1_SCORE"
+          echo "🚨 Alert Name: ${{ github.event.inputs.alert_name }}"
         else
           echo "current_f1=unknown" >> $GITHUB_OUTPUT
         fi
         
-        echo " Trigger validation complete"
+        echo "✅ Trigger validation complete"
 
   # Job 2: Fetch Production Data
   fetch-training-data:
@@ -102,7 +103,7 @@ jobs:
     
     - name: Fetch production feedback data
       run: |
-        echo " Fetching training data from production database..."
+        echo "📥 Fetching training data from production database..."
         
         python3 << 'EOF'
         import pandas as pd
@@ -134,11 +135,11 @@ jobs:
             
             df.to_csv('production_training_data.csv', index=False)
             
-            print(f" Generated {len(df)} realistic training samples")
-            print(f" Default rate: {df['target'].mean():.1%}")
+            print(f"📊 Generated {len(df)} realistic training samples")
+            print(f"🎯 Default rate: {df['target'].mean():.1%}")
             
         except Exception as e:
-            print(f" Error creating training data: {e}")
+            print(f"❌ Error creating training data: {e}")
             exit(1)
         EOF
     
@@ -173,7 +174,7 @@ jobs:
     
     - name: Train improved model
       run: |
-        echo " Training loan default prediction model..."
+        echo "🤖 Training loan default prediction model..."
         
         python3 << 'EOF'
         import pandas as pd
@@ -189,7 +190,7 @@ jobs:
         
         # Load training data
         df = pd.read_csv('production_training_data.csv')
-        print(f" Training on {len(df)} loan applications")
+        print(f"📚 Training on {len(df)} loan applications")
         
         # Prepare features
         feature_cols = ['loan_amount', 'income', 'credit_score', 'debt_to_income', 'employment_years']
@@ -205,8 +206,8 @@ jobs:
             X_scaled, y, test_size=0.2, random_state=42, stratify=y
         )
         
-        print(f" Training: {len(X_train)}, Test: {len(X_test)}")
-        print(f" Default rate: {y.mean():.1%}")
+        print(f"🔀 Training: {len(X_train)}, Test: {len(X_test)}")
+        print(f"📊 Default rate: {y.mean():.1%}")
         
         # Train multiple models
         models = {
@@ -233,14 +234,14 @@ jobs:
             auc = roc_auc_score(y_test, y_proba)
             
             results[name] = {'f1': f1, 'accuracy': acc, 'auc': auc}
-            print(f" {name} - F1: {f1:.3f}, Accuracy: {acc:.3f}, AUC: {auc:.3f}")
+            print(f"🎯 {name} - F1: {f1:.3f}, Accuracy: {acc:.3f}, AUC: {auc:.3f}")
             
             if f1 > best_f1:
                 best_f1 = f1
                 best_model = model
                 best_name = name
         
-        print(f" Best model: {best_name} (F1: {best_f1:.3f})")
+        print(f"🏆 Best model: {best_name} (F1: {best_f1:.3f})")
         
         # Save best model and scaler
         joblib.dump(best_model, 'retrained_model.pkl')
@@ -258,13 +259,14 @@ jobs:
             'default_rate': float(y.mean()),
             'retrain_timestamp': datetime.now().isoformat(),
             'trigger_reason': '${{ needs.validate-trigger.outputs.trigger_reason }}',
+            'trigger_alert_name': '${{ github.event.inputs.alert_name }}',
             'all_results': results
         }
         
         with open('model_metadata.json', 'w') as f:
             json.dump(model_info, f, indent=2)
         
-        print(" Loan default model training completed")
+        print("✅ Loan default model training completed")
         EOF
     
     - name: Upload trained model
@@ -308,24 +310,56 @@ jobs:
       id: build
       run: |
         echo "🐳 Building API with retrained loan default model..."
-    
+        
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         IMAGE_TAG="retrained-${TIMESTAMP}"
         IMAGE_URI="${{ env.ECR_REGISTRY }}/${{ env.IMAGE_REPO }}:${IMAGE_TAG}"
     
         echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
-    
-        # Debug: Check files exist
-        echo "Checking files..."
-        ls -la
-        ls -la src/ka_api/ || echo "src/ka_api not found"
-        cat database_dockerfile || echo "database_dockerfile not found"
-    
+        
+        # Create dockerfile for retrained model API
+        cat > Dockerfile.retrained << 'EOF'
+        FROM python:3.9-slim
+        WORKDIR /app
+        
+        # Install system dependencies
+        RUN apt-get update && apt-get install -y \
+            gcc \
+            libpq-dev \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # Install Python packages
+        RUN pip install --no-cache-dir \
+            fastapi==0.104.1 \
+            uvicorn==0.24.0 \
+            prometheus-client==0.19.0 \
+            pydantic \
+            psycopg2-binary \
+            numpy==1.24.3 \
+            scikit-learn \
+            joblib
+        
+        # Copy the database-enabled API
+        COPY src/ka_api/database_auto_retrain.py ./main.py
+        
+        # Copy the retrained models
+        COPY models/ ./models/
+        
+        # Create temp directory
+        RUN mkdir -p /tmp
+        
+        # Expose port
+        EXPOSE 8000
+        
+        # Run the app
+        CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
+        EOF
+        
         # Build image with retrained model
-        docker build -f database_dockerfile -t "${IMAGE_URI}" .
+        docker build -f Dockerfile.retrained -t "${IMAGE_URI}" .
         docker push "${IMAGE_URI}"
-    
+        
         echo "📦 Built and pushed: ${IMAGE_TAG}"
 
   # Job 5: Deploy to Production
@@ -342,47 +376,65 @@ jobs:
     
     - name: Deploy to production
       run: |
-        echo " Deploying retrained model to production..."
+        echo "🚀 Deploying retrained model to production..."
         
         IMAGE_URI="${{ needs.build-api-image.outputs.image_uri }}"
         
         kubectl set image deployment/ka-mlops-api ka-api="${IMAGE_URI}" -n ${{ env.K8S_NAMESPACE }}
         kubectl rollout status deployment/ka-mlops-api -n ${{ env.K8S_NAMESPACE }} --timeout=600s
         
-        echo " Production deployment completed"
+        echo "✅ Production deployment completed"
     
     - name: Post-deployment validation
       run: |
-        echo " Validating production deployment..."
+        echo "🔍 Validating production deployment..."
         sleep 30
         
         curl -f "http://${{ env.PROD_API_URL }}/health" || exit 1
-        echo " Health check passed"
+        echo "💚 Health check passed"
         
         # Test prediction with retrained model
         curl -f -X POST "http://${{ env.PROD_API_URL }}/predict" \
           -H "Content-Type: application/json" \
           -d '{"features": [50000, 75000, 720, 0.3, 5]}' || exit 1
-        echo " Retrained model prediction test passed"
+        echo "🎯 Retrained model prediction test passed"
 
   # Job 6: Notifications
   notifications:
     needs: [deploy-production, validate-trigger, build-api-image]
     runs-on: ubuntu-latest
+    if: always()
     
     steps:
     - name: Send success notification
+      if: needs.deploy-production.result == 'success'
       run: |
-        echo " MLOps Auto-Retraining Pipeline Completed Successfully!"
-        echo " Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
-        echo " Image: ${{ needs.build-api-image.outputs.image_tag }}"
-        echo " Status: Deployed to Production"
+        echo "🎉 MLOps Auto-Retraining Pipeline Completed Successfully!"
+        echo "🔧 Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
+        echo "🐳 Image: ${{ needs.build-api-image.outputs.image_tag }}"
+        echo "📊 Status: Deployed to Production"
         
         # Add Slack notification here if webhook URL is configured
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d '{
-              "text": " MLOps Auto-Retraining Completed - ${{ needs.build-api-image.outputs.image_tag }}"
+              "text": "🎉 MLOps Auto-Retraining Completed - ${{ needs.build-api-image.outputs.image_tag }} triggered by ${{ needs.validate-trigger.outputs.trigger_reason }}"
+            }'
+        fi
+    
+    - name: Send failure notification
+      if: needs.deploy-production.result == 'failure'
+      run: |
+        echo "❌ MLOps Auto-Retraining Pipeline Failed!"
+        echo "🔧 Trigger: ${{ needs.validate-trigger.outputs.trigger_reason }}"
+        echo "📊 Status: Failed"
+        
+        # Add Slack failure notification here if webhook URL is configured
+        if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "❌ MLOps Auto-Retraining Failed - triggered by ${{ needs.validate-trigger.outputs.trigger_reason }}"
             }'
         fi

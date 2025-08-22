@@ -1,20 +1,8 @@
-FROM python:3.9-slim
-
+﻿FROM python:3.9-slim
 WORKDIR /app
-
-# Copy requirements and install dependencies
-COPY ka_requirements.txt .
-RUN pip install --no-cache-dir -r ka_requirements.txt
-RUN pip install fastapi uvicorn
-
-# Copy the entire source structure
-COPY src/ ./src/
-
-# IMPORTANT: Make sure the Python path includes the current directory
-ENV PYTHONPATH="/app"
-
-# Expose port
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+RUN pip install fastapi uvicorn numpy==1.24.3 prometheus-client==0.19.0 pydantic
+COPY src/ka_api/fixed_auto_retrain.py ./main.py
+RUN mkdir -p /tmp
 EXPOSE 8000
-
-# Fixed CMD - correct module path
-CMD ["uvicorn", "src.ka_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
