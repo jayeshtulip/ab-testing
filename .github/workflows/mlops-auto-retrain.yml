@@ -99,6 +99,16 @@ jobs:
       with:
         python-version: '3.9'
     
+    # Cache pip packages for faster dependency installation
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-data-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-data-
+          ${{ runner.os }}-pip-
+    
     - name: Install dependencies
       run: |
         pip install pandas psycopg2-binary requests numpy scikit-learn mlflow dvc[s3] boto3
@@ -255,6 +265,16 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
+    
+    # Cache pip packages for faster ML dependency installation
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-ml-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-ml-
+          ${{ runner.os }}-pip-
     
     - name: Install ML dependencies
       run: |
@@ -613,11 +633,11 @@ jobs:
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v2
     
-    # NEW: Add Docker Buildx for advanced caching
+    # OPTIMIZATION: Add Docker Buildx for advanced caching
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    # NEW: Cache Docker layers
+    # OPTIMIZATION: Cache Docker layers
     - name: Cache Docker layers
       uses: actions/cache@v4
       with:
@@ -627,13 +647,14 @@ jobs:
           ${{ runner.os }}-buildx-mlops-
           ${{ runner.os }}-buildx-
     
-    # NEW: Cache pip packages
+    # OPTIMIZATION: Cache pip packages
     - name: Cache pip packages
       uses: actions/cache@v4
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        key: ${{ runner.os }}-pip-docker-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: |
+          ${{ runner.os }}-pip-docker-
           ${{ runner.os }}-pip-
     
     - name: Build API with retrained model (OPTIMIZED)
@@ -749,7 +770,7 @@ jobs:
         echo "📦 DVC Model Version: ${{ needs.train-model.outputs.model_version }}"
         echo "🎯 F1 Score: ${{ needs.train-model.outputs.model_f1_score }}"
 
-  # Job 5: Deploy to Production
+  # Job 5: Deploy to Production (WITH MLFLOW FIX)
   deploy-production:
     needs: [build-api-image, train-model, fetch-training-data]
     runs-on: ubuntu-latest
@@ -836,6 +857,13 @@ jobs:
           exit 1
         fi
     
+    # FIX: Install MLflow dependencies before using them
+    - name: Install MLflow dependencies
+      run: |
+        echo "🔧 Installing MLflow for model stage update..."
+        pip install mlflow==2.8.1 boto3
+        echo "✅ MLflow installed"
+    
     - name: Update MLflow model stage to Production
       run: |
         echo "📊 Updating MLflow model stage to Production..."
@@ -844,6 +872,7 @@ jobs:
         import mlflow
         from mlflow.tracking import MlflowClient
         import sys
+        from datetime import datetime
         
         try:
             # Set MLflow tracking
@@ -856,7 +885,7 @@ jobs:
             # Add deployment success tags
             client.set_tag(run_id, "deployment_status", "success")
             client.set_tag(run_id, "model_stage", "production")
-            client.set_tag(run_id, "deployed_at", "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
+            client.set_tag(run_id, "deployed_at", datetime.now().isoformat())
             client.set_tag(run_id, "deployed_image", "${{ needs.build-api-image.outputs.image_uri }}")
             client.set_tag(run_id, "k8s_namespace", "${{ env.K8S_NAMESPACE }}")
             client.set_tag(run_id, "dvc_model_version", "${{ needs.train-model.outputs.model_version }}")
@@ -864,14 +893,14 @@ jobs:
             
             # Log deployment metrics
             client.log_metric(run_id, "deployment_success", 1)
-            client.log_metric(run_id, "deployment_timestamp", "$(date +%s)")
             
             print("✅ MLflow model stage updated to Production")
             print(f"🔗 View run: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/13/runs/{run_id}")
             
         except Exception as e:
             print(f"⚠️ Warning: Could not update MLflow model stage: {e}")
-            sys.exit(0)  # Don't fail the deployment for MLflow issues
+            # Don't fail the deployment for MLflow issues
+            print("🚀 Deployment was successful, MLflow update is optional")
         EOF
     
     - name: Post-deployment validation
@@ -996,4 +1025,4 @@ jobs:
         echo "• ✅ Kubernetes production deployment"
         echo "• ✅ Full audit trail and reproducibility"
         echo ""
-        echo "🚀 Enterprise-grade MLOps automation is now LIVE"
+        echo "🚀 Enterprise-grade MLOps automation is now LIVE!"
