@@ -85,6 +85,7 @@ jobs:
       should_continue: ${{ steps.validate.outputs.should_continue }}
       mlflow_experiment_id: ${{ steps.mlflow_setup.outputs.experiment_id }}
       traffic_split: ${{ steps.setup.outputs.traffic_split }}
+      significance_threshold: ${{ steps.setup.outputs.significance_threshold }}
     steps:
     - name: "🚀 Checkout Repository"
       uses: actions/checkout@v4
@@ -113,10 +114,17 @@ jobs:
         fi
         traffic_split_display="${traffic_split_input//-/:}"
         
+        # Handle significance threshold
+        significance_threshold="${{ github.event.inputs.significance_threshold }}"
+        if [ -z "$significance_threshold" ]; then
+          significance_threshold="0.05"
+        fi
+        
         echo "traffic_split=$traffic_split_display" >> $GITHUB_OUTPUT
+        echo "significance_threshold=$significance_threshold" >> $GITHUB_OUTPUT
         echo "🚀 Enhanced A/B Experiment ID: $experiment_id"
         echo "🚀 Traffic Split: $traffic_split_display"
-        echo "🚀 Significance Threshold: ${{ github.event.inputs.significance_threshold || '0.05' }}"
+        echo "🚀 Significance Threshold: $significance_threshold"
         
     - name: "🚀 Initialize Enhanced MLflow A/B Testing Experiment"
       id: mlflow_setup
@@ -148,10 +156,10 @@ jobs:
             mlflow.log_param('pipeline_type', 'enhanced_ab_testing')
             mlflow.log_param('experiment_id', '${{ steps.setup.outputs.experiment_id }}')
             mlflow.log_param('traffic_split', '${{ steps.setup.outputs.traffic_split }}')
-            mlflow.log_param('significance_threshold', '${{ github.event.inputs.significance_threshold || \"0.05\" }}')
-            mlflow.log_param('early_stopping_enabled', '${{ github.event.inputs.early_stopping_enabled || \"true\" }}')
-            mlflow.log_param('drift_detection_enabled', '${{ github.event.inputs.drift_detection_enabled || \"true\" }}')
-            mlflow.log_param('trigger_reason', '${{ github.event.inputs.reason || \"manual_trigger\" }}')
+            mlflow.log_param('significance_threshold', '${{ steps.setup.outputs.significance_threshold }}')
+            mlflow.log_param('early_stopping_enabled', '${{ github.event.inputs.early_stopping_enabled }}')
+            mlflow.log_param('drift_detection_enabled', '${{ github.event.inputs.drift_detection_enabled }}')
+            mlflow.log_param('trigger_reason', '${{ github.event.inputs.reason }}')
             mlflow.log_param('grafana_url', '${{ env.GRAFANA_URL }}')
             mlflow.log_param('prometheus_url', '${{ env.PROMETHEUS_URL }}')
             
@@ -592,11 +600,15 @@ jobs:
         # Start MLflow run for A/B analysis
         with mlflow.start_run(run_name='enhanced-ab-analysis-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
             
+            # Get significance threshold from previous step
+            significance_threshold = float('${{ needs.validate-experiment-setup.outputs.significance_threshold }}')
+            
             # Log analysis parameters
             mlflow.log_param('experiment_id', '${{ needs.validate-experiment-setup.outputs.experiment_id }}')
             mlflow.log_param('drift_detected', '${{ needs.drift-detection-analysis.outputs.drift_detected }}')
             mlflow.log_param('drift_score', '${{ needs.drift-detection-analysis.outputs.drift_score }}')
             mlflow.log_param('analysis_method', 'enhanced_statistical_testing')
+            mlflow.log_param('significance_threshold', significance_threshold)
             
             # Query Prometheus for A/B testing metrics (your actual Prometheus)
             prometheus_url = 'http://${{ env.PROMETHEUS_URL }}'
@@ -711,7 +723,6 @@ jobs:
             effect_size = 2 * (np.arcsin(np.sqrt(p2)) - np.arcsin(np.sqrt(p1)))
             
             # Statistical power analysis
-            significance_threshold = float('${{ github.event.inputs.significance_threshold }}' or '0.05')
             power = sms.power_proportions_2indep(p1, p2, n1, alpha=significance_threshold)
             
             # Confidence intervals
@@ -907,10 +918,12 @@ jobs:
         # Start MLflow run for early stopping analysis
         with mlflow.start_run(run_name='early-stopping-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
             
+            # Get significance threshold from validate step
+            significance_threshold = float('${{ needs.validate-experiment-setup.outputs.significance_threshold }}')
+            
             # Log early stopping parameters
             mlflow.log_param('experiment_id', '${{ needs.validate-experiment-setup.outputs.experiment_id }}')
             mlflow.log_param('early_stopping_enabled', '${{ github.event.inputs.early_stopping_enabled }}')
-            significance_threshold = '${{ github.event.inputs.significance_threshold }}' or '0.05'
             mlflow.log_param('significance_threshold', significance_threshold)
             mlflow.log_param('stopping_method', 'sequential_probability_ratio_test')
             
@@ -1543,9 +1556,9 @@ jobs:
                     mlflow.log_metric(f'roi_{metric}', value)
             
             print(f'📊 Enhanced ROI Analysis Results:')
-            print(f'   Annual Revenue Increase: ${roi_result[\"annual_revenue_increase\"]:,.2f}')
-            print(f'   Risk-Adjusted Benefit: ${roi_result[\"risk_adjusted_benefit\"]:,.2f}')
-            print(f'   3-Year NPV: ${roi_result[\"npv_3_years\"]:,.2f}')
+            print(f'   Annual Revenue Increase: \${roi_result[\"annual_revenue_increase\"]:,.2f}')
+            print(f'   Risk-Adjusted Benefit: \${roi_result[\"risk_adjusted_benefit\"]:,.2f}')
+            print(f'   3-Year NPV: \${roi_result[\"npv_3_years\"]:,.2f}')
             print(f'   ROI Percentage: {roi_result[\"roi_percentage\"]:.1f}%')
             print(f'   Break-even: {roi_result[\"break_even_months\"]:.1f} months')
             
