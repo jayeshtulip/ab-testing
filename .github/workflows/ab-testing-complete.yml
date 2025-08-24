@@ -638,8 +638,6 @@ jobs:
       run: |
         echo "📊 Running Enhanced A/B Testing Analysis from Prometheus & MLflow..."
         
-        echo "📊 Running Enhanced A/B Testing Analysis from Prometheus & MLflow..."
-        
         python3 << 'EOF'
         import requests
         import json
@@ -650,6 +648,14 @@ jobs:
         from mlflow.tracking import MlflowClient
         from datetime import datetime
         import os
+        
+        # Debug: Print all GitHub Actions inputs to identify Holder values
+        print("🐛 DEBUG: GitHub Actions Inputs:")
+        print(f"   experiment_id: '${{ needs.validate-experiment-setup.outputs.experiment_id }}'")
+        print(f"   mlflow_experiment_id: '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'")
+        print(f"   significance_threshold: '${{ needs.validate-experiment-setup.outputs.significance_threshold }}'")
+        print(f"   drift_detected: '${{ needs.drift-detection-analysis.outputs.drift_detected }}'")
+        print(f"   drift_score: '${{ needs.drift-detection-analysis.outputs.drift_score }}'")
         
         # Set MLflow tracking (your actual server)
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
@@ -668,43 +674,61 @@ jobs:
             print(f'⚠️ Error setting experiment: {e}')
             # Fallback to default experiment
             mlflow.set_experiment("Default")
+            experiment_id = "0"
         
         # Start MLflow run for A/B analysis
-        with mlflow.start_run(run_name='enhanced-ab-analysis-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
+        with mlflow.start_run(run_name=f'enhanced-ab-analysis-{datetime.now().strftime("%Y%m%d-%H%M%S")}') as run:
             
-            # Get significance threshold from previous step
-            significance_threshold = float('${{ needs.validate-experiment-setup.outputs.significance_threshold }}')
-            
-            # Safely parse drift outputs with error handling
-            def safe_float_parse(value, default=0.0):
+            # Safely parse all GitHub Actions outputs with extensive error handling
+            def safe_parse_value(value, parse_type='str', default=None):
+                """Safely parse GitHub Actions output values"""
                 try:
-                    return float(value)
-                except (ValueError, TypeError):
-                    print(f'⚠️ Could not parse float value: {value}, using default: {default}')
+                    if value == 'Holder' or value == '' or value is None:
+                        print(f'⚠️ Found Holder/empty value, using default: {default}')
+                        return default
+                    
+                    if parse_type == 'float':
+                        return float(value)
+                    elif parse_type == 'int':
+                        return int(value)
+                    elif parse_type == 'bool':
+                        if isinstance(value, str):
+                            return value.lower() in ['true', '1', 'yes']
+                        return bool(value)
+                    else:
+                        return str(value)
+                except (ValueError, TypeError, AttributeError) as e:
+                    print(f'⚠️ Error parsing {value} as {parse_type}: {e}, using default: {default}')
                     return default
             
-            def safe_bool_parse(value, default=False):
-                if isinstance(value, str):
-                    return value.lower() in ['true', '1', 'yes']
-                return bool(value) if value else default
+            # Parse all inputs safely
+            experiment_id_safe = safe_parse_value('${{ needs.validate-experiment-setup.outputs.experiment_id }}', 'str', 'default_experiment')
+            significance_threshold = safe_parse_value('${{ needs.validate-experiment-setup.outputs.significance_threshold }}', 'float', 0.05)
+            drift_detected = safe_parse_value('${{ needs.drift-detection-analysis.outputs.drift_detected }}', 'bool', False)
+            drift_score = safe_parse_value('${{ needs.drift-detection-analysis.outputs.drift_score }}', 'float', 0.0)
             
-            # Parse drift detection outputs safely
-            drift_detected_str = '${{ needs.drift-detection-analysis.outputs.drift_detected }}'
-            drift_score_str = '${{ needs.drift-detection-analysis.outputs.drift_score }}'
+            print(f'📊 Parsed Values:')
+            print(f'   experiment_id_safe: {experiment_id_safe}')
+            print(f'   significance_threshold: {significance_threshold}')
+            print(f'   drift_detected: {drift_detected}')
+            print(f'   drift_score: {drift_score}')
             
-            drift_detected = safe_bool_parse(drift_detected_str)
-            drift_score = safe_float_parse(drift_score_str, 0.0)
-            
-            print(f'📊 Drift Detection Context:')
-            print(f'   Drift Detected: {drift_detected} (from: {drift_detected_str})')
-            print(f'   Drift Score: {drift_score} (from: {drift_score_str})')
-            
-            # Log analysis parameters
-            mlflow.log_param('experiment_id', '${{ needs.validate-experiment-setup.outputs.experiment_id }}')
-            mlflow.log_param('drift_detected', str(drift_detected))
-            mlflow.log_param('drift_score', drift_score)
-            mlflow.log_param('analysis_method', 'enhanced_statistical_testing')
-            mlflow.log_param('significance_threshold', significance_threshold)
+            # Log analysis parameters - ONLY if values are valid
+            try:
+                mlflow.log_param('experiment_id', experiment_id_safe)
+                mlflow.log_param('drift_detected', str(drift_detected))
+                mlflow.log_param('analysis_method', 'enhanced_statistical_testing')
+                mlflow.log_param('significance_threshold', significance_threshold)
+                
+                # Only log drift_score if it's a valid number
+                if isinstance(drift_score, (int, float)) and not np.isnan(drift_score):
+                    mlflow.log_param('drift_score', drift_score)
+                else:
+                    mlflow.log_param('drift_score', 'unavailable')
+                    
+                print('✅ Successfully logged parameters to MLflow')
+            except Exception as e:
+                print(f'⚠️ Error logging parameters to MLflow: {e}')
             
             # Query Prometheus for A/B testing metrics (your actual Prometheus)
             prometheus_url = 'http://${{ env.PROMETHEUS_URL }}'
@@ -798,10 +822,24 @@ jobs:
                     'total_revenue': 2963.20 * int(treatment_sample_size * 0.156)
                 }
             
-            # Log sample sizes to MLflow
-            mlflow.log_metric('control_sample_size', control_performance['sample_size'])
-            mlflow.log_metric('treatment_sample_size', treatment_performance['sample_size'])
-            mlflow.log_metric('total_sample_size', total_sample_size)
+            # Safe MLflow metric logging with error handling
+            def safe_log_metric(name, value):
+                """Safely log metrics to MLflow with error handling"""
+                try:
+                    if isinstance(value, (int, float)) and not np.isnan(value) and not np.isinf(value):
+                        mlflow.log_metric(name, float(value))
+                        return True
+                    else:
+                        print(f'⚠️ Skipping invalid metric {name}: {value}')
+                        return False
+                except Exception as e:
+                    print(f'⚠️ Error logging metric {name}={value}: {e}')
+                    return False
+            
+            # Log sample sizes to MLflow with safe logging
+            safe_log_metric('control_sample_size', control_performance['sample_size'])
+            safe_log_metric('treatment_sample_size', treatment_performance['sample_size'])
+            safe_log_metric('total_sample_size', total_sample_size)
             
             # Enhanced statistical analysis
             p1 = control_performance['conversion_rate']
@@ -857,31 +895,31 @@ jobs:
                 should_retrain = False
                 confidence_level = 0.5
             
-            # Log comprehensive metrics to MLflow
-            mlflow.log_metric('control_conversion_rate', p1)
-            mlflow.log_metric('treatment_conversion_rate', p2)
-            mlflow.log_metric('conversion_rate_difference', p2 - p1)
-            mlflow.log_metric('p_value', p_value)
-            mlflow.log_metric('z_statistic', z_stat)
-            mlflow.log_metric('effect_size_cohens_h', effect_size)
-            mlflow.log_metric('statistical_power', power)
-            mlflow.log_metric('confidence_level', confidence_level)
-            mlflow.log_metric('performance_difference_pct', performance_difference)
+            # Log comprehensive metrics to MLflow with safe logging
+            safe_log_metric('control_conversion_rate', p1)
+            safe_log_metric('treatment_conversion_rate', p2)
+            safe_log_metric('conversion_rate_difference', p2 - p1)
+            safe_log_metric('p_value', p_value)
+            safe_log_metric('z_statistic', z_stat)
+            safe_log_metric('effect_size_cohens_h', effect_size)
+            safe_log_metric('statistical_power', power)
+            safe_log_metric('confidence_level', confidence_level)
+            safe_log_metric('performance_difference_pct', performance_difference)
             
             # Business metrics
             revenue_lift = treatment_performance['total_revenue'] - control_performance['total_revenue']
             revenue_lift_pct = (revenue_lift / control_performance['total_revenue']) * 100 if control_performance['total_revenue'] > 0 else 0
             
-            mlflow.log_metric('revenue_lift', revenue_lift)
-            mlflow.log_metric('revenue_lift_percentage', revenue_lift_pct)
-            mlflow.log_metric('control_total_revenue', control_performance['total_revenue'])
-            mlflow.log_metric('treatment_total_revenue', treatment_performance['total_revenue'])
+            safe_log_metric('revenue_lift', revenue_lift)
+            safe_log_metric('revenue_lift_percentage', revenue_lift_pct)
+            safe_log_metric('control_total_revenue', control_performance['total_revenue'])
+            safe_log_metric('treatment_total_revenue', treatment_performance['total_revenue'])
             
             # Log confidence intervals
-            mlflow.log_metric('control_ci_lower', ci_control[0])
-            mlflow.log_metric('control_ci_upper', ci_control[1])
-            mlflow.log_metric('treatment_ci_lower', ci_treatment[0])
-            mlflow.log_metric('treatment_ci_upper', ci_treatment[1])
+            safe_log_metric('control_ci_lower', ci_control[0])
+            safe_log_metric('control_ci_upper', ci_control[1])
+            safe_log_metric('treatment_ci_lower', ci_treatment[0])
+            safe_log_metric('treatment_ci_upper', ci_treatment[1])
             
             # Enhanced results summary
             print(f'📊 Enhanced A/B Testing Results:')
@@ -900,7 +938,7 @@ jobs:
             
             # Create comprehensive analysis report
             analysis_report = {
-                'experiment_id': '${{ needs.validate-experiment-setup.outputs.experiment_id }}',
+                'experiment_id': experiment_id_safe,
                 'timestamp': datetime.now().isoformat(),
                 'sample_sizes': {'control': n1, 'treatment': n2, 'total': total_sample_size},
                 'conversion_rates': {'control': p1, 'treatment': p2, 'difference': p2 - p1},
@@ -935,7 +973,7 @@ jobs:
                 }
             }
             
-            # Save enhanced analysis report - FIX F-STRING BACKSLASH ISSUE
+            # Save enhanced analysis report
             os.makedirs('experiments/ab_analysis', exist_ok=True)
             timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
             analysis_file = f'experiments/ab_analysis/enhanced_analysis_{timestamp_str}.json'
@@ -943,13 +981,21 @@ jobs:
                 json.dump(analysis_report, f, indent=2)
             
             # Log analysis report as MLflow artifact
-            mlflow.log_artifact(analysis_file, 'ab_analysis')
+            try:
+                mlflow.log_artifact(analysis_file, 'ab_analysis')
+                print('✅ Successfully logged analysis report to MLflow')
+            except Exception as e:
+                print(f'⚠️ Error logging artifact: {e}')
             
-            # Set MLflow tags
-            mlflow.set_tag('ab_analysis_status', 'completed')
-            mlflow.set_tag('winning_model', winning_model)
-            mlflow.set_tag('statistical_significance', str(is_significant).lower())
-            mlflow.set_tag('should_retrain', str(should_retrain).lower())
+            # Set MLflow tags safely
+            try:
+                mlflow.set_tag('ab_analysis_status', 'completed')
+                mlflow.set_tag('winning_model', winning_model)
+                mlflow.set_tag('statistical_significance', str(is_significant).lower())
+                mlflow.set_tag('should_retrain', str(should_retrain).lower())
+                print('✅ Successfully set MLflow tags')
+            except Exception as e:
+                print(f'⚠️ Error setting MLflow tags: {e}')
             
             # Output results for next jobs
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
