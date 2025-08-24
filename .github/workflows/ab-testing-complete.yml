@@ -391,7 +391,7 @@ jobs:
     - name: "🚀 Advanced Drift Detection with MLflow Integration"
       id: drift
       run: |
-        python -c "
+        python3 << 'EOF'
         import pandas as pd
         import numpy as np
         import mlflow
@@ -404,9 +404,31 @@ jobs:
         
         # Set MLflow tracking (your actual server)
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
-        mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
+        
+        # Use the experiment created in the setup step
+        experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         
         print('📊 Running Advanced Drift Detection with MLflow Integration...')
+        print(f'📊 Using MLflow Experiment ID: {experiment_id}')
+        
+        # Set experiment by ID instead of name to avoid deleted experiment issues
+        try:
+            mlflow.set_experiment(experiment_id=experiment_id)
+            print('✅ Successfully set MLflow experiment by ID')
+        except Exception as e:
+            print(f'⚠️ Error setting experiment by ID: {e}')
+            # Fallback: try setting by name with timestamp
+            try:
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                fallback_name = f'${{ env.MLFLOW_EXPERIMENT_NAME }}_drift_{timestamp}'
+                experiment_id = mlflow.create_experiment(fallback_name)
+                mlflow.set_experiment(experiment_id=experiment_id)
+                print(f'✅ Created fallback experiment: {fallback_name}')
+            except Exception as e2:
+                print(f'⚠️ Fallback failed: {e2}')
+                # Use default experiment as last resort
+                mlflow.set_experiment("Default")
+                experiment_id = "0"
         
         # Start MLflow run for drift detection
         with mlflow.start_run(run_name='drift-detection-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -417,6 +439,7 @@ jobs:
             mlflow.log_param('drift_method', 'advanced_statistical_tests')
             mlflow.log_param('drift_threshold', 0.05)
             mlflow.log_param('drift_detection_enabled', '${{ github.event.inputs.drift_detection_enabled }}')
+            mlflow.log_param('mlflow_experiment_id_used', experiment_id)
             
             # Load current data
             df_current = pd.read_csv('data/current_ab_data.csv')
@@ -548,7 +571,7 @@ jobs:
             
             # Save comprehensive drift analysis
             os.makedirs('experiments/drift_analysis', exist_ok=True)
-            drift_file = f'experiments/drift_analysis/drift_analysis_{datetime.now().strftime(\"%Y%m%d_%H%M%S\")}.json'
+            drift_file = f'experiments/drift_analysis/drift_analysis_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
             with open(drift_file, 'w') as f:
                 json.dump(drift_summary, f, indent=2)
             
@@ -563,13 +586,13 @@ jobs:
             
             # Output results for next jobs - Fix boolean serialization
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write(f'drift_detected={str(drift_detected).lower()}\\n')
-                f.write(f'drift_score={overall_drift_score:.3f}\\n')
-                f.write(f'drift_features={json.dumps(drift_features)}\\n')
-                f.write(f'mlflow_run_id={run.info.run_id}\\n')
+                f.write(f'drift_detected={str(drift_detected).lower()}\n')
+                f.write(f'drift_score={overall_drift_score:.3f}\n')
+                f.write(f'drift_features={json.dumps(drift_features)}\n')
+                f.write(f'mlflow_run_id={run.info.run_id}\n')
             
             print('✅ Advanced drift detection completed with MLflow integration')
-        "
+        EOF
         
     - name: "🚀 Upload Enhanced Drift Analysis Results"
       uses: actions/upload-artifact@v4
