@@ -1,4 +1,4 @@
-﻿name: 🚀 Enhanced A/B Testing MLOps Pipeline - Complete Implementation
+name: ?? Enhanced A/B Testing MLOps Pipeline - Complete Implementation
 
 on:
   workflow_dispatch:
@@ -86,31 +86,31 @@ jobs:
       mlflow_experiment_id: ${{ steps.mlflow_setup.outputs.experiment_id }}
       traffic_split: ${{ steps.setup.outputs.traffic_split }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: 📦 Install Enhanced Dependencies
+    - name: ?? Install Enhanced Dependencies
       run: |
         pip install requests numpy scipy pandas mlflow boto3 jq
         pip install dvc[s3] scikit-learn joblib evidently alibi-detect
         
-    - name: 🔧 Configure Enhanced Experiment Setup
+    - name: ?? Configure Enhanced Experiment Setup
       id: setup
       run: |
         experiment_id="enhanced_ab_exp_$(date +%Y%m%d_%H%M%S)"
         echo "experiment_id=$experiment_id" >> $GITHUB_OUTPUT
         echo "traffic_split=${{ github.event.inputs.traffic_split || '50:50' }}" >> $GITHUB_OUTPUT
-        echo "🎯 Enhanced A/B Experiment ID: $experiment_id"
-        echo "🔀 Traffic Split: ${{ github.event.inputs.traffic_split || '50:50' }}"
-        echo "📊 Significance Threshold: ${{ github.event.inputs.significance_threshold || '0.05' }}"
+        echo "?? Enhanced A/B Experiment ID: $experiment_id"
+        echo "?? Traffic Split: ${{ github.event.inputs.traffic_split || '50:50' }}"
+        echo "?? Significance Threshold: ${{ github.event.inputs.significance_threshold || '0.05' }}"
         
-    - name: 📊 Initialize Enhanced MLflow A/B Testing Experiment
+    - name: ?? Initialize Enhanced MLflow A/B Testing Experiment
       id: mlflow_setup
       run: |
         python -c "
@@ -119,7 +119,7 @@ jobs:
         import os
         from datetime import datetime
         
-        print('📊 Setting up Enhanced MLflow A/B Testing Experiment...')
+        print('?? Setting up Enhanced MLflow A/B Testing Experiment...')
         
         # Set MLflow tracking URI (your actual server)
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
@@ -128,11 +128,11 @@ jobs:
         # Create or get enhanced A/B testing experiment
         try:
             experiment = mlflow.create_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
-            print(f'✅ Created new enhanced MLflow experiment: {experiment}')
+            print(f'? Created new enhanced MLflow experiment: {experiment}')
         except:
             experiment = mlflow.get_experiment_by_name('${{ env.MLFLOW_EXPERIMENT_NAME }}')
             experiment = experiment.experiment_id
-            print(f'📂 Using existing enhanced MLflow experiment: {experiment}')
+            print(f'?? Using existing enhanced MLflow experiment: {experiment}')
         
         # Start parent run for the entire A/B testing pipeline
         with mlflow.start_run(run_name='enhanced-ab-pipeline-${{ steps.setup.outputs.experiment_id }}'):
@@ -156,10 +156,10 @@ jobs:
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write(f'experiment_id={experiment}\\n')
         
-        print(f'🔗 Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
+        print(f'?? Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
         "
         
-    - name: ✅ Validate Enhanced Prerequisites
+    - name: ? Validate Enhanced Prerequisites
       id: validate
       run: |
         python -c "
@@ -167,37 +167,37 @@ jobs:
         import os
         import requests
         
-        print('🔍 Validating Enhanced A/B Testing Prerequisites...')
+        print('?? Validating Enhanced A/B Testing Prerequisites...')
         
         # Test Grafana connectivity
         try:
             grafana_health = requests.get('http://${{ env.GRAFANA_URL }}/api/health', timeout=10)
-            print('✅ Grafana accessible')
+            print('? Grafana accessible')
         except:
-            print('⚠️ Grafana not accessible - continuing with simulation')
+            print('?? Grafana not accessible - continuing with simulation')
             
         # Test Prometheus connectivity  
         try:
             prom_health = requests.get('http://${{ env.PROMETHEUS_URL }}/-/healthy', timeout=10)
-            print('✅ Prometheus accessible')
+            print('? Prometheus accessible')
         except:
-            print('⚠️ Prometheus not accessible - continuing with simulation')
+            print('?? Prometheus not accessible - continuing with simulation')
             
         # Test MLflow connectivity
         try:
             mlflow_health = requests.get('${{ env.MLFLOW_TRACKING_URI }}/health', timeout=10)
-            print('✅ MLflow accessible')
+            print('? MLflow accessible')
         except:
-            print('⚠️ MLflow not accessible - continuing with local tracking')
+            print('?? MLflow not accessible - continuing with local tracking')
         
         # Create required directories
         required_dirs = ['experiments', 'models', 'data', 'monitoring', 'reports']
         for dir_path in required_dirs:
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path, exist_ok=True)
-                print(f'📁 Created directory: {dir_path}')
+                print(f'?? Created directory: {dir_path}')
                 
-        print('✅ All enhanced prerequisites validated')
+        print('? All enhanced prerequisites validated')
         print('should_continue=true')
         "
         echo "should_continue=true" >> $GITHUB_OUTPUT
@@ -217,31 +217,31 @@ jobs:
       mlflow_drift_run_id: ${{ steps.drift.outputs.mlflow_run_id }}
       data_version: ${{ steps.dvc.outputs.data_version }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: 📦 Install Drift Detection Dependencies
+    - name: ?? Install Drift Detection Dependencies
       run: |
         pip install scipy numpy pandas mlflow dvc[s3] evidently alibi-detect boto3
         pip install psycopg2-binary requests
         
-    - name: 🔍 Configure AWS Credentials for DVC
+    - name: ?? Configure AWS Credentials for DVC
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
-    - name: 🗃️ Setup Enhanced DVC Data Pipeline
+    - name: ??? Setup Enhanced DVC Data Pipeline
       id: dvc
       run: |
-        echo "🗃️ Setting up Enhanced DVC Data Pipeline for A/B Testing..."
+        echo "??? Setting up Enhanced DVC Data Pipeline for A/B Testing..."
         
         # Initialize DVC if not already done
         if [ ! -f ".dvc/config" ]; then
@@ -266,7 +266,7 @@ jobs:
         np.random.seed(42)
         n_samples = 5000
         
-        print(f"📊 Generating enhanced dataset with {n_samples} samples...")
+        print(f"?? Generating enhanced dataset with {n_samples} samples...")
         
         # Enhanced feature set for loan default prediction
         data = {
@@ -302,7 +302,7 @@ jobs:
         
         # Create data version hash for DVC
         data_hash = hashlib.md5(df.to_string().encode()).hexdigest()[:8]
-        print(f"🔗 Enhanced data version: {data_hash}")
+        print(f"?? Enhanced data version: {data_hash}")
         
         # Save metadata
         metadata = {
@@ -324,7 +324,7 @@ jobs:
         fi
         
         # Push to DVC remote
-        dvc push || echo "⚠️ DVC push failed, continuing locally"
+        dvc push || echo "?? DVC push failed, continuing locally"
         
         # Extract data version
         data_version=$(python3 -c "
@@ -335,9 +335,9 @@ jobs:
         ")
         
         echo "data_version=$data_version" >> $GITHUB_OUTPUT
-        echo "✅ Enhanced DVC data pipeline completed - Version: $data_version"
+        echo "? Enhanced DVC data pipeline completed - Version: $data_version"
         
-    - name: 🔍 Advanced Drift Detection with MLflow Integration
+    - name: ?? Advanced Drift Detection with MLflow Integration
       id: drift
       run: |
         python -c "
@@ -355,7 +355,7 @@ jobs:
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
         
-        print('🔍 Running Advanced Drift Detection with MLflow Integration...')
+        print('?? Running Advanced Drift Detection with MLflow Integration...')
         
         # Start MLflow run for drift detection
         with mlflow.start_run(run_name='drift-detection-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -369,7 +369,7 @@ jobs:
             
             # Load current data
             df_current = pd.read_csv('data/current_ab_data.csv')
-            print(f'📊 Loaded current data: {len(df_current)} samples')
+            print(f'?? Loaded current data: {len(df_current)} samples')
             
             # Simulate historical reference data (with slight distribution shift)
             np.random.seed(24)  # Different seed for reference
@@ -440,7 +440,7 @@ jobs:
                 
                 overall_drift_score += drift_score
                 
-                status = '⚠️ DRIFT' if feature_drift_detected else '✅ OK'
+                status = '?? DRIFT' if feature_drift_detected else '? OK'
                 print(f'{status} {feature}: p-value={p_value:.4f}, score={drift_score:.3f}')
             
             # Calculate overall drift metrics
@@ -474,7 +474,7 @@ jobs:
                 psi_scores[feature] = float(psi)
                 mlflow.log_metric(f'psi_{feature}', psi)
                 
-                psi_status = '⚠️ HIGH' if psi > 0.2 else '✅ OK' if psi < 0.1 else '🔶 MEDIUM'
+                psi_status = '?? HIGH' if psi > 0.2 else '? OK' if psi < 0.1 else '?? MEDIUM'
                 print(f'{psi_status} PSI {feature}: {psi:.4f}')
             
             # Enhanced drift report
@@ -491,10 +491,10 @@ jobs:
                 'sample_sizes': {'reference': len(df_reference), 'current': len(df_current)}
             }
             
-            print(f'📈 Overall Drift Score: {overall_drift_score:.3f}')
-            print(f'⚠️ Drift Detected: {drift_detected}')
-            print(f'🎯 Affected Features: {drift_features}')
-            print(f'📋 Severity: {drift_summary[\"severity\"]}')
+            print(f'?? Overall Drift Score: {overall_drift_score:.3f}')
+            print(f'?? Drift Detected: {drift_detected}')
+            print(f'?? Affected Features: {drift_features}')
+            print(f'?? Severity: {drift_summary[\"severity\"]}')
             
             # Save comprehensive drift analysis
             os.makedirs('experiments/drift_analysis', exist_ok=True)
@@ -531,10 +531,10 @@ jobs:
                 f.write(f'drift_features={json.dumps(drift_features)}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✅ Advanced drift detection completed with MLflow integration')
+            print('? Advanced drift detection completed with MLflow integration')
         "
         
-    - name: 📊 Upload Enhanced Drift Analysis Results
+    - name: ?? Upload Enhanced Drift Analysis Results
       uses: actions/upload-artifact@v4
       with:
         name: enhanced-drift-analysis-results
@@ -573,10 +573,10 @@ jobs:
         pip install requests numpy scipy pandas mlflow boto3 jq
         pip install statsmodels pingouin
     
-    - name: 📊 Enhanced A/B Testing Analysis with Prometheus & MLflow
+    - name: ?? Enhanced A/B Testing Analysis with Prometheus & MLflow
       id: analysis
       run: |
-        echo "📊 Running Enhanced A/B Testing Analysis from Prometheus & MLflow..."
+        echo "?? Running Enhanced A/B Testing Analysis from Prometheus & MLflow..."
         
         python3 << 'EOF'
         import requests
@@ -593,7 +593,7 @@ jobs:
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
         
-        print('📊 Starting Enhanced A/B Testing Analysis...')
+        print('?? Starting Enhanced A/B Testing Analysis...')
         
         # Start MLflow run for A/B analysis
         with mlflow.start_run(run_name='enhanced-ab-analysis-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -606,16 +606,16 @@ jobs:
             
             # Query Prometheus for A/B testing metrics (your actual Prometheus)
             prometheus_url = 'http://${{ env.PROMETHEUS_URL }}'
-            print(f'🔍 Querying Prometheus at: {prometheus_url}')
+            print(f'?? Querying Prometheus at: {prometheus_url}')
             
             try:
                 # Test Prometheus connectivity
                 health_response = requests.get(f'{prometheus_url}/-/healthy', timeout=10)
                 prometheus_accessible = health_response.status_code == 200
-                print(f'✅ Prometheus accessible: {prometheus_accessible}')
+                print(f'? Prometheus accessible: {prometheus_accessible}')
             except:
                 prometheus_accessible = False
-                print('❌ Prometheus not accessible, using enhanced simulation')
+                print('? Prometheus not accessible, using enhanced simulation')
             
             # Enhanced A/B testing metrics collection
             if prometheus_accessible:
@@ -636,17 +636,17 @@ jobs:
                     treatment_result = int(float(treatment_response.json()['data']['result'][0]['value'][1])) if treatment_response.json()['data']['result'] else 0
                     total_result = control_result + treatment_result
                     
-                    print(f'📊 Prometheus A/B Results: Control={control_result}, Treatment={treatment_result}, Total={total_result}')
+                    print(f'?? Prometheus A/B Results: Control={control_result}, Treatment={treatment_result}, Total={total_result}')
                     
                 except Exception as e:
-                    print(f'⚠️ Error querying Prometheus: {e}, using enhanced simulation')
+                    print(f'?? Error querying Prometheus: {e}, using enhanced simulation')
                     control_result, treatment_result, total_result = 0, 0, 0
             else:
                 control_result, treatment_result, total_result = 0, 0, 0
             
             # Enhanced simulation data (based on your known test data)
             if total_result < 20:
-                print('📊 Using enhanced simulation with realistic A/B test data...')
+                print('?? Using enhanced simulation with realistic A/B test data...')
                 # Enhanced realistic A/B test simulation
                 control_sample_size = 1247
                 treatment_sample_size = 1253
@@ -783,7 +783,7 @@ jobs:
             mlflow.log_metric('treatment_ci_upper', ci_treatment[1])
             
             # Enhanced results summary
-            print(f'📊 Enhanced A/B Testing Results:')
+            print(f'?? Enhanced A/B Testing Results:')
             print(f'   Control Conversion Rate: {p1:.3%} (n={n1:,})')
             print(f'   Treatment Conversion Rate: {p2:.3%} (n={n2:,})')
             print(f'   Difference: {performance_difference:.2f}%')
@@ -860,13 +860,13 @@ jobs:
                 f.write(f'effect_size={effect_size:.4f}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✅ Enhanced A/B testing analysis completed with MLflow integration')
+            print('? Enhanced A/B testing analysis completed with MLflow integration')
         EOF
         
-        echo "📊 Enhanced A/B test analysis completed"
+        echo "?? Enhanced A/B test analysis completed"
 
   # =====================================
-  # PHASE 4: EARLY STOPPING ENGINE 🛑
+  # PHASE 4: EARLY STOPPING ENGINE ??
   # =====================================
   
   early-stopping-analysis:
@@ -879,20 +879,20 @@ jobs:
       stopping_confidence: ${{ steps.early_stop.outputs.confidence }}
       mlflow_early_stop_run_id: ${{ steps.early_stop.outputs.mlflow_run_id }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: 📦 Install Early Stopping Dependencies
+    - name: ?? Install Early Stopping Dependencies
       run: |
         pip install scipy numpy statsmodels mlflow
         
-    - name: 🛑 Advanced Early Stopping Engine with MLflow
+    - name: ?? Advanced Early Stopping Engine with MLflow
       id: early_stop
       run: |
         python -c "
@@ -908,7 +908,7 @@ jobs:
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
         
-        print('🛑 Running Advanced Early Stopping Engine...')
+        print('?? Running Advanced Early Stopping Engine...')
         
         # Start MLflow run for early stopping analysis
         with mlflow.start_run(run_name='early-stopping-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -927,7 +927,7 @@ jobs:
             winning_model = '${{ needs.analyze-ab-test-results.outputs.winning_model }}'
             effect_size = float('${{ needs.analyze-ab-test-results.outputs.effect_size }}')
             
-            print(f'📊 Early Stopping Analysis Input:')
+            print(f'?? Early Stopping Analysis Input:')
             print(f'   Sample Size: {sample_size:,}')
             print(f'   Performance Difference: {performance_diff:.2f}%')
             print(f'   Confidence Level: {confidence_level:.3f}')
@@ -960,49 +960,49 @@ jobs:
                 should_stop = False
                 reason = 'insufficient_sample_size'
                 confidence = 0.2
-                print(f'⏳ Insufficient sample size: {sample_size} < {min_sample_threshold}')
+                print(f'? Insufficient sample size: {sample_size} < {min_sample_threshold}')
                 
             elif sample_size >= max_sample_threshold:
                 should_stop = True
                 reason = 'maximum_sample_reached'
                 confidence = 0.9
-                print(f'⏰ Maximum sample size reached: {sample_size} >= {max_sample_threshold}')
+                print(f'? Maximum sample size reached: {sample_size} >= {max_sample_threshold}')
                 
             elif is_significant and performance_diff >= strong_practical_diff:
                 should_stop = True
                 reason = 'strong_statistical_and_practical_significance'
                 confidence = min(0.95, confidence_level + 0.1)
-                print(f'🎯 Strong significance: {performance_diff:.2f}% >= {strong_practical_diff}%')
+                print(f'?? Strong significance: {performance_diff:.2f}% >= {strong_practical_diff}%')
                 
             elif is_significant and performance_diff >= min_practical_diff and confidence_level >= 0.8:
                 should_stop = True
                 reason = 'statistical_and_practical_significance'
                 confidence = confidence_level
-                print(f'✅ Statistical + practical significance achieved')
+                print(f'? Statistical + practical significance achieved')
                 
             elif confidence_level >= 0.95 and performance_diff >= min_practical_diff:
                 should_stop = True
                 reason = 'high_confidence_practical_difference'
                 confidence = confidence_level
-                print(f'🔒 High confidence achieved: {confidence_level:.3f}')
+                print(f'?? High confidence achieved: {confidence_level:.3f}')
                 
             elif abs(effect_size) >= 0.5 and sample_size >= 1000:  # Large effect size
                 should_stop = True
                 reason = 'large_effect_size_detected'
                 confidence = min(0.9, confidence_level + 0.2)
-                print(f'📈 Large effect size detected: {abs(effect_size):.4f}')
+                print(f'?? Large effect size detected: {abs(effect_size):.4f}')
                 
             elif winning_model == 'inconclusive' and sample_size >= 3000:
                 should_stop = True
                 reason = 'no_clear_winner_after_large_sample'
                 confidence = 0.7
-                print(f'🤷 No clear winner after large sample: {sample_size}')
+                print(f'?? No clear winner after large sample: {sample_size}')
                 
             else:
                 should_stop = False
                 reason = 'continue_testing'
                 confidence = confidence_level
-                print(f'➡️ Continue testing - need more evidence')
+                print(f'?? Continue testing - need more evidence')
             
             # Sequential Probability Ratio Test (SPRT) for advanced early stopping
             if not should_stop and sample_size >= min_sample_threshold:
@@ -1021,12 +1021,12 @@ jobs:
                     should_stop = True
                     reason = 'sprt_accept_alternative'
                     confidence = min(0.95, 1 - alpha)
-                    print(f'🎲 SPRT: Accept alternative hypothesis')
+                    print(f'?? SPRT: Accept alternative hypothesis')
                 elif log_likelihood_ratio <= np.log(A):
                     should_stop = True
                     reason = 'sprt_accept_null'
                     confidence = min(0.95, 1 - beta)
-                    print(f'🎲 SPRT: Accept null hypothesis')
+                    print(f'?? SPRT: Accept null hypothesis')
                 
                 # Log SPRT metrics
                 mlflow.log_metric('sprt_log_likelihood_ratio', log_likelihood_ratio)
@@ -1040,7 +1040,7 @@ jobs:
                     should_stop = True
                     reason = 'sufficient_business_impact'
                     confidence = min(0.9, confidence_level + business_impact_score * 0.2)
-                    print(f'💰 Sufficient business impact achieved: {performance_diff:.2f}%')
+                    print(f'?? Sufficient business impact achieved: {performance_diff:.2f}%')
                     
                 mlflow.log_metric('business_impact_score', business_impact_score)
             
@@ -1049,7 +1049,7 @@ jobs:
             mlflow.log_metric('stopping_confidence', confidence)
             mlflow.log_param('stopping_reason', reason)
             
-            print(f'🛑 Early Stopping Decision:')
+            print(f'?? Early Stopping Decision:')
             print(f'   Should Stop: {should_stop}')
             print(f'   Reason: {reason}')
             print(f'   Confidence: {confidence:.3f}')
@@ -1104,11 +1104,11 @@ jobs:
                 f.write(f'confidence={confidence:.4f}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✅ Advanced early stopping analysis completed')
+            print('? Advanced early stopping analysis completed')
         "
 
   # =====================================
-  # PHASE 5: WINNER SELECTION ENGINE 🎯
+  # PHASE 5: WINNER SELECTION ENGINE ??
   # =====================================
   
   winner-selection-engine:
@@ -1121,20 +1121,20 @@ jobs:
       deployment_recommendation: ${{ steps.winner.outputs.deployment_recommendation }}
       mlflow_winner_run_id: ${{ steps.winner.outputs.mlflow_run_id }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: 📦 Install Winner Selection Dependencies
+    - name: ?? Install Winner Selection Dependencies
       run: |
         pip install numpy scipy mlflow pandas
         
-    - name: 🎯 Advanced Winner Selection Engine
+    - name: ?? Advanced Winner Selection Engine
       id: winner
       run: |
         python -c "
@@ -1148,7 +1148,7 @@ jobs:
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
         
-        print('🎯 Running Advanced Winner Selection Engine...')
+        print('?? Running Advanced Winner Selection Engine...')
         
         # Start MLflow run for winner selection
         with mlflow.start_run(run_name='winner-selection-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -1173,7 +1173,7 @@ jobs:
             drift_detected = '${{ needs.drift-detection-analysis.outputs.drift_detected }}' == 'true'
             drift_score = float('${{ needs.drift-detection-analysis.outputs.drift_score }}')
             
-            print(f'📊 Winner Selection Input Analysis:')
+            print(f'?? Winner Selection Input Analysis:')
             print(f'   A/B Winner: {ab_winning_model}')
             print(f'   Performance Diff: {performance_diff:.2f}%')
             print(f'   Confidence: {confidence_level:.3f}')
@@ -1264,12 +1264,12 @@ jobs:
             
             mlflow.log_metric('composite_winner_score', composite_score)
             
-            print(f'📊 Multi-Criteria Scoring Results:')
+            print(f'?? Multi-Criteria Scoring Results:')
             for criterion, score in criterion_scores.items():
                 weight = criteria_weights[criterion]
                 weighted_score = score * weight
                 print(f'   {criterion}: {score:.3f} (weight: {weight}) = {weighted_score:.3f}')
-            print(f'   📈 Composite Score: {composite_score:.3f}')
+            print(f'   ?? Composite Score: {composite_score:.3f}')
             
             # Enhanced decision logic based on composite score
             deployment_thresholds = {
@@ -1311,7 +1311,7 @@ jobs:
                 selection_confidence *= 0.8  # Reduce confidence due to high drift
                 deployment_recommendation = 'investigate_drift_first'
                 decision_rationale += '_with_drift_concerns'
-                print('⚠️ High drift detected - reducing confidence and requiring investigation')
+                print('?? High drift detected - reducing confidence and requiring investigation')
             
             # Log final decision metrics
             mlflow.log_param('final_winning_model', final_winning_model)
@@ -1320,7 +1320,7 @@ jobs:
             mlflow.log_metric('selection_confidence', selection_confidence)
             mlflow.log_metric('business_impact_score', business_impact_score)
             
-            print(f'🏆 Winner Selection Engine Results:')
+            print(f'?? Winner Selection Engine Results:')
             print(f'   Final Winner: {final_winning_model.upper()}')
             print(f'   Deployment Recommendation: {deployment_recommendation}')
             print(f'   Selection Confidence: {selection_confidence:.3f}')
@@ -1386,11 +1386,11 @@ jobs:
                 f.write(f'deployment_recommendation={deployment_recommendation}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✅ Advanced winner selection engine completed')
+            print('? Advanced winner selection engine completed')
         "
 
   # =====================================
-  # PHASE 6: BUSINESS IMPACT ANALYZER 💰
+  # PHASE 6: BUSINESS IMPACT ANALYZER ??
   # =====================================
   
   business-impact-analyzer:
@@ -1402,20 +1402,20 @@ jobs:
       temporal_patterns: ${{ steps.temporal.outputs.temporal_results }}
       mlflow_business_run_id: ${{ steps.roi.outputs.mlflow_run_id }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: 📦 Install Business Analysis Dependencies
+    - name: ?? Install Business Analysis Dependencies
       run: |
         pip install pandas numpy mlflow scipy
         
-    - name: 💰 Enhanced ROI Calculator Engine
+    - name: ?? Enhanced ROI Calculator Engine
       id: roi
       run: |
         python -c "
@@ -1429,7 +1429,7 @@ jobs:
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
         
-        print('💰 Running Enhanced ROI Calculator Engine...')
+        print('?? Running Enhanced ROI Calculator Engine...')
         
         # Start MLflow run for business impact analysis
         with mlflow.start_run(run_name='business-impact-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -1444,7 +1444,7 @@ jobs:
             selection_confidence = float('${{ needs.winner-selection-engine.outputs.selection_confidence }}')
             performance_diff = float('${{ needs.analyze-ab-test-results.outputs.performance_difference }}')
             
-            print(f'📊 Business Impact Input:')
+            print(f'?? Business Impact Input:')
             print(f'   Winning Model: {winning_model}')
             print(f'   Performance Improvement: {performance_diff:.2f}%')
             print(f'   Selection Confidence: {selection_confidence:.3f}')
@@ -1547,7 +1547,7 @@ jobs:
                 if isinstance(value, (int, float)) and not np.isinf(value):
                     mlflow.log_metric(f'roi_{metric}', value)
             
-            print(f'💰 Enhanced ROI Analysis Results:')
+            print(f'?? Enhanced ROI Analysis Results:')
             print(f'   Annual Revenue Increase: ${roi_result[\"annual_revenue_increase\"]:,.2f}')
             print(f'   Risk-Adjusted Benefit: ${roi_result[\"risk_adjusted_benefit\"]:,.2f}')
             print(f'   3-Year NPV: ${roi_result[\"npv_3_years\"]:,.2f}')
@@ -1568,10 +1568,10 @@ jobs:
                 f.write(f'roi_result={json.dumps(roi_result)}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✅ Enhanced ROI calculator completed')
+            print('? Enhanced ROI calculator completed')
         "
         
-    - name: 📊 Enhanced Segment Analyzer Engine  
+    - name: ?? Enhanced Segment Analyzer Engine  
       id: segment
       run: |
         python -c "
@@ -1581,7 +1581,7 @@ jobs:
         import pandas as pd
         from datetime import datetime
         
-        print('📊 Running Enhanced Segment Analyzer Engine...')
+        print('?? Running Enhanced Segment Analyzer Engine...')
         
         # Load current A/B testing data for segment analysis
         try:
@@ -1645,16 +1645,16 @@ jobs:
                         'default_rate': float(segment_data['target'].mean())
                     }
                     
-                    print(f'📊 Segment {segment}:')
+                    print(f'?? Segment {segment}:')
                     print(f'   Sample Size: {len(segment_data)}')
                     print(f'   Improvement: {segment_improvement:.2f}%')
-                    print(f'   Conversion Rates: {segment_control_rate:.3f} → {segment_treatment_rate:.3f}')
+                    print(f'   Conversion Rates: {segment_control_rate:.3f} ? {segment_treatment_rate:.3f}')
                     print(f'   Business Priority: {segment_results[segment][\"business_priority\"]}')
                 
-            print(f'✅ Analyzed {len(segment_results)} customer segments')
+            print(f'? Analyzed {len(segment_results)} customer segments')
             
         except Exception as e:
-            print(f'⚠️ Error in segment analysis: {e}, using default segments')
+            print(f'?? Error in segment analysis: {e}, using default segments')
             segment_results = {'default': {'improvement_percentage': float('${{ needs.analyze-ab-test-results.outputs.performance_difference }}')}}
         
         # Save segment analysis
@@ -1668,7 +1668,7 @@ jobs:
             f.write(f'segment_results={json.dumps(segment_results)}\\n')
         "
         
-    - name: ⏰ Enhanced Temporal Pattern Detector
+    - name: ? Enhanced Temporal Pattern Detector
       id: temporal
       run: |
         python -c "
@@ -1677,7 +1677,7 @@ jobs:
         import numpy as np
         from datetime import datetime, timedelta
         
-        print('⏰ Running Enhanced Temporal Pattern Detector...')
+        print('? Running Enhanced Temporal Pattern Detector...')
         
         # Simulate temporal patterns in A/B test performance
         current_hour = datetime.now().hour
@@ -1768,10 +1768,10 @@ jobs:
             'analysis_timestamp': datetime.now().isoformat()
         }
         
-        print(f'⏰ Temporal Pattern Analysis:')
+        print(f'? Temporal Pattern Analysis:')
         print(f'   Current Time: {datetime.now().strftime(\"%H:%M on %A\")}')
-        print(f'   Hourly Pattern: {current_pattern} (×{pattern_multiplier:.2f})')
-        print(f'   Daily Pattern: {daily_pattern} (×{daily_multiplier:.2f})')
+        print(f'   Hourly Pattern: {current_pattern} (�{pattern_multiplier:.2f})')
+        print(f'   Daily Pattern: {daily_pattern} (�{daily_multiplier:.2f})')
         print(f'   Combined Multiplier: {combined_temporal_multiplier:.2f}')
         print(f'   Temporal Adjusted Performance: {temporal_adjusted_performance:.2f}%')
         
@@ -1785,7 +1785,7 @@ jobs:
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f'temporal_results={json.dumps(temporal_results)}\\n')
         
-        print('✅ Enhanced temporal pattern detection completed')
+        print('? Enhanced temporal pattern detection completed')
         "
 
   # =====================================
@@ -1806,34 +1806,34 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
     
-    - name: 📦 Install Enhanced ML Dependencies  
+    - name: ?? Install Enhanced ML Dependencies  
       run: |
         pip install scikit-learn pandas numpy joblib mlflow boto3 dvc[s3]
         pip install xgboost lightgbm optuna hyperopt
     
-    - name: 🔍 Configure AWS Credentials for MLflow + DVC
+    - name: ?? Configure AWS Credentials for MLflow + DVC
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
-    - name: 📥 Download Enhanced Analysis Results
+    - name: ?? Download Enhanced Analysis Results
       uses: actions/download-artifact@v4
       with:
         name: enhanced-drift-analysis-results
         path: .
     
-    - name: 🏆 Train Enhanced Champion Model with MLflow + DVC Integration
+    - name: ?? Train Enhanced Champion Model with MLflow + DVC Integration
       id: train
       run: |
-        echo "🏆 Training Enhanced Champion Model..."
+        echo "?? Training Enhanced Champion Model..."
         echo "Winning A/B model: ${{ needs.winner-selection-engine.outputs.final_winning_model }}"
         echo "Performance difference: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}"
         echo "Selection confidence: ${{ needs.winner-selection-engine.outputs.selection_confidence }}"
@@ -1858,7 +1858,7 @@ jobs:
         mlflow.set_tracking_uri("${{ env.MLFLOW_TRACKING_URI }}")
         mlflow.set_experiment("${{ env.MLFLOW_EXPERIMENT_NAME }}")
         
-        print('🏆 Training Enhanced Champion Model with MLflow + DVC...')
+        print('?? Training Enhanced Champion Model with MLflow + DVC...')
         
         # Start MLflow run for champion training
         with mlflow.start_run(run_name="enhanced-champion-model-" + datetime.now().strftime("%Y%m%d-%H%M%S")) as run:
@@ -1876,7 +1876,7 @@ jobs:
             
             # Load enhanced training data
             df = pd.read_csv('data/current_ab_data.csv')
-            print(f'📊 Loaded training data: {len(df)} samples')
+            print(f'?? Loaded training data: {len(df)} samples')
             
             # Enhanced feature engineering based on A/B test insights
             feature_cols = ['loan_amount', 'income', 'credit_score', 'debt_to_income', 
@@ -1908,9 +1908,9 @@ jobs:
                 X_scaled, y, test_size=0.15, random_state=42, stratify=y
             )
             
-            print(f'🔀 Enhanced Training Split: {len(X_train)} train, {len(X_test)} test')
-            print(f'📊 Default rate: {y.mean():.3%}')
-            print(f'🧮 Enhanced features: {len(enhanced_features)}')
+            print(f'?? Enhanced Training Split: {len(X_train)} train, {len(X_test)} test')
+            print(f'?? Default rate: {y.mean():.3%}')
+            print(f'?? Enhanced features: {len(enhanced_features)}')
             
             # Log dataset characteristics
             mlflow.log_param("training_samples", len(X_train))
@@ -1926,7 +1926,7 @@ jobs:
             winning_model = "${{ needs.winner-selection-engine.outputs.final_winning_model }}"
             
             if winning_model == "treatment":
-                print('🏗️ Creating Enhanced GradientBoosting Champion (Treatment Winner)...')
+                print('??? Creating Enhanced GradientBoosting Champion (Treatment Winner)...')
                 
                 # Hyperparameter optimization for champion model
                 param_grid = {
@@ -1945,7 +1945,7 @@ jobs:
                     n_jobs=-1, verbose=1
                 )
                 
-                print('🔍 Running hyperparameter optimization...')
+                print('?? Running hyperparameter optimization...')
                 grid_search.fit(X_train, y_train)
                 
                 champion_model = grid_search.best_estimator_
@@ -1957,7 +1957,7 @@ jobs:
                     mlflow.log_param(f"champion_{param}", value)
                     
             elif winning_model == "control":
-                print('🏗️ Creating Enhanced RandomForest Champion (Control Winner)...')
+                print('??? Creating Enhanced RandomForest Champion (Control Winner)...')
                 
                 # Hyperparameter optimization for RandomForest
                 param_grid = {
@@ -1976,7 +1976,7 @@ jobs:
                     n_jobs=-1, verbose=1
                 )
                 
-                print('🔍 Running hyperparameter optimization...')
+                print('?? Running hyperparameter optimization...')
                 grid_search.fit(X_train, y_train)
                 
                 champion_model = grid_search.best_estimator_
@@ -1988,7 +1988,7 @@ jobs:
                     mlflow.log_param(f"champion_{param}", value)
                     
             else:
-                print('🏗️ Creating Advanced Ensemble Champion (No Clear Winner)...')
+                print('??? Creating Advanced Ensemble Champion (No Clear Winner)...')
                 
                 # Create optimized ensemble
                 rf_optimized = RandomForestClassifier(
@@ -2012,7 +2012,7 @@ jobs:
                 mlflow.log_param("voting_method", "soft")
             
             # Train champion model
-            print(f'🏃 Training {model_type} as champion model...')
+            print(f'?? Training {model_type} as champion model...')
             champion_model.fit(X_train, y_train)
             
             # Comprehensive evaluation
@@ -2038,7 +2038,7 @@ jobs:
             mlflow.log_metric("champion_precision", class_report['1']['precision'])
             mlflow.log_metric("champion_recall", class_report['1']['recall'])
             
-            print(f'🏆 Enhanced Champion Model Performance:')
+            print(f'?? Enhanced Champion Model Performance:')
             print(f'   Type: {model_type}')
             print(f'   F1 Score: {f1:.4f}')
             print(f'   Accuracy: {accuracy:.4f}')
@@ -2125,7 +2125,7 @@ jobs:
                 
                 mlflow.log_artifact("models/enhanced_feature_importance.json", "champion_artifacts")
                 
-                print('📊 Top 5 Most Important Features:')
+                print('?? Top 5 Most Important Features:')
                 sorted_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
                 for feature, importance in sorted_features[:5]:
                     print(f'   {feature}: {importance:.4f}')
@@ -2147,15 +2147,15 @@ jobs:
                 f.write(f"mlflow_run_id={run.info.run_id}\\n")
                 f.write(f"model_uri={model_uri}\\n")
             
-            print("✅ Enhanced champion model training completed with full MLflow + DVC integration")
-            print(f"📊 MLflow Run: {run.info.run_id}")
-            print(f"📦 Model Version: {model_version}")
-            print(f"🔗 MLflow UI: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{run.info.experiment_id}/runs/{run.info.run_id}")
+            print("? Enhanced champion model training completed with full MLflow + DVC integration")
+            print(f"?? MLflow Run: {run.info.run_id}")
+            print(f"?? Model Version: {model_version}")
+            print(f"?? MLflow UI: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{run.info.experiment_id}/runs/{run.info.run_id}")
         EOF
         
-    - name: 📦 Version Champion Model with DVC
+    - name: ?? Version Champion Model with DVC
       run: |
-        echo "📦 Versioning Enhanced Champion Model with DVC..."
+        echo "?? Versioning Enhanced Champion Model with DVC..."
         
         # Configure AWS for DVC
         aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -2175,11 +2175,11 @@ jobs:
         dvc add models/enhanced_champion_metadata.json
         
         # Push enhanced models to DVC remote
-        dvc push || echo "⚠️ DVC push failed, models saved locally"
+        dvc push || echo "?? DVC push failed, models saved locally"
         
-        echo "✅ Enhanced champion model versioned with DVC"
+        echo "? Enhanced champion model versioned with DVC"
     
-    - name: 📊 Upload Enhanced Champion Artifacts
+    - name: ?? Upload Enhanced Champion Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: enhanced-champion-model-artifacts
@@ -2192,7 +2192,7 @@ jobs:
           models/*.dvc
 
   # =====================================
-  # PHASE 8: MODEL PROMOTION ENGINE 🚀
+  # PHASE 8: MODEL PROMOTION ENGINE ??
   # =====================================
   
   intelligent-model-promotion:
@@ -2204,23 +2204,23 @@ jobs:
       deployment_url: ${{ steps.deploy.outputs.url }}
       canary_percentage: ${{ steps.deploy.outputs.canary_percentage }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 📥 Download Enhanced Champion Model
+    - name: ?? Download Enhanced Champion Model
       uses: actions/download-artifact@v4
       with:
         name: enhanced-champion-model-artifacts
         path: models/
       
-    - name: 🔍 Configure AWS Credentials for EKS
+    - name: ?? Configure AWS Credentials for EKS
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
-    - name: 🚀 Intelligent Model Promotion Engine with Safety Checks
+    - name: ?? Intelligent Model Promotion Engine with Safety Checks
       id: deploy
       env:
         DEPLOYMENT_RECOMMENDATION: ${{ needs.winner-selection-engine.outputs.deployment_recommendation }}
@@ -2229,7 +2229,7 @@ jobs:
         CHAMPION_F1: ${{ needs.train-champion-model.outputs.champion_f1_score }}
         CHAMPION_VERSION: ${{ needs.train-champion-model.outputs.champion_model_version }}
       run: |
-        echo "🚀 Starting Intelligent Model Promotion Engine..."
+        echo "?? Starting Intelligent Model Promotion Engine..."
         
         python3 << 'EOF'
         import os
@@ -2248,7 +2248,7 @@ jobs:
         champion_f1 = float(os.environ['CHAMPION_F1'])
         model_version = os.environ['CHAMPION_VERSION']
         
-        print(f'🚀 Model Promotion Decision Analysis:')
+        print(f'?? Model Promotion Decision Analysis:')
         print(f'   Deployment Recommendation: {deployment_rec}')
         print(f'   Selection Confidence: {confidence:.3f}')
         print(f'   Business Impact Score: {business_impact:.2f}')
@@ -2271,7 +2271,7 @@ jobs:
             canary_percentage = 0
             
             if deployment_rec == 'deploy_immediately' and confidence >= 0.8:
-                print('✅ HIGH CONFIDENCE DEPLOYMENT - Full rollout approved !')
+                print('? HIGH CONFIDENCE DEPLOYMENT - Full rollout approved !')
                 
                 # Full deployment strategy
                 deployment_phases = [
@@ -2284,12 +2284,12 @@ jobs:
                 deployment_status = "full_rollout_initiated"
                 canary_percentage = 100
                 
-                print('🎯 Full Rollout Strategy:')
+                print('?? Full Rollout Strategy:')
                 for phase in deployment_phases:
                     print(f'   Phase {phase[\"phase\"]}: {phase[\"traffic\"]}% traffic for {phase[\"duration\"]}')
                 
             elif deployment_rec == 'deploy_with_monitoring' and confidence >= 0.6:
-                print('🔶 MEDIUM CONFIDENCE DEPLOYMENT - Gradual rollout with monitoring')
+                print('?? MEDIUM CONFIDENCE DEPLOYMENT - Gradual rollout with monitoring')
                 
                 # Gradual deployment strategy
                 deployment_phases = [
@@ -2301,12 +2301,12 @@ jobs:
                 deployment_status = "gradual_rollout_initiated"
                 canary_percentage = 50
                 
-                print('🎯 Gradual Rollout Strategy:')
+                print('?? Gradual Rollout Strategy:')
                 for phase in deployment_phases:
                     print(f'   Phase {phase[\"phase\"]}: {phase[\"traffic\"]}% traffic for {phase[\"duration\"]}')
                 
             elif deployment_rec == 'canary_deployment':
-                print('🔶 LOW CONFIDENCE DEPLOYMENT - Canary only')
+                print('?? LOW CONFIDENCE DEPLOYMENT - Canary only')
                 
                 # Canary deployment strategy
                 deployment_phases = [
@@ -2317,19 +2317,19 @@ jobs:
                 deployment_status = "canary_deployment_initiated"
                 canary_percentage = 10
                 
-                print('🎯 Canary Deployment Strategy:')
+                print('?? Canary Deployment Strategy:')
                 for phase in deployment_phases:
                     print(f'   Phase {phase[\"phase\"]}: {phase[\"traffic\"]}% traffic for {phase[\"duration\"]}')
                 
             else:
-                print('⚠️ DEPLOYMENT NOT RECOMMENDED - Manual review required')
+                print('?? DEPLOYMENT NOT RECOMMENDED - Manual review required')
                 deployment_status = "manual_review_required"
                 canary_percentage = 0
                 
-                print('📋 Manual Review Requirements:')
-                print('   • Insufficient confidence for automated deployment')
-                print('   • Business impact analysis needed')
-                print('   • Risk assessment required')
+                print('?? Manual Review Requirements:')
+                print('   � Insufficient confidence for automated deployment')
+                print('   � Business impact analysis needed')
+                print('   � Risk assessment required')
             
             # Log deployment strategy
             mlflow.log_param('deployment_strategy', deployment_status)
@@ -2346,9 +2346,9 @@ jobs:
             
             all_safety_checks_passed = all(safety_checks.values())
             
-            print(f'🛡️ Safety Checks:')
+            print(f'??? Safety Checks:')
             for check, passed in safety_checks.items():
-                status = '✅' if passed else '❌'
+                status = '?' if passed else '?'
                 print(f'   {status} {check}: {passed}')
             
             mlflow.log_metric('safety_checks_passed', len([c for c in safety_checks.values() if c]))
@@ -2356,12 +2356,12 @@ jobs:
             mlflow.log_param('all_safety_checks_passed', str(all_safety_checks_passed).lower())
             
             if not all_safety_checks_passed:
-                print('⚠️ Safety checks failed - deployment blocked')
+                print('?? Safety checks failed - deployment blocked')
                 deployment_status = "safety_check_failure"
                 deployment_url = "deployment_blocked"
                 canary_percentage = 0
             
-            print(f'🎯 Final Deployment Decision:')
+            print(f'?? Final Deployment Decision:')
             print(f'   Status: {deployment_status}')
             print(f'   URL: {deployment_url}')
             print(f'   Canary Percentage: {canary_percentage}%')
@@ -2373,7 +2373,7 @@ jobs:
         echo "canary_percentage=$canary_percentage" >> $GITHUB_OUTPUT
 
   # =====================================
-  # PHASE 9: RETRAINING TRIGGER ENGINE 🔄
+  # PHASE 9: RETRAINING TRIGGER ENGINE ??
   # =====================================
   
   performance-monitoring-and-retraining:
@@ -2385,21 +2385,21 @@ jobs:
       performance_degradation: ${{ steps.monitor.outputs.performance_degradation }}
       monitoring_mlflow_run_id: ${{ steps.monitor.outputs.mlflow_run_id }}
     steps:
-    - name: 📋 Checkout Repository
+    - name: ?? Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🐍 Setup Python Environment
+    - name: ?? Setup Python Environment
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: 📦 Install Monitoring Dependencies
+    - name: ?? Install Monitoring Dependencies
       run: |
         pip install prometheus-client mlflow boto3 requests psycopg2-binary
         pip install pandas numpy scipy
         
-    - name: 🔄 Advanced Performance Monitoring & Self-Healing Engine
+    - name: ?? Advanced Performance Monitoring & Self-Healing Engine
       id: monitor
       run: |
         python -c "
@@ -2415,7 +2415,7 @@ jobs:
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
         
-        print('🔄 Running Advanced Performance Monitoring & Self-Healing Engine...')
+        print('?? Running Advanced Performance Monitoring & Self-Healing Engine...')
         
         # Start MLflow run for monitoring
         with mlflow.start_run(run_name='performance-monitoring-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -2429,7 +2429,7 @@ jobs:
             prometheus_url = 'http://${{ env.PROMETHEUS_URL }}'
             
             try:
-                print(f'📊 Querying production metrics from: {prometheus_url}')
+                print(f'?? Querying production metrics from: {prometheus_url}')
                 
                 # Query comprehensive production metrics
                 metrics_queries = {
@@ -2460,18 +2460,18 @@ jobs:
                             current_performance[metric_name] = 0.0
                             
                     except Exception as e:
-                        print(f'⚠️ Error querying {metric_name}: {e}')
+                        print(f'?? Error querying {metric_name}: {e}')
                         current_performance[metric_name] = 0.0
                         prometheus_accessible = False
                 
             except Exception as e:
-                print(f'⚠️ Prometheus not accessible: {e}, using enhanced simulation')
+                print(f'?? Prometheus not accessible: {e}, using enhanced simulation')
                 prometheus_accessible = False
                 current_performance = {}
             
             # Enhanced simulation if Prometheus not accessible
             if not prometheus_accessible or not current_performance:
-                print('📊 Using enhanced performance simulation...')
+                print('?? Using enhanced performance simulation...')
                 
                 # Realistic production performance simulation
                 current_performance = {
@@ -2487,7 +2487,7 @@ jobs:
             for metric, value in current_performance.items():
                 mlflow.log_metric(f'current_{metric}', value)
             
-            print(f'📊 Current Production Performance:')
+            print(f'?? Current Production Performance:')
             for metric, value in current_performance.items():
                 print(f'   {metric}: {value:.4f}')
             
