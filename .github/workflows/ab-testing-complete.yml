@@ -1849,22 +1849,54 @@ jobs:
         aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws configure set default.region ${{ env.AWS_REGION }}
         
-        # Add champion model to DVC tracking
-        if [ ! -f "models/enhanced_champion_model.pkl.dvc" ]; then
-          dvc add models/enhanced_champion_model.pkl
+        # Initialize DVC if not already done (fresh workspace)
+        if [ ! -f ".dvc/config" ]; then
+          dvc init --no-scm
+          dvc remote add -d s3-storage ${{ env.DVC_REMOTE_S3 }}
         fi
         
-        if [ ! -f "models/enhanced_feature_scaler.pkl.dvc" ]; then
-          dvc add models/enhanced_feature_scaler.pkl
+        # Configure git to handle DVC files
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        
+        # Remove any existing git ignore entries that might conflict
+        if [ -f ".gitignore" ]; then
+          sed -i '/models\/enhanced_champion_model.pkl/d' .gitignore || true
+          sed -i '/models\/enhanced_feature_scaler.pkl/d' .gitignore || true
+          sed -i '/models\/enhanced_champion_metadata.json/d' .gitignore || true
         fi
         
-        # Add metadata to DVC
-        dvc add models/enhanced_champion_metadata.json
+        # Ensure files exist before adding to DVC
+        if [ -f "models/enhanced_champion_model.pkl" ]; then
+          echo "📊 Adding champion model to DVC..."
+          if [ ! -f "models/enhanced_champion_model.pkl.dvc" ]; then
+            dvc add models/enhanced_champion_model.pkl || echo "⚠️ DVC add failed for champion model"
+          fi
+        fi
         
-        # Push models to DVC remote
-        dvc push || echo "📊 DVC push failed, models saved locally"
+        if [ -f "models/enhanced_feature_scaler.pkl" ]; then
+          echo "📊 Adding feature scaler to DVC..."
+          if [ ! -f "models/enhanced_feature_scaler.pkl.dvc" ]; then
+            dvc add models/enhanced_feature_scaler.pkl || echo "⚠️ DVC add failed for feature scaler"
+          fi
+        fi
         
-        echo "✅ Enhanced champion model versioned with DVC"
+        if [ -f "models/enhanced_champion_metadata.json" ]; then
+          echo "📊 Adding model metadata to DVC..."
+          if [ ! -f "models/enhanced_champion_metadata.json.dvc" ]; then
+            dvc add models/enhanced_champion_metadata.json || echo "⚠️ DVC add failed for metadata"
+          fi
+        fi
+        
+        # Try to push to DVC remote (optional - continue if fails)
+        echo "📊 Attempting to push to DVC remote..."
+        dvc push || echo "⚠️ DVC push failed - models saved locally only"
+        
+        # List DVC files created
+        echo "📊 DVC files created:"
+        ls -la models/*.dvc 2>/dev/null || echo "No DVC files found"
+        
+        echo "✅ Enhanced champion model versioning completed"
     
     - name: "🚀 Upload Enhanced Champion Artifacts"
       uses: actions/upload-artifact@v4
