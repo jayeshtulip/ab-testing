@@ -136,11 +136,11 @@ jobs:
         # Create or get enhanced A/B testing experiment
         try:
             experiment = mlflow.create_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
-            print(f'✓ Created new enhanced MLflow experiment: {experiment}')
+            print(f'✅ Created new enhanced MLflow experiment: {experiment}')
         except:
             experiment = mlflow.get_experiment_by_name('${{ env.MLFLOW_EXPERIMENT_NAME }}')
             experiment = experiment.experiment_id
-            print(f'✓ Using existing enhanced MLflow experiment: {experiment}')
+            print(f'✅ Using existing enhanced MLflow experiment: {experiment}')
         
         # Start parent run for the entire A/B testing pipeline
         with mlflow.start_run(run_name='enhanced-ab-pipeline-${{ steps.setup.outputs.experiment_id }}'):
@@ -180,21 +180,21 @@ jobs:
         # Test Grafana connectivity
         try:
             grafana_health = requests.get('http://${{ env.GRAFANA_URL }}/api/health', timeout=10)
-            print('✓ Grafana accessible')
+            print('✅ Grafana accessible')
         except:
             print('⚠️ Grafana not accessible - continuing with simulation')
             
         # Test Prometheus connectivity  
         try:
             prom_health = requests.get('http://${{ env.PROMETHEUS_URL }}/-/healthy', timeout=10)
-            print('✓ Prometheus accessible')
+            print('✅ Prometheus accessible')
         except:
             print('⚠️ Prometheus not accessible - continuing with simulation')
             
         # Test MLflow connectivity
         try:
             mlflow_health = requests.get('${{ env.MLFLOW_TRACKING_URI }}/health', timeout=10)
-            print('✓ MLflow accessible')
+            print('✅ MLflow accessible')
         except:
             print('⚠️ MLflow not accessible - continuing with local tracking')
         
@@ -205,7 +205,7 @@ jobs:
                 os.makedirs(dir_path, exist_ok=True)
                 print(f'📊 Created directory: {dir_path}')
                 
-        print('✓ All enhanced prerequisites validated')
+        print('✅ All enhanced prerequisites validated')
         print('should_continue=true')
         "
         echo "should_continue=true" >> $GITHUB_OUTPUT
@@ -343,7 +343,7 @@ jobs:
         ")
         
         echo "data_version=$data_version" >> $GITHUB_OUTPUT
-        echo "✓ Enhanced DVC data pipeline completed - Version: $data_version"
+        echo "✅ Enhanced DVC data pipeline completed - Version: $data_version"
         
     - name: "🚀 Advanced Drift Detection with MLflow Integration"
       id: drift
@@ -448,7 +448,7 @@ jobs:
                 
                 overall_drift_score += drift_score
                 
-                status = '🚨 DRIFT' if feature_drift_detected else '✓ OK'
+                status = '🚨 DRIFT' if feature_drift_detected else '✅ OK'
                 print(f'{status} {feature}: p-value={p_value:.4f}, score={drift_score:.3f}')
             
             # Calculate overall drift metrics
@@ -482,7 +482,7 @@ jobs:
                 psi_scores[feature] = float(psi)
                 mlflow.log_metric(f'psi_{feature}', psi)
                 
-                psi_status = '🚨 HIGH' if psi > 0.2 else '✓ OK' if psi < 0.1 else '⚠️ MEDIUM'
+                psi_status = '🚨 HIGH' if psi > 0.2 else '✅ OK' if psi < 0.1 else '⚠️ MEDIUM'
                 print(f'{psi_status} PSI {feature}: {psi:.4f}')
             
             print(f'📊 Overall Drift Score: {overall_drift_score:.3f}')
@@ -525,7 +525,7 @@ jobs:
                 f.write(f'drift_features={json.dumps(drift_features)}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✓ Advanced drift detection completed with MLflow integration')
+            print('✅ Advanced drift detection completed with MLflow integration')
         "
         
     - name: "🚀 Upload Enhanced Drift Analysis Results"
@@ -606,7 +606,7 @@ jobs:
                 # Test Prometheus connectivity
                 health_response = requests.get(f'{prometheus_url}/-/healthy', timeout=10)
                 prometheus_accessible = health_response.status_code == 200
-                print(f'✓ Prometheus accessible: {prometheus_accessible}')
+                print(f'✅ Prometheus accessible: {prometheus_accessible}')
             except:
                 prometheus_accessible = False
                 print('⚠️ Prometheus not accessible, using enhanced simulation')
@@ -711,15 +711,15 @@ jobs:
             effect_size = 2 * (np.arcsin(np.sqrt(p2)) - np.arcsin(np.sqrt(p1)))
             
             # Statistical power analysis
-            power = sms.power_proportions_2indep(p1, p2, n1, alpha=float('${{ github.event.inputs.significance_threshold || \"0.05\" }}'))
+            significance_threshold = float('${{ github.event.inputs.significance_threshold }}' or '0.05')
+            power = sms.power_proportions_2indep(p1, p2, n1, alpha=significance_threshold)
             
             # Confidence intervals
-            alpha = float('${{ github.event.inputs.significance_threshold || \"0.05\" }}')
+            alpha = significance_threshold
             ci_control = sms.proportion_confint(count1, n1, alpha=alpha)
             ci_treatment = sms.proportion_confint(count2, n2, alpha=alpha)
             
             # Enhanced decision logic
-            significance_threshold = float('${{ github.event.inputs.significance_threshold || \"0.05\" }}')
             is_significant = p_value < significance_threshold
             
             # Practical significance (minimum detectable effect)
@@ -789,7 +789,7 @@ jobs:
             print(f'   Winning Model: {winning_model}')
             print(f'   Should Retrain: {should_retrain}')
             print(f'   Confidence Level: {confidence_level:.3f}')
-            print(f'   Revenue Lift: \${revenue_lift:,.2f} ({revenue_lift_pct:.1f}%)')
+            print(f'   Revenue Lift: ${revenue_lift:,.2f} ({revenue_lift_pct:.1f}%)')
             
             # Create comprehensive analysis report
             analysis_report = {
@@ -854,7 +854,7 @@ jobs:
                 f.write(f'effect_size={effect_size:.4f}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✓ Enhanced A/B testing analysis completed with MLflow integration')
+            print('✅ Enhanced A/B testing analysis completed with MLflow integration')
         EOF
         
         echo "📊 Enhanced A/B test analysis completed"
@@ -910,7 +910,8 @@ jobs:
             # Log early stopping parameters
             mlflow.log_param('experiment_id', '${{ needs.validate-experiment-setup.outputs.experiment_id }}')
             mlflow.log_param('early_stopping_enabled', '${{ github.event.inputs.early_stopping_enabled }}')
-            mlflow.log_param('significance_threshold', '${{ github.event.inputs.significance_threshold || \"0.05\" }}')
+            significance_threshold = '${{ github.event.inputs.significance_threshold }}' or '0.05'
+            mlflow.log_param('significance_threshold', significance_threshold)
             mlflow.log_param('stopping_method', 'sequential_probability_ratio_test')
             
             # Get A/B test results
@@ -972,7 +973,7 @@ jobs:
                 should_stop = True
                 reason = 'statistical_and_practical_significance'
                 confidence = confidence_level
-                print(f'✓ Statistical + practical significance achieved')
+                print(f'✅ Statistical + practical significance achieved')
                 
             elif confidence_level >= 0.95 and performance_diff >= min_practical_diff:
                 should_stop = True
@@ -1098,7 +1099,7 @@ jobs:
                 f.write(f'confidence={confidence:.4f}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✓ Advanced early stopping analysis completed')
+            print('✅ Advanced early stopping analysis completed')
         "
 
   # =====================================
@@ -1380,7 +1381,7 @@ jobs:
                 f.write(f'deployment_recommendation={deployment_recommendation}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✓ Advanced winner selection engine completed')
+            print('✅ Advanced winner selection engine completed')
         "
 
   # =====================================
@@ -1542,9 +1543,9 @@ jobs:
                     mlflow.log_metric(f'roi_{metric}', value)
             
             print(f'📊 Enhanced ROI Analysis Results:')
-            print(f'   Annual Revenue Increase: \${roi_result[\"annual_revenue_increase\"]:,.2f}')
-            print(f'   Risk-Adjusted Benefit: \${roi_result[\"risk_adjusted_benefit\"]:,.2f}')
-            print(f'   3-Year NPV: \${roi_result[\"npv_3_years\"]:,.2f}')
+            print(f'   Annual Revenue Increase: ${roi_result[\"annual_revenue_increase\"]:,.2f}')
+            print(f'   Risk-Adjusted Benefit: ${roi_result[\"risk_adjusted_benefit\"]:,.2f}')
+            print(f'   3-Year NPV: ${roi_result[\"npv_3_years\"]:,.2f}')
             print(f'   ROI Percentage: {roi_result[\"roi_percentage\"]:.1f}%')
             print(f'   Break-even: {roi_result[\"break_even_months\"]:.1f} months')
             
@@ -1562,7 +1563,7 @@ jobs:
                 f.write(f'roi_result={json.dumps(roi_result)}\\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
-            print('✓ Enhanced ROI calculator completed')
+            print('✅ Enhanced ROI calculator completed')
         "
         
     - name: "🚀 Enhanced Segment Analyzer Engine"
@@ -1645,7 +1646,7 @@ jobs:
                     print(f'   Conversion Rates: {segment_control_rate:.3f} → {segment_treatment_rate:.3f}')
                     print(f'   Business Priority: {segment_results[segment][\"business_priority\"]}')
                 
-            print(f'✓ Analyzed {len(segment_results)} customer segments')
+            print(f'✅ Analyzed {len(segment_results)} customer segments')
             
         except Exception as e:
             print(f'⚠️ Error in segment analysis: {e}, using default segments')
@@ -1779,7 +1780,7 @@ jobs:
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f'temporal_results={json.dumps(temporal_results)}\\n')
         
-        print('✓ Enhanced temporal pattern detection completed')
+        print('✅ Enhanced temporal pattern detection completed')
         "
 
   # =====================================
@@ -2341,7 +2342,7 @@ jobs:
             all_safety_checks_passed = all(safety_checks.values())
             
             print(f'🛡️ Safety Checks:')
-            for check, passed in safety_checks.values():
+            for check, passed in safety_checks.items():
                 status = '✅' if passed else '❌'
                 print(f'   {status} {check}: {passed}')
             
@@ -2495,6 +2496,9 @@ jobs:
                 'business_conversion_rate_min': 0.14  # 14% minimum conversion
             }
             
+            # Detect performance degradation
+            degradation_detected = False
+            degradation_reasons = []
             
             # Check each threshold
             if current_performance['model_accuracy'] < performance_thresholds['model_accuracy_min']:
@@ -2774,4 +2778,3 @@ jobs:
         echo "  3. Analyze business impact reports in the artifacts"
         echo "  4. Set up alerts for performance degradation"
         echo "  5. Schedule regular A/B tests for continuous optimization"
-
