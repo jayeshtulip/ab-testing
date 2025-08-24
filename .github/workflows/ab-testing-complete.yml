@@ -638,6 +638,8 @@ jobs:
       run: |
         echo "📊 Running Enhanced A/B Testing Analysis from Prometheus & MLflow..."
         
+        echo "📊 Running Enhanced A/B Testing Analysis from Prometheus & MLflow..."
+        
         python3 << 'EOF'
         import requests
         import json
@@ -673,10 +675,34 @@ jobs:
             # Get significance threshold from previous step
             significance_threshold = float('${{ needs.validate-experiment-setup.outputs.significance_threshold }}')
             
+            # Safely parse drift outputs with error handling
+            def safe_float_parse(value, default=0.0):
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    print(f'⚠️ Could not parse float value: {value}, using default: {default}')
+                    return default
+            
+            def safe_bool_parse(value, default=False):
+                if isinstance(value, str):
+                    return value.lower() in ['true', '1', 'yes']
+                return bool(value) if value else default
+            
+            # Parse drift detection outputs safely
+            drift_detected_str = '${{ needs.drift-detection-analysis.outputs.drift_detected }}'
+            drift_score_str = '${{ needs.drift-detection-analysis.outputs.drift_score }}'
+            
+            drift_detected = safe_bool_parse(drift_detected_str)
+            drift_score = safe_float_parse(drift_score_str, 0.0)
+            
+            print(f'📊 Drift Detection Context:')
+            print(f'   Drift Detected: {drift_detected} (from: {drift_detected_str})')
+            print(f'   Drift Score: {drift_score} (from: {drift_score_str})')
+            
             # Log analysis parameters
             mlflow.log_param('experiment_id', '${{ needs.validate-experiment-setup.outputs.experiment_id }}')
-            mlflow.log_param('drift_detected', '${{ needs.drift-detection-analysis.outputs.drift_detected }}')
-            mlflow.log_param('drift_score', '${{ needs.drift-detection-analysis.outputs.drift_score }}')
+            mlflow.log_param('drift_detected', str(drift_detected))
+            mlflow.log_param('drift_score', drift_score)
             mlflow.log_param('analysis_method', 'enhanced_statistical_testing')
             mlflow.log_param('significance_threshold', significance_threshold)
             
@@ -904,8 +930,8 @@ jobs:
                     'performance_difference_pct': performance_difference
                 },
                 'drift_context': {
-                    'drift_detected': '${{ needs.drift-detection-analysis.outputs.drift_detected }}' == 'true',
-                    'drift_score': float('${{ needs.drift-detection-analysis.outputs.drift_score }}')
+                    'drift_detected': drift_detected,
+                    'drift_score': drift_score
                 }
             }
             
@@ -940,7 +966,6 @@ jobs:
         EOF
         
         echo "📊 Enhanced A/B test analysis completed"
-
   # =====================================
   # PHASE 4: EARLY STOPPING ENGINE
   # =====================================
