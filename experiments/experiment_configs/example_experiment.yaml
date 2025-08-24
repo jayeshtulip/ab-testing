@@ -1,0 +1,30 @@
+﻿# Example A/B Test Experiment Configuration
+experiment_id: "exp_001_model_comparison"
+name: "Random Forest vs XGBoost Comparison"
+description: "Compare performance between Random Forest and XGBoost models"
+
+variants:
+  control:
+    model_type: "random_forest"
+    model_path: "models/rf_model_v1.pkl"
+    allocation: 50
+  treatment:
+    model_type: "xgboost"
+    model_path: "models/xgb_model_v1.pkl" 
+    allocation: 50
+
+traffic_allocation:
+  control: 0.5
+  treatment: 0.5
+
+success_metrics:
+  - "conversion_rate"
+  - "prediction_accuracy"
+  - "response_time"
+
+minimum_sample_size: 1000
+statistical_power: 0.8
+significance_level: 0.05
+
+start_date: "2025-08-23T00:00:00"
+end_date: "2025-09-23T23:59:59"

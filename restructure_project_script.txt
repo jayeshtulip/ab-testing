@@ -1,0 +1,345 @@
+# PowerShell script to restructure AB Testing project
+# Run this in VS Code terminal after copying files
+
+# Navigate to ab-testing directory
+Set-Location "ab-testing"
+
+Write-Host "🚀 Restructuring project for A/B Testing..." -ForegroundColor Green
+
+# Create new directory structure
+Write-Host "📁 Creating directory structure..." -ForegroundColor Yellow
+
+# Core A/B testing directories
+New-Item -ItemType Directory -Path "src/ab_testing" -Force
+New-Item -ItemType Directory -Path "src/monitoring" -Force
+New-Item -ItemType Directory -Path "deployments/kubernetes" -Force
+New-Item -ItemType Directory -Path "deployments/terraform" -Force
+New-Item -ItemType Directory -Path "experiments/experiment_configs" -Force
+New-Item -ItemType Directory -Path "experiments/results/experiment_logs" -Force
+New-Item -ItemType Directory -Path "experiments/results/statistical_reports" -Force
+New-Item -ItemType Directory -Path "notebooks" -Force
+
+# Rename existing directories if they exist
+if (Test-Path "src/ka_api") {
+    Write-Host "📁 Renaming ka_api to api..." -ForegroundColor Yellow
+    Rename-Item "src/ka_api" "src/api"
+}
+
+# Update workflow files
+if (Test-Path ".github/workflows/mlops-auto-retrain.yml") {
+    Write-Host "📁 Renaming workflow files..." -ForegroundColor Yellow
+    Rename-Item ".github/workflows/mlops-auto-retrain.yml" ".github/workflows/ab-testing-pipeline.yml"
+}
+
+# Create placeholder files for core A/B testing components
+Write-Host "📄 Creating core A/B testing files..." -ForegroundColor Yellow
+
+# Traffic Splitter
+@"
+# Traffic Splitter for A/B Testing
+# Routes incoming requests to different model variants
+
+from typing import Dict, Any, Optional
+import random
+import hashlib
+from enum import Enum
+
+class SplitStrategy(Enum):
+    RANDOM = "random"
+    STICKY_USER = "sticky_user" 
+    PERCENTAGE = "percentage"
+
+class TrafficSplitter:
+    def __init__(self, experiment_config: Dict[str, Any]):
+        self.experiment_config = experiment_config
+        
+    def get_model_variant(self, user_id: Optional[str] = None) -> str:
+        # Implementation here
+        pass
+"@ | Out-File -FilePath "src/ab_testing/traffic_splitter.py" -Encoding UTF8
+
+# AB Experiment Manager
+@"
+# A/B Experiment Manager
+# Manages lifecycle of A/B testing experiments
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict, List, Optional, Any
+
+@dataclass
+class ExperimentConfig:
+    experiment_id: str
+    name: str
+    variants: Dict[str, Dict[str, Any]]
+    traffic_allocation: Dict[str, float]
+    start_date: datetime
+    status: str = "draft"
+
+class ABExperimentManager:
+    def __init__(self):
+        pass
+        
+    def create_experiment(self, config: ExperimentConfig) -> str:
+        # Implementation here
+        pass
+"@ | Out-File -FilePath "src/ab_testing/ab_experiment_manager.py" -Encoding UTF8
+
+# Statistical Analysis
+@"
+# Statistical Analysis for A/B Testing
+# Handles statistical significance testing and power analysis
+
+import numpy as np
+from scipy import stats
+from typing import Dict, List, Any
+
+class StatisticalAnalyzer:
+    def __init__(self, alpha: float = 0.05):
+        self.alpha = alpha
+    
+    def analyze_conversion_rates(self, 
+                               control_conversions: int,
+                               control_total: int,
+                               treatment_conversions: int,
+                               treatment_total: int) -> Dict[str, Any]:
+        # Implementation here
+        pass
+"@ | Out-File -FilePath "src/ab_testing/statistical_analysis.py" -Encoding UTF8
+
+# Model Registry
+@"
+# Model Registry for A/B Testing
+# Manages multiple model versions and variants
+
+from typing import Dict, Any, Optional
+import joblib
+import os
+
+class ModelRegistry:
+    def __init__(self, models_path: str = "models"):
+        self.models_path = models_path
+        self.loaded_models = {}
+    
+    def load_model(self, model_name: str, version: str = "latest"):
+        # Implementation here
+        pass
+        
+    def get_model(self, variant_name: str):
+        # Implementation here  
+        pass
+"@ | Out-File -FilePath "src/api/model_registry.py" -Encoding UTF8
+
+# Enhanced API
+@"
+# Enhanced API with A/B Testing Support
+# Handles prediction requests with traffic routing
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
+
+app = FastAPI(title="A/B Testing API")
+
+class PredictionRequest(BaseModel):
+    features: Dict[str, Any]
+    user_id: Optional[str] = None
+    experiment_id: Optional[str] = None
+
+@app.post("/predict")
+async def predict_with_ab_testing(request: PredictionRequest):
+    # Implementation here
+    pass
+"@ | Out-File -FilePath "src/api/ab_testing_api.py" -Encoding UTF8
+
+# Create experiment configuration templates
+@"
+# Example A/B Test Experiment Configuration
+experiment_id: "exp_001_model_comparison"
+name: "Random Forest vs XGBoost Comparison"
+description: "Compare performance between Random Forest and XGBoost models"
+
+variants:
+  control:
+    model_type: "random_forest"
+    model_path: "models/rf_model_v1.pkl"
+    allocation: 50
+  treatment:
+    model_type: "xgboost"
+    model_path: "models/xgb_model_v1.pkl" 
+    allocation: 50
+
+traffic_allocation:
+  control: 0.5
+  treatment: 0.5
+
+success_metrics:
+  - "conversion_rate"
+  - "prediction_accuracy"
+  - "response_time"
+
+minimum_sample_size: 1000
+statistical_power: 0.8
+significance_level: 0.05
+
+start_date: "2025-08-23T00:00:00"
+end_date: "2025-09-23T23:59:59"
+"@ | Out-File -FilePath "experiments/experiment_configs/example_experiment.yaml" -Encoding UTF8
+
+# Update requirements.txt
+if (Test-Path "requirements.txt") {
+    Write-Host "📄 Updating requirements.txt..." -ForegroundColor Yellow
+    @"
+
+# A/B Testing specific packages
+scipy>=1.7.0
+statsmodels>=0.13.0
+plotly>=5.0.0
+streamlit>=1.0.0
+redis>=4.0.0
+celery>=5.2.0
+pyyaml>=6.0.0
+"@ | Add-Content -Path "requirements.txt"
+}
+
+# Create Kubernetes deployment templates
+@"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-a-deployment
+  labels:
+    app: model-a
+    variant: control
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: model-a
+  template:
+    metadata:
+      labels:
+        app: model-a
+        variant: control
+    spec:
+      containers:
+      - name: model-a
+        image: ab-testing-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL_VARIANT
+          value: "control"
+        - name: MODEL_PATH
+          value: "/models/control_model.pkl"
+"@ | Out-File -FilePath "deployments/kubernetes/model-a-deployment.yaml" -Encoding UTF8
+
+@"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-b-deployment
+  labels:
+    app: model-b
+    variant: treatment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: model-b
+  template:
+    metadata:
+      labels:
+        app: model-b
+        variant: treatment
+    spec:
+      containers:
+      - name: model-b
+        image: ab-testing-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL_VARIANT
+          value: "treatment"
+        - name: MODEL_PATH
+          value: "/models/treatment_model.pkl"
+"@ | Out-File -FilePath "deployments/kubernetes/model-b-deployment.yaml" -Encoding UTF8
+
+# Create notebook templates
+@"
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# A/B Test Analysis\n",
+    "## Statistical analysis of experiment results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "from scipy import stats\n",
+    "\n",
+    "# Load experiment results\n",
+    "# results = pd.read_csv('experiments/results/experiment_logs/exp_001_results.csv')"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
+"@ | Out-File -FilePath "notebooks/ab_test_analysis.ipynb" -Encoding UTF8
+
+# Update README
+@"
+# 🚀 A/B Testing MLOps Platform
+
+Built on proven MLOps infrastructure for robust experimentation.
+
+## 🎯 Features
+
+- **Traffic Splitting**: Intelligent request routing between model variants
+- **Experiment Management**: Full lifecycle management of A/B tests
+- **Statistical Analysis**: Built-in significance testing and power analysis
+- **Real-time Monitoring**: Live experiment tracking and alerts
+- **Auto-scaling**: Kubernetes-based deployment with auto-scaling
+
+## 📁 Project Structure
+
+\`\`\`
+├── src/
+│   ├── ab_testing/          # Core A/B testing logic
+│   ├── api/                 # Enhanced API with routing
+│   └── monitoring/          # Experiment monitoring
+├── deployments/             # K8s and Terraform configs
+├── experiments/             # Experiment configs and results
+└── notebooks/              # Analysis notebooks
+\`\`\`
+
+## 🚀 Quick Start
+
+1. **Setup Environment**:
+   \`\`\`bash
+   pip install -r requirements.txt
+   \`\`\`
+
+2. **Start Services**:
+   \`\`\`bash
+   docker-compose up -d
+   \`\`\

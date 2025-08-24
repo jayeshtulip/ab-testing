@@ -1,0 +1,86 @@
+﻿{
+  "dashboard": {
+    "id": null,
+    "title": "A/B Testing Platform",
+    "tags": ["ab-testing", "mlops", "loan-default"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "A/B Testing Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "ab_testing_api_health",
+            "legendFormat": "API Health"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Traffic Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "ab_testing_traffic_distribution",
+            "legendFormat": "{{ group }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Predictions per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(ab_testing_predictions_total[1m])",
+            "legendFormat": "{{ group }} - {{ model_version }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Model Performance Comparison",
+        "type": "graph", 
+        "targets": [
+          {
+            "expr": "ab_testing_model_accuracy",
+            "legendFormat": "{{ model_version }}"
+          }
+        ],
+        "yAxes": [{"min": 0, "max": 1}],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Risk Score Distribution",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "rate(ab_testing_risk_scores_bucket[5m])",
+            "legendFormat": "{{ model_version }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}

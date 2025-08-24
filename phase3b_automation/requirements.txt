@@ -1,4 +1,4 @@
-﻿# Phase 3B: Experiment Lifecycle Manager Dependencies
+# Phase 3B: Experiment Lifecycle Manager Dependencies
 # Compatible with existing Phase 3A infrastructure
 
 # Core Framework

@@ -1,0 +1,28 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-a-deployment
+  labels:
+    app: model-a
+    variant: control
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: model-a
+  template:
+    metadata:
+      labels:
+        app: model-a
+        variant: control
+    spec:
+      containers:
+      - name: model-a
+        image: ab-testing-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL_VARIANT
+          value: "control"
+        - name: MODEL_PATH
+          value: "/models/control_model.pkl"

@@ -1,0 +1,46 @@
+# Phase 3C Advanced Analytics Requirements
+
+# Core Analytics
+pandas>=1.5.0
+numpy>=1.21.0
+scipy>=1.9.0
+scikit-learn>=1.1.0
+
+# Statistical Analysis
+statsmodels>=0.13.0
+pingouin>=0.5.0
+
+# Time Series Analysis
+prophet>=1.1.0
+seasonal>=0.3.0
+pytseries>=0.1.0
+
+# Data Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.10.0
+altair>=4.2.0
+
+# Business Intelligence
+lifetimes>=0.11.0  # Customer LTV
+pymc>=4.0.0       # Bayesian analysis
+
+# Database & Data Processing
+sqlalchemy>=1.4.0
+psycopg2-binary>=2.9.0
+clickhouse-driver>=0.2.0
+
+# Async & Web
+aiohttp>=3.8.0
+fastapi>=0.85.0
+uvicorn>=0.18.0
+
+# Utilities
+pydantic>=1.10.0
+python-dateutil>=2.8.0
+pytz>=2022.1
+
+# Development & Testing
+pytest>=7.0.0
+pytest-asyncio>=0.19.0
+black>=22.0.0
