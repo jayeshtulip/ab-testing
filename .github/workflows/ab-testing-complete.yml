@@ -213,7 +213,7 @@ jobs:
     - name: "📊 Validate Enhanced Prerequisites"
       id: validate
       run: |
-        python -c "
+        python3 << 'EOF'
         import sys
         import os
         import requests
@@ -250,7 +250,7 @@ jobs:
                 
         print('✅ All enhanced prerequisites validated')
         print('should_continue=true')
-        "
+        EOF
         echo "should_continue=true" >> $GITHUB_OUTPUT
 
   # =====================================
@@ -1677,7 +1677,7 @@ jobs:
     - name: "🚀 Enhanced ROI Calculator Engine"
       id: roi
       run: |
-        python -c "
+        python3 << 'EOF'
         import json
         import os
         import numpy as np
@@ -1685,9 +1685,14 @@ jobs:
         from datetime import datetime, timedelta
         
         # Set MLflow tracking (your actual server)
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
-        mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
-        
+        experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
+        try:
+          mlflow.set_experiment(experiment_id=experiment_id)
+          print('✅ Successfully set MLflow experiment by ID') 
+        except Exception as e:
+          print(f'⚠️ Error setting experiment: {e}')
+          mlflow.set_experiment("Default")
+                
         print('📊 Running Enhanced ROI Calculator Engine...')
         
         # Start MLflow run for business impact analysis
@@ -1828,12 +1833,12 @@ jobs:
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
             print('✅ Enhanced ROI calculator completed')
-        "
+        EOF
         
     - name: "🚀 Enhanced Segment Analyzer Engine"
       id: segment
       run: |
-        python -c "
+        python3 << 'EOF'
         import json
         import os
         import numpy as np
@@ -1925,12 +1930,12 @@ jobs:
         # Output results
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f'segment_results={json.dumps(segment_results)}\\n')
-        "
+        EOF
         
     - name: "🚀 Enhanced Temporal Pattern Detector"
       id: temporal
       run: |
-        python -c "
+        python3 << 'EOF'
         import json
         import os
         import numpy as np
@@ -2045,7 +2050,7 @@ jobs:
             f.write(f'temporal_results={json.dumps(temporal_results)}\\n')
         
         print('✅ Enhanced temporal pattern detection completed')
-        "
+        EOF
 
   # =====================================
   # PHASE 7: ENHANCED CHAMPION MODEL TRAINING WITH MLFLOW + DVC
@@ -2661,7 +2666,7 @@ jobs:
     - name: "🚀 Advanced Performance Monitoring & Self-Healing Engine"
       id: monitor
       run: |
-        python -c "
+        python3 << 'EOF'
         import time
         import requests
         import mlflow
@@ -2672,7 +2677,13 @@ jobs:
         
         # Set MLflow tracking (your actual server)
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
-        mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
+        experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
+        try:
+           mlflow.set_experiment(experiment_id=experiment_id)
+           print('✅ Successfully set MLflow experiment by ID') 
+        except Exception as e:
+           print(f'⚠️ Error setting experiment: {e}')
+           mlflow.set_experiment("Default")
         
         print('📊 Running Advanced Performance Monitoring & Self-Healing Engine...')
         
@@ -2839,7 +2850,7 @@ jobs:
                 f.write(f'mlflow_run_id={run.info.run_id}\\n')
             
             print('✅ Advanced performance monitoring completed')
-        "
+        EOF
         
         echo "📊 Performance monitoring and self-healing engine completed"
 
