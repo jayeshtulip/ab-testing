@@ -442,7 +442,7 @@ jobs:
                     'ks_statistic': float(ks_stat),
                     'p_value': float(p_value),
                     'drift_score': float(drift_score),
-                    'drift_detected': feature_drift_detected,
+                    'drift_detected': bool(feature_drift_detected),  # Convert numpy bool to Python bool
                     'mean_reference': float(df_reference[feature].mean()),
                     'mean_current': float(df_current[feature].mean()),
                     'std_reference': float(df_reference[feature].std()),
@@ -497,10 +497,10 @@ jobs:
             print(f'📊 Drift Detected: {drift_detected}')
             print(f'📊 Affected Features: {drift_features}')
             
-            # Enhanced drift report
+            # Enhanced drift report - Fix JSON serialization issues
             drift_summary = {
-                'overall_drift_detected': drift_detected,
-                'overall_drift_score': overall_drift_score,
+                'overall_drift_detected': bool(drift_detected),  # Ensure Python bool
+                'overall_drift_score': float(overall_drift_score),
                 'feature_analysis': drift_results,
                 'psi_scores': psi_scores,
                 'drift_features': drift_features,
@@ -508,7 +508,7 @@ jobs:
                 'severity': 'high' if overall_drift_score > 0.3 else 'medium' if overall_drift_score > 0.1 else 'low',
                 'timestamp': datetime.now().isoformat(),
                 'data_version': '${{ steps.dvc.outputs.data_version }}',
-                'sample_sizes': {'reference': len(df_reference), 'current': len(df_current)}
+                'sample_sizes': {'reference': int(len(df_reference)), 'current': int(len(df_current))}  # Ensure int
             }
             
             # Save comprehensive drift analysis
@@ -526,7 +526,7 @@ jobs:
             mlflow.set_tag('drift_severity', drift_summary['severity'])
             mlflow.set_tag('data_version', '${{ steps.dvc.outputs.data_version }}')
             
-            # Output results for next jobs
+            # Output results for next jobs - Fix boolean serialization
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write(f'drift_detected={str(drift_detected).lower()}\\n')
                 f.write(f'drift_score={overall_drift_score:.3f}\\n')
