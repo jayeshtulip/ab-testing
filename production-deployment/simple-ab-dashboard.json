@@ -1,0 +1,33 @@
+﻿{
+  "dashboard": {
+    "id": null,
+    "title": "A/B Testing - Loan Default Prediction",
+    "tags": ["a/b-testing", "ml"],
+    "timezone": "browser", 
+    "refresh": "30s",
+    "time": {"from": "now-2h", "to": "now"},
+    "panels": [
+      {
+        "id": 1,
+        "title": "A/B Testing Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 12, "x": 0, "y": 0},
+        "targets": [{"expr": "ab_testing_active_experiments_total", "legendFormat": "Active Experiments"}]
+      },
+      {
+        "id": 2,
+        "title": "Predictions by Group", 
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [{"expr": "sum by (experiment_group) (ab_testing_predictions_total)", "legendFormat": "{{experiment_group}}"}]
+      },
+      {
+        "id": 3,
+        "title": "Total Predictions",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}, 
+        "targets": [{"expr": "sum(ab_testing_predictions_total)", "legendFormat": "Total"}]
+      }
+    ]
+  }
+}

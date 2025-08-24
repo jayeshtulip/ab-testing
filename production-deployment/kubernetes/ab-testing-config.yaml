@@ -1,0 +1,34 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ab-testing-config
+  namespace: loan-default
+data:
+  # Database Configuration
+  DB_HOST: "postgres.loan-default.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "ab_experiments"
+  DB_SCHEMA: "ab_testing"
+  
+  # Service URLs
+  MLOPS_API_URL: "http://ka-mlops-api-service.loan-default.svc.cluster.local"
+  LOAN_API_URL: "http://loan-api-service.loan-default.svc.cluster.local:8002"
+  
+  # A/B Testing Settings
+  DEFAULT_TRAFFIC_SPLIT: "0.5"
+  EXPERIMENT_NAME: "loan_default_rf_vs_gb"
+  CONTROL_MODEL: "random_forest_v1.0"
+  TREATMENT_MODEL: "gradient_boost_v1.0"
+  
+  # Drift Detection
+  DRIFT_THRESHOLD_PSI: "0.1"
+  DRIFT_THRESHOLD_KS: "0.05"
+  DRIFT_CHECK_INTERVAL: "300"
+  
+  # Application Settings
+  LOG_LEVEL: "INFO"
+  ENVIRONMENT: "production"
+  API_PORT: "8003"
+  
+  # MLflow Integration
+  MLFLOW_TRACKING_URI: "http://ka-mlops-api-service.loan-default.svc.cluster.local"

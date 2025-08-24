@@ -1,0 +1,64 @@
+﻿# Add this to your AlertManager configuration
+# in the monitoring/alerts/alertmanager.yml
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10m
+  repeat_interval: 1h
+  receiver: 'github-actions-webhook'
+  routes:
+  - match:
+      alertname: ab-testing-performance-difference
+    receiver: 'ab-testing-retraining-webhook'
+  - match:
+      alertname: ab-testing-sample-size-reached  
+    receiver: 'ab-testing-analysis-webhook'
+
+receivers:
+- name: 'github-actions-webhook'
+  webhook_configs:
+  - url: 'https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/dispatches'
+    http_config:
+      authorization:
+        type: Bearer
+        credentials: 'YOUR_GITHUB_TOKEN'
+    send_resolved: true
+
+- name: 'ab-testing-retraining-webhook'
+  webhook_configs:
+  - url: 'https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/dispatches'
+    http_config:
+      authorization:
+        type: Bearer  
+        credentials: 'YOUR_GITHUB_TOKEN'
+    send_resolved: false
+    title: 'A/B Test Performance Alert'
+    text: |
+      {
+        "event_type": "grafana_alert",
+        "client_payload": {
+          "reason": "grafana_alert", 
+          "alert_name": "{{ .GroupLabels.alertname }}",
+          "performance_data": {{ .CommonAnnotations.webhook_data }},
+          "winning_model": "auto_detect"
+        }
+      }
+
+- name: 'ab-testing-analysis-webhook'  
+  webhook_configs:
+  - url: 'https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/dispatches'
+    http_config:
+      authorization:
+        type: Bearer
+        credentials: 'YOUR_GITHUB_TOKEN'
+    title: 'A/B Test Ready for Analysis'
+    text: |
+      {
+        "event_type": "grafana_alert",
+        "client_payload": {
+          "reason": "ab_test_complete",
+          "alert_name": "{{ .GroupLabels.alertname }}",
+          "performance_data": {{ .CommonAnnotations.webhook_data }}
+        }
+      }
