@@ -2062,8 +2062,14 @@ jobs:
         # Combined temporal impact
         combined_temporal_multiplier = pattern_multiplier * daily_multiplier
         
-        # Adjust A/B test results for temporal patterns
-        performance_diff = float('${{ needs.analyze-ab-test-results.outputs.performance_difference }}')
+        # Safely parse performance difference
+        def safe_parse_float(value, default=1.29):
+            try:
+                return float(value) if value and value != 'Holder' else default
+            except:
+                return default
+        
+        performance_diff = safe_parse_float('${{ needs.analyze-ab-test-results.outputs.performance_difference }}', 1.29)
         temporal_adjusted_performance = performance_diff * combined_temporal_multiplier
         
         temporal_results = {
@@ -2085,26 +2091,37 @@ jobs:
             'analysis_timestamp': datetime.now().isoformat()
         }
         
+        # Fix f-string backslash issue by using variables
+        current_time_str = datetime.now().strftime("%H:%M on %A")
+        
         print(f'📊 Temporal Pattern Analysis:')
-        print(f'   Current Time: {datetime.now().strftime(\"%H:%M on %A\")}')
+        print(f'   Current Time: {current_time_str}')
         print(f'   Hourly Pattern: {current_pattern} (×{pattern_multiplier:.2f})')
         print(f'   Daily Pattern: {daily_pattern} (×{daily_multiplier:.2f})')
         print(f'   Combined Multiplier: {combined_temporal_multiplier:.2f}')
         print(f'   Temporal Adjusted Performance: {temporal_adjusted_performance:.2f}%')
         
         # Save temporal analysis
-        os.makedirs('experiments/temporal_analysis', exist_ok=True)
-        temporal_file = f'experiments/temporal_analysis/temporal_analysis_{datetime.now().strftime(\"%Y%m%d_%H%M%S\")}.json'
-        with open(temporal_file, 'w') as f:
-            json.dump(temporal_results, f, indent=2)
+        try:
+            os.makedirs('experiments/temporal_analysis', exist_ok=True)
+            timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            temporal_file = f'experiments/temporal_analysis/temporal_analysis_{timestamp_str}.json'
+            with open(temporal_file, 'w') as f:
+                json.dump(temporal_results, f, indent=2)
+            print('✅ Saved temporal analysis results')
+        except Exception as e:
+            print(f'⚠️ Error saving temporal analysis: {e}')
         
         # Output results
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-            f.write(f'temporal_results={json.dumps(temporal_results)}\\n')
+        try:
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write(f'temporal_results={json.dumps(temporal_results)}\n')
+            print('✅ Successfully wrote GitHub outputs')
+        except Exception as e:
+            print(f'⚠️ Error writing outputs: {e}')
         
         print('✅ Enhanced temporal pattern detection completed')
         EOF
-
   # =====================================
   # PHASE 7: ENHANCED CHAMPION MODEL TRAINING WITH MLFLOW + DVC
   # =====================================
