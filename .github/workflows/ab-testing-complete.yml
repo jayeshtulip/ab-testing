@@ -651,9 +651,21 @@ jobs:
         
         # Set MLflow tracking (your actual server)
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
-        mlflow.set_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
+        
+        # Use the experiment created in the setup step
+        experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         
         print('📊 Starting Enhanced A/B Testing Analysis...')
+        print(f'📊 Using MLflow Experiment ID: {experiment_id}')
+        
+        # Set experiment by ID to avoid deleted experiment issues
+        try:
+            mlflow.set_experiment(experiment_id=experiment_id)
+            print('✅ Successfully set MLflow experiment by ID')
+        except Exception as e:
+            print(f'⚠️ Error setting experiment: {e}')
+            # Fallback to default experiment
+            mlflow.set_experiment("Default")
         
         # Start MLflow run for A/B analysis
         with mlflow.start_run(run_name='enhanced-ab-analysis-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -685,8 +697,8 @@ jobs:
             if prometheus_accessible:
                 try:
                     # Query actual A/B testing metrics from your Prometheus
-                    control_query = 'sum(ab_testing_predictions_total{experiment_group=\"control\"})'
-                    treatment_query = 'sum(ab_testing_predictions_total{experiment_group=\"treatment\"})'
+                    control_query = 'sum(ab_testing_predictions_total{experiment_group="control"})'
+                    treatment_query = 'sum(ab_testing_predictions_total{experiment_group="treatment"})'
                     total_query = 'sum(ab_testing_predictions_total)'
                     
                     control_response = requests.get(f'{prometheus_url}/api/v1/query', 
@@ -897,9 +909,10 @@ jobs:
                 }
             }
             
-            # Save enhanced analysis report
+            # Save enhanced analysis report - FIX F-STRING BACKSLASH ISSUE
             os.makedirs('experiments/ab_analysis', exist_ok=True)
-            analysis_file = f'experiments/ab_analysis/enhanced_analysis_{datetime.now().strftime(\"%Y%m%d_%H%M%S\")}.json'
+            timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            analysis_file = f'experiments/ab_analysis/enhanced_analysis_{timestamp_str}.json'
             with open(analysis_file, 'w') as f:
                 json.dump(analysis_report, f, indent=2)
             
@@ -914,14 +927,14 @@ jobs:
             
             # Output results for next jobs
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write(f'should_retrain={str(should_retrain).lower()}\\n')
-                f.write(f'winning_model={winning_model}\\n')
-                f.write(f'performance_difference={performance_difference:.4f}\\n')
-                f.write(f'sample_size={total_sample_size}\\n')
-                f.write(f'statistical_significance={str(is_significant).lower()}\\n')
-                f.write(f'confidence_level={confidence_level:.4f}\\n')
-                f.write(f'effect_size={effect_size:.4f}\\n')
-                f.write(f'mlflow_run_id={run.info.run_id}\\n')
+                f.write(f'should_retrain={str(should_retrain).lower()}\n')
+                f.write(f'winning_model={winning_model}\n')
+                f.write(f'performance_difference={performance_difference:.4f}\n')
+                f.write(f'sample_size={total_sample_size}\n')
+                f.write(f'statistical_significance={str(is_significant).lower()}\n')
+                f.write(f'confidence_level={confidence_level:.4f}\n')
+                f.write(f'effect_size={effect_size:.4f}\n')
+                f.write(f'mlflow_run_id={run.info.run_id}\n')
             
             print('✅ Enhanced A/B testing analysis completed with MLflow integration')
         EOF
