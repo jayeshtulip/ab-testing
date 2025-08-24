@@ -129,12 +129,11 @@ jobs:
     - name: "🚀 Initialize Enhanced MLflow A/B Testing Experiment"
       id: mlflow_setup
       run: |
-        python -c "
+        python3 << 'EOF'
         import mlflow
         from mlflow.tracking import MlflowClient
         import os
         from datetime import datetime
-        
         import time
         
         print('🚀 Setting up Enhanced MLflow A/B Testing Experiment...')
@@ -205,36 +204,11 @@ jobs:
             
             # Output experiment ID
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write(f'experiment_id={experiment}\\n')
+                f.write(f'experiment_id={experiment}\n')
         
         print(f'🚀 Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
         print(f'🚀 Experiment name used: {experiment_name}')
-        "
-        
-        # Start parent run for the entire A/B testing pipeline
-        with mlflow.start_run(run_name='enhanced-ab-pipeline-${{ steps.setup.outputs.experiment_id }}'):
-            # Log enhanced experiment parameters
-            mlflow.log_param('pipeline_type', 'enhanced_ab_testing')
-            mlflow.log_param('experiment_id', '${{ steps.setup.outputs.experiment_id }}')
-            mlflow.log_param('traffic_split', '${{ steps.setup.outputs.traffic_split }}')
-            mlflow.log_param('significance_threshold', '${{ steps.setup.outputs.significance_threshold }}')
-            mlflow.log_param('early_stopping_enabled', '${{ github.event.inputs.early_stopping_enabled }}')
-            mlflow.log_param('drift_detection_enabled', '${{ github.event.inputs.drift_detection_enabled }}')
-            mlflow.log_param('trigger_reason', '${{ github.event.inputs.reason }}')
-            mlflow.log_param('grafana_url', '${{ env.GRAFANA_URL }}')
-            mlflow.log_param('prometheus_url', '${{ env.PROMETHEUS_URL }}')
-            
-            # Set enhanced tags
-            mlflow.set_tag('pipeline_version', 'enhanced_v2.0')
-            mlflow.set_tag('automation_level', 'full')
-            mlflow.set_tag('business_impact_analysis', 'enabled')
-            
-            # Output experiment ID
-            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write(f'experiment_id={experiment}\\n')
-        
-        print(f'🚀 Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
-        "
+        EOF
         
     - name: "📊 Validate Enhanced Prerequisites"
       id: validate
