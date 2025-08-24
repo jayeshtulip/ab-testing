@@ -135,20 +135,81 @@ jobs:
         import os
         from datetime import datetime
         
+        import time
+        
         print('🚀 Setting up Enhanced MLflow A/B Testing Experiment...')
         
         # Set MLflow tracking URI (your actual server)
         mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
         client = MlflowClient()
         
-        # Create or get enhanced A/B testing experiment
+        # Create or get enhanced A/B testing experiment with proper error handling
+        experiment_name = '${{ env.MLFLOW_EXPERIMENT_NAME }}'
+        experiment = None
+        
         try:
-            experiment = mlflow.create_experiment('${{ env.MLFLOW_EXPERIMENT_NAME }}')
-            print(f'✅ Created new enhanced MLflow experiment: {experiment}')
-        except:
-            experiment = mlflow.get_experiment_by_name('${{ env.MLFLOW_EXPERIMENT_NAME }}')
-            experiment = experiment.experiment_id
-            print(f'✅ Using existing enhanced MLflow experiment: {experiment}')
+            # First, try to get existing experiment by name
+            existing_experiment = mlflow.get_experiment_by_name(experiment_name)
+            
+            if existing_experiment is not None:
+                # Check if experiment is deleted
+                if existing_experiment.lifecycle_stage == 'deleted':
+                    print(f'⚠️ Found deleted experiment: {existing_experiment.experiment_id}')
+                    # Create new experiment with timestamp suffix to avoid conflict
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    new_experiment_name = f'{experiment_name}_{timestamp}'
+                    print(f'📊 Creating new experiment: {new_experiment_name}')
+                    experiment = mlflow.create_experiment(new_experiment_name)
+                    # Update experiment name for future reference
+                    experiment_name = new_experiment_name
+                else:
+                    # Use existing active experiment
+                    experiment = existing_experiment.experiment_id
+                    print(f'✅ Using existing active MLflow experiment: {experiment}')
+            else:
+                # No existing experiment, create new one
+                experiment = mlflow.create_experiment(experiment_name)
+                print(f'✅ Created new enhanced MLflow experiment: {experiment}')
+        
+        except Exception as e:
+            print(f'⚠️ Error with experiment setup: {e}')
+            # Fallback: create experiment with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            fallback_name = f'{experiment_name}_fallback_{timestamp}'
+            print(f'📊 Creating fallback experiment: {fallback_name}')
+            experiment = mlflow.create_experiment(fallback_name)
+            experiment_name = fallback_name
+        
+        # Set the experiment for future runs
+        mlflow.set_experiment(experiment_name)
+        
+        # Start parent run for the entire A/B testing pipeline
+        with mlflow.start_run(run_name='enhanced-ab-pipeline-${{ steps.setup.outputs.experiment_id }}') as run:
+            # Log enhanced experiment parameters
+            mlflow.log_param('pipeline_type', 'enhanced_ab_testing')
+            mlflow.log_param('experiment_id', '${{ steps.setup.outputs.experiment_id }}')
+            mlflow.log_param('traffic_split', '${{ steps.setup.outputs.traffic_split }}')
+            mlflow.log_param('significance_threshold', '${{ steps.setup.outputs.significance_threshold }}')
+            mlflow.log_param('early_stopping_enabled', '${{ github.event.inputs.early_stopping_enabled }}')
+            mlflow.log_param('drift_detection_enabled', '${{ github.event.inputs.drift_detection_enabled }}')
+            mlflow.log_param('trigger_reason', '${{ github.event.inputs.reason }}')
+            mlflow.log_param('grafana_url', '${{ env.GRAFANA_URL }}')
+            mlflow.log_param('prometheus_url', '${{ env.PROMETHEUS_URL }}')
+            mlflow.log_param('experiment_name_used', experiment_name)
+            
+            # Set enhanced tags
+            mlflow.set_tag('pipeline_version', 'enhanced_v2.0')
+            mlflow.set_tag('automation_level', 'full')
+            mlflow.set_tag('business_impact_analysis', 'enabled')
+            mlflow.set_tag('experiment_recovery', 'handled')
+            
+            # Output experiment ID
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write(f'experiment_id={experiment}\\n')
+        
+        print(f'🚀 Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
+        print(f'🚀 Experiment name used: {experiment_name}')
+        "
         
         # Start parent run for the entire A/B testing pipeline
         with mlflow.start_run(run_name='enhanced-ab-pipeline-${{ steps.setup.outputs.experiment_id }}'):
