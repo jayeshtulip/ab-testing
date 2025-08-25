@@ -2334,7 +2334,7 @@ jobs:
         
     - name: "?? Install Monitoring Dependencies"
       run: |
-        pip install mlflow boto3 requests pandas numpy scipy
+        pip install mlflow==2.8.1 boto3 requests pandas numpy scipy
         
     - name: "?? Advanced Performance Monitoring Engine"
       id: monitor
