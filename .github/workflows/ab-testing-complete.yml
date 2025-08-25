@@ -1,4 +1,4 @@
-﻿name: "Enhanced A/B Testing MLOps Pipeline - Complete Implementation"
+name: "Enhanced A/B Testing MLOps Pipeline - Complete Implementation"
 
 on:
   workflow_dispatch:
@@ -89,19 +89,19 @@ jobs:
       grafana_metrics: ${{ steps.grafana_analysis.outputs.metrics }}
       model_recommendation: ${{ steps.grafana_analysis.outputs.model_recommendation }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         
-    - name: "🚀 Install Grafana Integration Dependencies"
+    - name: "?? Install Grafana Integration Dependencies"
       run: |
         pip install requests pandas numpy mlflow
         
-    - name: "📊 Advanced Grafana A/B Decision Engine"
+    - name: "?? Advanced Grafana A/B Decision Engine"
       id: grafana_analysis
       run: |
         python3 << 'EOF'
@@ -113,10 +113,10 @@ jobs:
         import mlflow
         import os
         
-        print('📊 Running Advanced Grafana A/B Decision Engine...')
+        print('?? Running Advanced Grafana A/B Decision Engine...')
         
         # Set MLflow tracking
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         try:
             mlflow.set_experiment(experiment_id=experiment_id)
@@ -171,7 +171,7 @@ jobs:
             grafana_metrics = {}
             
             try:
-                print(f'📊 Querying Grafana at: {grafana_url}')
+                print(f'?? Querying Grafana at: {grafana_url}')
                 
                 # Test Grafana connectivity
                 health_response = requests.get(f'{grafana_url}/api/health', timeout=10)
@@ -197,26 +197,26 @@ jobs:
                                 if result['data']['result']:
                                     value = float(result['data']['result'][0]['value'][1])
                                     grafana_metrics[metric_name] = value
-                                    print(f'✅ {metric_name}: {value:.4f}')
+                                    print(f'? {metric_name}: {value:.4f}')
                                 else:
                                     grafana_metrics[metric_name] = 0.0
-                                    print(f'⚠️ {metric_name}: No data')
+                                    print(f'?? {metric_name}: No data')
                             else:
                                 grafana_metrics[metric_name] = 0.0
-                                print(f'⚠️ {metric_name}: Query failed')
+                                print(f'?? {metric_name}: Query failed')
                                 
                         except Exception as e:
-                            print(f'⚠️ Error querying {metric_name}: {e}')
+                            print(f'?? Error querying {metric_name}: {e}')
                             grafana_metrics[metric_name] = 0.0
                             grafana_accessible = False
                 
             except Exception as e:
-                print(f'⚠️ Grafana not accessible: {e}')
+                print(f'?? Grafana not accessible: {e}')
                 grafana_accessible = False
             
             # Enhanced simulation if Grafana not accessible
             if not grafana_accessible or not grafana_metrics:
-                print('📊 Using enhanced A/B testing simulation with realistic metrics...')
+                print('?? Using enhanced A/B testing simulation with realistic metrics...')
                 
                 # Simulate realistic A/B test metrics
                 grafana_metrics = {
@@ -233,7 +233,7 @@ jobs:
             for metric, value in grafana_metrics.items():
                 mlflow.log_metric(f'grafana_{metric}', value)
             
-            print(f'📊 Grafana A/B Testing Metrics:')
+            print(f'?? Grafana A/B Testing Metrics:')
             print(f'   Control Accuracy: {grafana_metrics["model_a_accuracy"]:.4f}')
             print(f'   Treatment Accuracy: {grafana_metrics["model_b_accuracy"]:.4f}')
             print(f'   Control Conversion: {grafana_metrics["model_a_conversion_rate"]:.4f}')
@@ -299,7 +299,7 @@ jobs:
                 confidence = (100 - score) / 100
                 model_recommendation = 'control'
             
-            print(f'📊 Grafana-Based A/B Decision:')
+            print(f'?? Grafana-Based A/B Decision:')
             print(f'   Decision Score: {score}/100')
             print(f'   Decision: {grafana_decision}')
             print(f'   Model Recommendation: {model_recommendation}')
@@ -320,7 +320,7 @@ jobs:
                 f.write(f'metrics={json.dumps(grafana_metrics)}\n')
                 f.write(f'model_recommendation={model_recommendation}\n')
             
-            print('✅ Grafana-based A/B decision engine completed')
+            print('? Grafana-based A/B decision engine completed')
         EOF
 
   # =====================================
@@ -336,21 +336,21 @@ jobs:
       traffic_split: ${{ steps.setup.outputs.traffic_split }}
       significance_threshold: ${{ steps.setup.outputs.significance_threshold }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: "🚀 Install Enhanced Dependencies"
+    - name: "?? Install Enhanced Dependencies"
       run: |
         pip install requests numpy scipy pandas mlflow boto3 jq
         pip install dvc[s3] scikit-learn joblib evidently alibi-detect
         
-    - name: "🚀 Configure Enhanced Experiment Setup"
+    - name: "?? Configure Enhanced Experiment Setup"
       id: setup
       run: |
         experiment_id="enhanced_ab_exp_$(date +%Y%m%d_%H%M%S)"
@@ -371,11 +371,11 @@ jobs:
         
         echo "traffic_split=$traffic_split_display" >> $GITHUB_OUTPUT
         echo "significance_threshold=$significance_threshold" >> $GITHUB_OUTPUT
-        echo "🚀 Enhanced A/B Experiment ID: $experiment_id"
-        echo "🚀 Traffic Split: $traffic_split_display"
-        echo "🚀 Significance Threshold: $significance_threshold"
+        echo "?? Enhanced A/B Experiment ID: $experiment_id"
+        echo "?? Traffic Split: $traffic_split_display"
+        echo "?? Significance Threshold: $significance_threshold"
         
-    - name: "🚀 Initialize Enhanced MLflow A/B Testing Experiment"
+    - name: "?? Initialize Enhanced MLflow A/B Testing Experiment"
       id: mlflow_setup
       run: |
         python3 << 'EOF'
@@ -385,10 +385,10 @@ jobs:
         from datetime import datetime
         import time
         
-        print('🚀 Setting up Enhanced MLflow A/B Testing Experiment...')
+        print('?? Setting up Enhanced MLflow A/B Testing Experiment...')
         
         # Set MLflow tracking URI (your actual server)
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         client = MlflowClient()
         
         # Create or get enhanced A/B testing experiment with proper error handling
@@ -402,29 +402,29 @@ jobs:
             if existing_experiment is not None:
                 # Check if experiment is deleted
                 if existing_experiment.lifecycle_stage == 'deleted':
-                    print(f'⚠️ Found deleted experiment: {existing_experiment.experiment_id}')
+                    print(f'?? Found deleted experiment: {existing_experiment.experiment_id}')
                     # Create new experiment with timestamp suffix to avoid conflict
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                     new_experiment_name = f'{experiment_name}_{timestamp}'
-                    print(f'📊 Creating new experiment: {new_experiment_name}')
+                    print(f'?? Creating new experiment: {new_experiment_name}')
                     experiment = mlflow.create_experiment(new_experiment_name)
                     # Update experiment name for future reference
                     experiment_name = new_experiment_name
                 else:
                     # Use existing active experiment
                     experiment = existing_experiment.experiment_id
-                    print(f'✅ Using existing active MLflow experiment: {experiment}')
+                    print(f'? Using existing active MLflow experiment: {experiment}')
             else:
                 # No existing experiment, create new one
                 experiment = mlflow.create_experiment(experiment_name)
-                print(f'✅ Created new enhanced MLflow experiment: {experiment}')
+                print(f'? Created new enhanced MLflow experiment: {experiment}')
         
         except Exception as e:
-            print(f'⚠️ Error with experiment setup: {e}')
+            print(f'?? Error with experiment setup: {e}')
             # Fallback: create experiment with timestamp
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             fallback_name = f'{experiment_name}_fallback_{timestamp}'
-            print(f'📊 Creating fallback experiment: {fallback_name}')
+            print(f'?? Creating fallback experiment: {fallback_name}')
             experiment = mlflow.create_experiment(fallback_name)
             experiment_name = fallback_name
         
@@ -455,11 +455,11 @@ jobs:
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write(f'experiment_id={experiment}\n')
         
-        print(f'🚀 Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
-        print(f'🚀 Experiment name used: {experiment_name}')
+        print(f'?? Enhanced MLflow Experiment URL: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/{experiment}')
+        print(f'?? Experiment name used: {experiment_name}')
         EOF
         
-    - name: "📊 Validate Enhanced Prerequisites"
+    - name: "?? Validate Enhanced Prerequisites"
       id: validate
       run: |
         python3 << 'EOF'
@@ -467,37 +467,37 @@ jobs:
         import os
         import requests
         
-        print('📊 Validating Enhanced A/B Testing Prerequisites...')
+        print('?? Validating Enhanced A/B Testing Prerequisites...')
         
         # Test Grafana connectivity
         try:
             grafana_health = requests.get('http://${{ env.GRAFANA_URL }}/api/health', timeout=10)
-            print('✅ Grafana accessible')
+            print('? Grafana accessible')
         except:
-            print('⚠️ Grafana not accessible - continuing with simulation')
+            print('?? Grafana not accessible - continuing with simulation')
             
         # Test Prometheus connectivity  
         try:
             prom_health = requests.get('http://${{ env.PROMETHEUS_URL }}/-/healthy', timeout=10)
-            print('✅ Prometheus accessible')
+            print('? Prometheus accessible')
         except:
-            print('⚠️ Prometheus not accessible - continuing with simulation')
+            print('?? Prometheus not accessible - continuing with simulation')
             
         # Test MLflow connectivity
         try:
             mlflow_health = requests.get('${{ env.MLFLOW_TRACKING_URI }}/health', timeout=10)
-            print('✅ MLflow accessible')
+            print('? MLflow accessible')
         except:
-            print('⚠️ MLflow not accessible - continuing with local tracking')
+            print('?? MLflow not accessible - continuing with local tracking')
         
         # Create required directories
         required_dirs = ['experiments', 'models', 'data', 'monitoring', 'reports']
         for dir_path in required_dirs:
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path, exist_ok=True)
-                print(f'📊 Created directory: {dir_path}')
+                print(f'?? Created directory: {dir_path}')
                 
-        print('✅ All enhanced prerequisites validated')
+        print('? All enhanced prerequisites validated')
         print('should_continue=true')
         EOF
         echo "should_continue=true" >> $GITHUB_OUTPUT
@@ -517,31 +517,31 @@ jobs:
       mlflow_drift_run_id: ${{ steps.drift.outputs.mlflow_run_id }}
       data_version: ${{ steps.dvc.outputs.data_version }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
         
-    - name: "🚀 Install Drift Detection Dependencies"
+    - name: "?? Install Drift Detection Dependencies"
       run: |
         pip install scipy numpy pandas mlflow dvc[s3] evidently alibi-detect boto3
         pip install psycopg2-binary requests
         
-    - name: "🚀 Configure AWS Credentials for DVC"
+    - name: "?? Configure AWS Credentials for DVC"
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
-    - name: "🚀 Setup Enhanced DVC Data Pipeline"
+    - name: "?? Setup Enhanced DVC Data Pipeline"
       id: dvc
       run: |
-        echo "🚀 Setting up Enhanced DVC Data Pipeline for A/B Testing..."
+        echo "?? Setting up Enhanced DVC Data Pipeline for A/B Testing..."
         
         # Initialize DVC if not already done
         if [ ! -f ".dvc/config" ]; then
@@ -566,7 +566,7 @@ jobs:
         np.random.seed(42)
         n_samples = 5000
         
-        print(f"📊 Generating enhanced dataset with {n_samples} samples...")
+        print(f"?? Generating enhanced dataset with {n_samples} samples...")
         
         # Enhanced feature set for loan default prediction
         data = {
@@ -602,7 +602,7 @@ jobs:
         
         # Create data version hash for DVC
         data_hash = hashlib.md5(df.to_string().encode()).hexdigest()[:8]
-        print(f"📊 Enhanced data version: {data_hash}")
+        print(f"?? Enhanced data version: {data_hash}")
         
         # Save metadata
         metadata = {
@@ -624,7 +624,7 @@ jobs:
         fi
         
         # Push to DVC remote
-        dvc push || echo "📊 DVC push failed, continuing locally"
+        dvc push || echo "?? DVC push failed, continuing locally"
         
         # Extract data version
         data_version=$(python3 -c "
@@ -635,9 +635,9 @@ jobs:
         ")
         
         echo "data_version=$data_version" >> $GITHUB_OUTPUT
-        echo "✅ Enhanced DVC data pipeline completed - Version: $data_version"
+        echo "? Enhanced DVC data pipeline completed - Version: $data_version"
         
-    - name: "🚀 Advanced Drift Detection with MLflow Integration"
+    - name: "?? Advanced Drift Detection with MLflow Integration"
       id: drift
       run: |
         python3 << 'EOF'
@@ -652,14 +652,14 @@ jobs:
         warnings.filterwarnings('ignore')
         
         # Set MLflow tracking
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         
         try:
             mlflow.set_experiment(experiment_id=experiment_id)
-            print('✅ Successfully set MLflow experiment by ID')
+            print('? Successfully set MLflow experiment by ID')
         except Exception as e:
-            print(f'⚠️ Error setting experiment: {e}')
+            print(f'?? Error setting experiment: {e}')
             mlflow.set_experiment("Default")
         
         # Start MLflow run for drift detection
@@ -667,7 +667,7 @@ jobs:
             
             # Load current data
             df_current = pd.read_csv('data/current_ab_data.csv')
-            print(f'📊 Loaded current data: {len(df_current)} samples')
+            print(f'?? Loaded current data: {len(df_current)} samples')
             
             # Simulate reference data with slight distribution differences
             np.random.seed(24)
@@ -740,9 +740,9 @@ jobs:
             mlflow.log_metric('overall_drift_score', overall_drift_score)
             mlflow.log_metric('drift_features_count', len(drift_features))
             
-            print(f'📊 Overall Drift Score: {overall_drift_score:.3f}')
-            print(f'📊 Drift Detected: {drift_detected}')
-            print(f'📊 Affected Features: {drift_features}')
+            print(f'?? Overall Drift Score: {overall_drift_score:.3f}')
+            print(f'?? Drift Detected: {drift_detected}')
+            print(f'?? Affected Features: {drift_features}')
             
             # Save drift analysis
             drift_summary = {
@@ -769,11 +769,11 @@ jobs:
                 f.write(f'drift_features={json.dumps(drift_features)}\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\n')
             
-            print('✅ Advanced drift detection completed')
+            print('? Advanced drift detection completed')
         EOF
         
-    # ✅ FIX: Upload data artifacts for use by subsequent jobs
-    - name: "🚀 Upload Enhanced Data Artifacts"
+    # ? FIX: Upload data artifacts for use by subsequent jobs
+    - name: "?? Upload Enhanced Data Artifacts"
       uses: actions/upload-artifact@v4
       with:
         name: enhanced-drift-analysis-results
@@ -802,27 +802,27 @@ jobs:
       mlflow_analysis_run_id: ${{ steps.analysis.outputs.mlflow_run_id }}
     
     steps:
-    - name: "🚀 Checkout repository"
+    - name: "?? Checkout repository"
       uses: actions/checkout@v4
     
-    # ✅ FIX: Download data artifacts from drift detection job
-    - name: "🚀 Download Enhanced Data Artifacts"
+    # ? FIX: Download data artifacts from drift detection job
+    - name: "?? Download Enhanced Data Artifacts"
       uses: actions/download-artifact@v4
       with:
         name: enhanced-drift-analysis-results
         path: .
     
-    - name: "🚀 Setup Python for enhanced analysis"
+    - name: "?? Setup Python for enhanced analysis"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     
-    - name: "🚀 Install enhanced analysis dependencies"
+    - name: "?? Install enhanced analysis dependencies"
       run: |
         pip install requests numpy scipy pandas mlflow boto3
         pip install statsmodels
     
-    - name: "🚀 Enhanced A/B Testing Analysis"
+    - name: "?? Enhanced A/B Testing Analysis"
       id: analysis
       run: |
         python3 << 'EOF'
@@ -838,14 +838,14 @@ jobs:
         
         try:
             # Set MLflow tracking
-            mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
             experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
             
             try:
                 mlflow.set_experiment(experiment_id=experiment_id)
-                print('✅ Successfully set MLflow experiment by ID')
+                print('? Successfully set MLflow experiment by ID')
             except Exception as e:
-                print(f'⚠️ Error setting experiment: {e}')
+                print(f'?? Error setting experiment: {e}')
                 mlflow.set_experiment("Default")
             
             # Start MLflow run for A/B analysis
@@ -880,7 +880,7 @@ jobs:
                 mlflow.log_param('significance_threshold', significance_threshold)
                 
                 # Enhanced simulation with realistic A/B test data
-                print('📊 Using enhanced simulation with realistic A/B test data...')
+                print('?? Using enhanced simulation with realistic A/B test data...')
                 control_sample_size = 1247
                 treatment_sample_size = 1253
                 
@@ -978,7 +978,7 @@ jobs:
                 safe_log_metric('confidence_level', confidence_level)
                 safe_log_metric('performance_difference_pct', performance_difference)
                 
-                print(f'📊 Enhanced A/B Testing Results:')
+                print(f'?? Enhanced A/B Testing Results:')
                 print(f'   Control Conversion Rate: {p1:.3%} (n={n1:,})')
                 print(f'   Treatment Conversion Rate: {p2:.3%} (n={n2:,})')
                 print(f'   Difference: {performance_difference:.2f}%')
@@ -1020,7 +1020,7 @@ jobs:
                         json.dump(analysis_report, f, indent=2)
                     mlflow.log_artifact(analysis_file, 'ab_analysis')
                 except Exception as e:
-                    print(f'⚠️ Error saving analysis report: {e}')
+                    print(f'?? Error saving analysis report: {e}')
                 
                 # Output results for next jobs
                 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
@@ -1033,10 +1033,10 @@ jobs:
                     f.write(f'effect_size={effect_size:.4f}\n')
                     f.write(f'mlflow_run_id={run.info.run_id}\n')
                 
-                print('✅ Enhanced A/B testing analysis completed')
+                print('? Enhanced A/B testing analysis completed')
                 
         except Exception as e:
-            print(f'❌ Fatal error in A/B analysis: {e}')
+            print(f'? Fatal error in A/B analysis: {e}')
             import traceback
             traceback.print_exc()
             sys.exit(1)
@@ -1056,19 +1056,19 @@ jobs:
       stopping_confidence: ${{ steps.early_stop.outputs.confidence }}
       mlflow_early_stop_run_id: ${{ steps.early_stop.outputs.mlflow_run_id }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         
-    - name: "🚀 Install Early Stopping Dependencies"
+    - name: "?? Install Early Stopping Dependencies"
       run: |
         pip install scipy numpy statsmodels mlflow
         
-    - name: "🚀 Advanced Early Stopping Engine"
+    - name: "?? Advanced Early Stopping Engine"
       id: early_stop
       run: |
         python3 << 'EOF'
@@ -1080,7 +1080,7 @@ jobs:
         
         try:
             # Set MLflow tracking
-            mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
             experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
             
             try:
@@ -1130,7 +1130,7 @@ jobs:
                 except:
                     effect_size = 0.036
                 
-                print(f'📊 Early Stopping Analysis Input:')
+                print(f'?? Early Stopping Analysis Input:')
                 print(f'   Sample Size: {sample_size:,}')
                 print(f'   Performance Difference: {performance_diff:.2f}%')
                 print(f'   Confidence Level: {confidence_level:.3f}')
@@ -1174,7 +1174,7 @@ jobs:
                     reason = 'continue_testing'
                     confidence = confidence_level
                 
-                print(f'📊 Early Stopping Decision:')
+                print(f'?? Early Stopping Decision:')
                 print(f'   Should Stop: {should_stop}')
                 print(f'   Reason: {reason}')
                 print(f'   Confidence: {confidence:.3f}')
@@ -1191,10 +1191,10 @@ jobs:
                     f.write(f'confidence={confidence:.4f}\n')
                     f.write(f'mlflow_run_id={run.info.run_id}\n')
                 
-                print('✅ Advanced early stopping analysis completed')
+                print('? Advanced early stopping analysis completed')
                 
         except Exception as e:
-            print(f'❌ Fatal error in early stopping analysis: {e}')
+            print(f'? Fatal error in early stopping analysis: {e}')
             import traceback
             traceback.print_exc()
         EOF
@@ -1213,19 +1213,19 @@ jobs:
       deployment_recommendation: ${{ steps.winner.outputs.deployment_recommendation }}
       mlflow_winner_run_id: ${{ steps.winner.outputs.mlflow_run_id }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         
-    - name: "🚀 Install Winner Selection Dependencies"
+    - name: "?? Install Winner Selection Dependencies"
       run: |
         pip install numpy scipy mlflow pandas
         
-    - name: "🚀 Advanced Winner Selection Engine"
+    - name: "?? Advanced Winner Selection Engine"
       id: winner
       run: |
         python3 << 'EOF'
@@ -1237,7 +1237,7 @@ jobs:
         
         try:
             # Set MLflow tracking
-            mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
             experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
             
             try:
@@ -1278,7 +1278,7 @@ jobs:
                 drift_detected = safe_parse_value('${{ needs.drift-detection-analysis.outputs.drift_detected }}', 'bool', False)
                 drift_score = safe_parse_value('${{ needs.drift-detection-analysis.outputs.drift_score }}', 'float', 0.1)
                 
-                print(f'📊 Winner Selection Input Analysis:')
+                print(f'?? Winner Selection Input Analysis:')
                 print(f'   A/B Winner: {ab_winning_model}')
                 print(f'   Performance Diff: {performance_diff:.2f}%')
                 print(f'   Confidence: {confidence_level:.3f}')
@@ -1347,12 +1347,12 @@ jobs:
                 composite_score = sum(score * criteria_weights[criterion]
                                     for criterion, score in criterion_scores.items())
                 
-                print(f'📊 Multi-Criteria Scoring Results:')
+                print(f'?? Multi-Criteria Scoring Results:')
                 for criterion, score in criterion_scores.items():
                     weight = criteria_weights[criterion]
                     weighted_score = score * weight
                     print(f'   {criterion}: {score:.3f} (weight: {weight}) = {weighted_score:.3f}')
-                print(f'   🎯 Composite Score: {composite_score:.3f}')
+                print(f'   ?? Composite Score: {composite_score:.3f}')
                 
                 # Decision logic
                 deployment_thresholds = {
@@ -1387,7 +1387,7 @@ jobs:
                     selection_confidence *= 0.8
                     deployment_recommendation = 'investigate_drift_first'
                 
-                print(f'📊 Winner Selection Engine Results:')
+                print(f'?? Winner Selection Engine Results:')
                 print(f'   Final Winner: {final_winning_model.upper()}')
                 print(f'   Deployment Recommendation: {deployment_recommendation}')
                 print(f'   Selection Confidence: {selection_confidence:.3f}')
@@ -1408,10 +1408,10 @@ jobs:
                     f.write(f'deployment_recommendation={deployment_recommendation}\n')
                     f.write(f'mlflow_run_id={run.info.run_id}\n')
                 
-                print('✅ Advanced winner selection engine completed')
+                print('? Advanced winner selection engine completed')
                 
         except Exception as e:
-            print(f'❌ Fatal error in winner selection: {e}')
+            print(f'? Fatal error in winner selection: {e}')
             import traceback
             traceback.print_exc()
         EOF
@@ -1429,26 +1429,26 @@ jobs:
       temporal_patterns: ${{ steps.temporal.outputs.temporal_results }}
       mlflow_business_run_id: ${{ steps.roi.outputs.mlflow_run_id }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    # ✅ FIX: Download data artifacts for segment analysis
-    - name: "🚀 Download Enhanced Data Artifacts for Analysis"
+    # ? FIX: Download data artifacts for segment analysis
+    - name: "?? Download Enhanced Data Artifacts for Analysis"
       uses: actions/download-artifact@v4
       with:
         name: enhanced-drift-analysis-results
         path: .
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         
-    - name: "🚀 Install Business Analysis Dependencies"
+    - name: "?? Install Business Analysis Dependencies"
       run: |
         pip install pandas numpy mlflow scipy
         
-    - name: "🚀 Enhanced ROI Calculator Engine"
+    - name: "?? Enhanced ROI Calculator Engine"
       id: roi
       run: |
         python3 << 'EOF'
@@ -1459,7 +1459,7 @@ jobs:
         from datetime import datetime
         
         # Set MLflow tracking
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         try:
             mlflow.set_experiment(experiment_id=experiment_id)
@@ -1483,7 +1483,7 @@ jobs:
             selection_confidence = safe_parse('${{ needs.winner-selection-engine.outputs.selection_confidence }}', 'float', 0.72)
             performance_diff = safe_parse('${{ needs.analyze-ab-test-results.outputs.performance_difference }}', 'float', 1.29)
             
-            print(f'📊 Business Impact Input:')
+            print(f'?? Business Impact Input:')
             print(f'   Winning Model: {winning_model}')
             print(f'   Performance Improvement: {performance_diff:.2f}%')
             print(f'   Selection Confidence: {selection_confidence:.3f}')
@@ -1574,7 +1574,7 @@ jobs:
                 if isinstance(value, (int, float)):
                     safe_log_metric(f'roi_{metric}', value)
             
-            print(f'📊 Enhanced ROI Analysis Results:')
+            print(f'?? Enhanced ROI Analysis Results:')
             print(f'   Annual Revenue Increase: ${roi_result.get("annual_revenue_increase", 0):,.2f}')
             print(f'   Risk-Adjusted Benefit: ${roi_result.get("risk_adjusted_benefit", 0):,.2f}')
             print(f'   3-Year NPV: ${roi_result.get("npv_3_years", 0):,.2f}')
@@ -1589,19 +1589,19 @@ jobs:
                 with open(roi_file, 'w') as f:
                     json.dump(roi_result, f, indent=2)
                 mlflow.log_artifact(roi_file, 'business_impact')
-                print('✅ Saved and logged ROI analysis')
+                print('? Saved and logged ROI analysis')
             except Exception as e:
-                print(f'⚠️ Error saving ROI analysis: {e}')
+                print(f'?? Error saving ROI analysis: {e}')
             
             # Output results
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write(f'roi_result={json.dumps(roi_result)}\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\n')
             
-            print('✅ Enhanced ROI calculator completed')
+            print('? Enhanced ROI calculator completed')
         EOF
         
-    - name: "🚀 Enhanced Segment Analyzer Engine"
+    - name: "?? Enhanced Segment Analyzer Engine"
       id: segment
       run: |
         python3 << 'EOF'
@@ -1611,7 +1611,7 @@ jobs:
         import pandas as pd
         from datetime import datetime
         
-        print('📊 Running Enhanced Segment Analyzer Engine...')
+        print('?? Running Enhanced Segment Analyzer Engine...')
         
         try:
             df = pd.read_csv('data/current_ab_data.csv')
@@ -1672,15 +1672,15 @@ jobs:
                         'default_rate': float(segment_data['target'].mean())
                     }
                     
-                    print(f'📊 Segment {segment}:')
+                    print(f'?? Segment {segment}:')
                     print(f'   Sample Size: {len(segment_data)}')
                     print(f'   Improvement: {segment_improvement:.2f}%')
                     print(f'   Business Priority: {segment_results[segment]["business_priority"]}')
                 
-            print(f'✅ Analyzed {len(segment_results)} customer segments')
+            print(f'? Analyzed {len(segment_results)} customer segments')
             
         except Exception as e:
-            print(f'⚠️ Error in segment analysis: {e}, using default segments')
+            print(f'?? Error in segment analysis: {e}, using default segments')
             segment_results = {'default': {'improvement_percentage': float('${{ needs.analyze-ab-test-results.outputs.performance_difference }}')}}
         
         # Save segment analysis
@@ -1690,18 +1690,18 @@ jobs:
             segment_file = f'experiments/segment_analysis/segment_analysis_{timestamp_str}.json'
             with open(segment_file, 'w') as f:
                 json.dump(segment_results, f, indent=2)
-            print('✅ Saved segment analysis results')
+            print('? Saved segment analysis results')
         except Exception as e:
-            print(f'⚠️ Error saving segment analysis: {e}')
+            print(f'?? Error saving segment analysis: {e}')
         
         # Output results
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f'segment_results={json.dumps(segment_results)}\n')
         
-        print('✅ Enhanced segment analysis completed')
+        print('? Enhanced segment analysis completed')
         EOF
         
-    - name: "🚀 Enhanced Temporal Pattern Detector"
+    - name: "?? Enhanced Temporal Pattern Detector"
       id: temporal
       run: |
         python3 << 'EOF'
@@ -1710,7 +1710,7 @@ jobs:
         import numpy as np
         from datetime import datetime
         
-        print('📊 Running Enhanced Temporal Pattern Detector...')
+        print('?? Running Enhanced Temporal Pattern Detector...')
         
         # Current time analysis
         current_hour = datetime.now().hour
@@ -1795,10 +1795,10 @@ jobs:
         
         current_time_str = datetime.now().strftime("%H:%M on %A")
         
-        print(f'📊 Temporal Pattern Analysis:')
+        print(f'?? Temporal Pattern Analysis:')
         print(f'   Current Time: {current_time_str}')
-        print(f'   Hourly Pattern: {current_pattern} (×{pattern_multiplier:.2f})')
-        print(f'   Daily Pattern: {daily_pattern} (×{daily_multiplier:.2f})')
+        print(f'   Hourly Pattern: {current_pattern} (�{pattern_multiplier:.2f})')
+        print(f'   Daily Pattern: {daily_pattern} (�{daily_multiplier:.2f})')
         print(f'   Combined Multiplier: {combined_temporal_multiplier:.2f}')
         print(f'   Temporal Adjusted Performance: {temporal_adjusted_performance:.2f}%')
         
@@ -1809,15 +1809,15 @@ jobs:
             temporal_file = f'experiments/temporal_analysis/temporal_analysis_{timestamp_str}.json'
             with open(temporal_file, 'w') as f:
                 json.dump(temporal_results, f, indent=2)
-            print('✅ Saved temporal analysis results')
+            print('? Saved temporal analysis results')
         except Exception as e:
-            print(f'⚠️ Error saving temporal analysis: {e}')
+            print(f'?? Error saving temporal analysis: {e}')
         
         # Output results
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f'temporal_results={json.dumps(temporal_results)}\n')
         
-        print('✅ Enhanced temporal pattern detection completed')
+        print('? Enhanced temporal pattern detection completed')
         EOF
 
   # =====================================
@@ -1835,37 +1835,37 @@ jobs:
       champion_model_uri: ${{ steps.train.outputs.model_uri }}
     
     steps:
-    - name: "🚀 Checkout code"
+    - name: "?? Checkout code"
       uses: actions/checkout@v4
     
-    # ✅ FIX: Download data artifacts from drift detection job
-    - name: "🚀 Download Enhanced Analysis Results"
+    # ? FIX: Download data artifacts from drift detection job
+    - name: "?? Download Enhanced Analysis Results"
       uses: actions/download-artifact@v4
       with:
         name: enhanced-drift-analysis-results
         path: .
     
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     
-    - name: "🚀 Install Enhanced ML Dependencies"
+    - name: "?? Install Enhanced ML Dependencies"
       run: |
         pip install scikit-learn pandas numpy joblib mlflow boto3 dvc[s3]
         pip install xgboost lightgbm optuna hyperopt
     
-    - name: "🚀 Configure AWS Credentials for MLflow + DVC"
+    - name: "?? Configure AWS Credentials for MLflow + DVC"
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
-    - name: "🚀 Train Enhanced Champion Model"
+    - name: "?? Train Enhanced Champion Model"
       id: train
       run: |
-        echo "📊 Training Enhanced Champion Model..."
+        echo "?? Training Enhanced Champion Model..."
         echo "Winning A/B model: ${{ needs.winner-selection-engine.outputs.final_winning_model }}"
         echo "Performance difference: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}"
         echo "Selection confidence: ${{ needs.winner-selection-engine.outputs.selection_confidence }}"
@@ -1889,16 +1889,16 @@ jobs:
         
         try:
             # Set MLflow tracking
-            mlflow.set_tracking_uri("${{ env.MLFLOW_TRACKING_URI }}")
+            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
             experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
             try:
                 mlflow.set_experiment(experiment_id=experiment_id)
-                print('✅ Successfully set MLflow experiment by ID')
+                print('? Successfully set MLflow experiment by ID')
             except Exception as e:
-                print(f'⚠️ Error setting experiment: {e}')
+                print(f'?? Error setting experiment: {e}')
                 mlflow.set_experiment("Default")
             
-            print('📊 Training Enhanced Champion Model with MLflow...')
+            print('?? Training Enhanced Champion Model with MLflow...')
             
             # Start MLflow run for champion training
             timestamp_str = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -1919,7 +1919,7 @@ jobs:
                 
                 # Load training data
                 df = pd.read_csv('data/current_ab_data.csv')
-                print(f'📊 Loaded training data: {len(df)} samples')
+                print(f'?? Loaded training data: {len(df)} samples')
                 
                 # Feature engineering
                 feature_cols = ['loan_amount', 'income', 'credit_score', 'debt_to_income', 
@@ -1951,9 +1951,9 @@ jobs:
                     X_scaled, y, test_size=0.15, random_state=42, stratify=y
                 )
                 
-                print(f'📊 Training Split: {len(X_train)} train, {len(X_test)} test')
-                print(f'📊 Default rate: {y.mean():.3%}')
-                print(f'📊 Enhanced features: {len(enhanced_features)}')
+                print(f'?? Training Split: {len(X_train)} train, {len(X_test)} test')
+                print(f'?? Default rate: {y.mean():.3%}')
+                print(f'?? Enhanced features: {len(enhanced_features)}')
                 
                 # Log dataset characteristics
                 mlflow.log_param("training_samples", len(X_train))
@@ -1968,21 +1968,21 @@ jobs:
                 winning_model = "${{ needs.winner-selection-engine.outputs.final_winning_model }}"
                 
                 if winning_model == "treatment":
-                    print('🚀 Creating Enhanced GradientBoosting Champion (Treatment Winner)...')
+                    print('?? Creating Enhanced GradientBoosting Champion (Treatment Winner)...')
                     champion_model = GradientBoostingClassifier(
                         n_estimators=200, max_depth=8, learning_rate=0.1, random_state=42
                     )
                     model_type = "enhanced_gradient_boosting_optimized"
                     
                 elif winning_model == "control":
-                    print('🚀 Creating Enhanced RandomForest Champion (Control Winner)...')
+                    print('?? Creating Enhanced RandomForest Champion (Control Winner)...')
                     champion_model = RandomForestClassifier(
                         n_estimators=300, max_depth=15, random_state=42
                     )
                     model_type = "enhanced_random_forest_optimized"
                     
                 else:
-                    print('🚀 Creating Advanced Ensemble Champion...')
+                    print('?? Creating Advanced Ensemble Champion...')
                     rf_optimized = RandomForestClassifier(n_estimators=250, max_depth=12, random_state=42)
                     gb_optimized = GradientBoostingClassifier(n_estimators=200, max_depth=8, random_state=42)
                     
@@ -1994,7 +1994,7 @@ jobs:
                     model_type = "advanced_ensemble_champion"
                 
                 # Train champion model
-                print(f'📊 Training {model_type} as champion model...')
+                print(f'?? Training {model_type} as champion model...')
                 champion_model.fit(X_train, y_train)
                 
                 # Comprehensive evaluation
@@ -2020,7 +2020,7 @@ jobs:
                 mlflow.log_metric("champion_precision", class_report['1']['precision'])
                 mlflow.log_metric("champion_recall", class_report['1']['recall'])
                 
-                print(f'📊 Enhanced Champion Model Performance:')
+                print(f'?? Enhanced Champion Model Performance:')
                 print(f'   Type: {model_type}')
                 print(f'   F1 Score: {f1:.4f}')
                 print(f'   Accuracy: {accuracy:.4f}')
@@ -2079,20 +2079,20 @@ jobs:
                     f.write(f"mlflow_run_id={run.info.run_id}\n")
                     f.write(f"model_uri={model_uri}\n")
                 
-                print("✅ Enhanced champion model training completed")
-                print(f"📊 MLflow Run: {run.info.run_id}")
-                print(f"📊 Model Version: {model_version}")
+                print("? Enhanced champion model training completed")
+                print(f"?? MLflow Run: {run.info.run_id}")
+                print(f"?? Model Version: {model_version}")
                 
         except Exception as e:
-            print(f'❌ Fatal error in champion training: {e}')
+            print(f'? Fatal error in champion training: {e}')
             import traceback
             traceback.print_exc()
             sys.exit(1)
         EOF
         
-    - name: "🚀 Version Champion Model with DVC"
+    - name: "?? Version Champion Model with DVC"
       run: |
-        echo "📊 Versioning Enhanced Champion Model with DVC..."
+        echo "?? Versioning Enhanced Champion Model with DVC..."
         
         # Configure AWS for DVC
         aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -2118,37 +2118,37 @@ jobs:
         
         # Ensure files exist before adding to DVC
         if [ -f "models/enhanced_champion_model.pkl" ]; then
-          echo "📊 Adding champion model to DVC..."
+          echo "?? Adding champion model to DVC..."
           if [ ! -f "models/enhanced_champion_model.pkl.dvc" ]; then
-            dvc add models/enhanced_champion_model.pkl || echo "⚠️ DVC add failed for champion model"
+            dvc add models/enhanced_champion_model.pkl || echo "?? DVC add failed for champion model"
           fi
         fi
         
         if [ -f "models/enhanced_feature_scaler.pkl" ]; then
-          echo "📊 Adding feature scaler to DVC..."
+          echo "?? Adding feature scaler to DVC..."
           if [ ! -f "models/enhanced_feature_scaler.pkl.dvc" ]; then
-            dvc add models/enhanced_feature_scaler.pkl || echo "⚠️ DVC add failed for feature scaler"
+            dvc add models/enhanced_feature_scaler.pkl || echo "?? DVC add failed for feature scaler"
           fi
         fi
         
         if [ -f "models/enhanced_champion_metadata.json" ]; then
-          echo "📊 Adding model metadata to DVC..."
+          echo "?? Adding model metadata to DVC..."
           if [ ! -f "models/enhanced_champion_metadata.json.dvc" ]; then
-            dvc add models/enhanced_champion_metadata.json || echo "⚠️ DVC add failed for metadata"
+            dvc add models/enhanced_champion_metadata.json || echo "?? DVC add failed for metadata"
           fi
         fi
         
         # Try to push to DVC remote (optional - continue if fails)
-        echo "📊 Attempting to push to DVC remote..."
-        dvc push || echo "⚠️ DVC push failed - models saved locally only"
+        echo "?? Attempting to push to DVC remote..."
+        dvc push || echo "?? DVC push failed - models saved locally only"
         
         # List DVC files created
-        echo "📊 DVC files created:"
+        echo "?? DVC files created:"
         ls -la models/*.dvc 2>/dev/null || echo "No DVC files found"
         
-        echo "✅ Enhanced champion model versioning completed"
+        echo "? Enhanced champion model versioning completed"
     
-    - name: "🚀 Upload Enhanced Champion Artifacts"
+    - name: "?? Upload Enhanced Champion Artifacts"
       uses: actions/upload-artifact@v4
       with:
         name: enhanced-champion-model-artifacts
@@ -2171,23 +2171,23 @@ jobs:
       deployment_url: ${{ steps.deploy.outputs.url }}
       canary_percentage: ${{ steps.deploy.outputs.canary_percentage }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Download Enhanced Champion Model"
+    - name: "?? Download Enhanced Champion Model"
       uses: actions/download-artifact@v4
       with:
         name: enhanced-champion-model-artifacts
         path: models/
       
-    - name: "🚀 Configure AWS Credentials for EKS"
+    - name: "?? Configure AWS Credentials for EKS"
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
-    - name: "🚀 Intelligent Model Promotion Engine"
+    - name: "?? Intelligent Model Promotion Engine"
       id: deploy
       env:
         DEPLOYMENT_RECOMMENDATION: ${{ needs.winner-selection-engine.outputs.deployment_recommendation }}
@@ -2196,7 +2196,7 @@ jobs:
         CHAMPION_F1: ${{ needs.train-champion-model.outputs.champion_f1_score }}
         CHAMPION_VERSION: ${{ needs.train-champion-model.outputs.champion_model_version }}
       run: |
-        echo "📊 Starting Intelligent Model Promotion Engine..."
+        echo "?? Starting Intelligent Model Promotion Engine..."
         
         python3 << 'EOF'
         import os
@@ -2206,7 +2206,7 @@ jobs:
         
         try:
             # Set MLflow tracking
-            mlflow.set_tracking_uri("${{ env.MLFLOW_TRACKING_URI }}")
+            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
             experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
             try:
                 mlflow.set_experiment(experiment_id=experiment_id)
@@ -2226,7 +2226,7 @@ jobs:
             champion_f1 = safe_parse(os.environ.get('CHAMPION_F1', '0.85'), 0.85)
             model_version = os.environ.get('CHAMPION_VERSION', 'v1.0')
             
-            print(f'📊 Model Promotion Decision Analysis:')
+            print(f'?? Model Promotion Decision Analysis:')
             print(f'   Deployment Recommendation: {deployment_rec}')
             print(f'   Selection Confidence: {confidence:.3f}')
             print(f'   Business Impact Score: {business_impact:.2f}')
@@ -2247,22 +2247,22 @@ jobs:
                 canary_percentage = 0
                 
                 if deployment_rec == 'deploy_immediately' and confidence >= 0.8:
-                    print('🚀 HIGH CONFIDENCE DEPLOYMENT - Full rollout approved!')
+                    print('?? HIGH CONFIDENCE DEPLOYMENT - Full rollout approved!')
                     deployment_status = "full_rollout_initiated"
                     canary_percentage = 100
                     
                 elif deployment_rec == 'deploy_with_monitoring' and confidence >= 0.6:
-                    print('📊 MEDIUM CONFIDENCE DEPLOYMENT - Gradual rollout with monitoring')
+                    print('?? MEDIUM CONFIDENCE DEPLOYMENT - Gradual rollout with monitoring')
                     deployment_status = "gradual_rollout_initiated"
                     canary_percentage = 50
                     
                 elif deployment_rec == 'canary_deployment':
-                    print('📊 LOW CONFIDENCE DEPLOYMENT - Canary only')
+                    print('?? LOW CONFIDENCE DEPLOYMENT - Canary only')
                     deployment_status = "canary_deployment_initiated"
                     canary_percentage = 10
                     
                 else:
-                    print('⚠️ DEPLOYMENT NOT RECOMMENDED - Manual review required')
+                    print('?? DEPLOYMENT NOT RECOMMENDED - Manual review required')
                     deployment_status = "manual_review_required"
                     canary_percentage = 0
                 
@@ -2275,13 +2275,13 @@ jobs:
                 
                 all_safety_checks_passed = all(safety_checks.values())
                 
-                print(f'🛡️ Safety Checks:')
+                print(f'??? Safety Checks:')
                 for check, passed in safety_checks.items():
-                    status = '✅' if passed else '❌'
+                    status = '?' if passed else '?'
                     print(f'   {status} {check}: {passed}')
                 
                 if not all_safety_checks_passed:
-                    print('❌ Safety checks failed - deployment blocked')
+                    print('? Safety checks failed - deployment blocked')
                     deployment_status = "safety_check_failure"
                     deployment_url = "deployment_blocked"
                     canary_percentage = 0
@@ -2291,7 +2291,7 @@ jobs:
                 mlflow.log_metric('canary_percentage', canary_percentage)
                 mlflow.log_metric('deployment_confidence', confidence)
                 
-                print(f'📊 Final Deployment Decision:')
+                print(f'?? Final Deployment Decision:')
                 print(f'   Status: {deployment_status}')
                 print(f'   URL: {deployment_url}')
                 print(f'   Canary Percentage: {canary_percentage}%')
@@ -2303,10 +2303,10 @@ jobs:
                     f.write(f"url={deployment_url}\n")
                     f.write(f"canary_percentage={canary_percentage}\n")
                 
-                print('✅ Model promotion completed')
+                print('? Model promotion completed')
                 
         except Exception as e:
-            print(f'❌ Fatal error in model promotion: {e}')
+            print(f'? Fatal error in model promotion: {e}')
             import traceback
             traceback.print_exc()
         EOF
@@ -2324,19 +2324,19 @@ jobs:
       performance_degradation: ${{ steps.monitor.outputs.performance_degradation }}
       monitoring_mlflow_run_id: ${{ steps.monitor.outputs.mlflow_run_id }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         
-    - name: "🚀 Install Monitoring Dependencies"
+    - name: "?? Install Monitoring Dependencies"
       run: |
         pip install mlflow boto3 requests pandas numpy scipy
         
-    - name: "🚀 Advanced Performance Monitoring Engine"
+    - name: "?? Advanced Performance Monitoring Engine"
       id: monitor
       run: |
         python3 << 'EOF'
@@ -2348,14 +2348,14 @@ jobs:
         import numpy as np
         
         # Set MLflow tracking
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         try:
            mlflow.set_experiment(experiment_id=experiment_id)
         except Exception as e:
            mlflow.set_experiment("Default")
         
-        print('📊 Running Advanced Performance Monitoring Engine...')
+        print('?? Running Advanced Performance Monitoring Engine...')
         
         # Start MLflow run for monitoring
         with mlflow.start_run(run_name='performance-monitoring-${{ needs.validate-experiment-setup.outputs.experiment_id }}') as run:
@@ -2364,7 +2364,7 @@ jobs:
             prometheus_url = 'http://${{ env.PROMETHEUS_URL }}'
             
             try:
-                print(f'📊 Querying production metrics from: {prometheus_url}')
+                print(f'?? Querying production metrics from: {prometheus_url}')
                 
                 metrics_queries = {
                     'model_accuracy': 'model_accuracy_score',
@@ -2394,16 +2394,16 @@ jobs:
                         else:
                             current_performance[metric_name] = 0.0
                     except Exception as e:
-                        print(f'⚠️ Error querying {metric_name}: {e}')
+                        print(f'?? Error querying {metric_name}: {e}')
                         current_performance[metric_name] = 0.0
                 
             except Exception as e:
-                print(f'⚠️ Prometheus not accessible: {e}, using simulation')
+                print(f'?? Prometheus not accessible: {e}, using simulation')
                 prometheus_accessible = False
             
             # Enhanced simulation if Prometheus not accessible
             if not prometheus_accessible or not current_performance:
-                print('📊 Using enhanced performance simulation...')
+                print('?? Using enhanced performance simulation...')
                 
                 # Realistic production performance simulation
                 current_performance = {
@@ -2419,7 +2419,7 @@ jobs:
             for metric, value in current_performance.items():
                 mlflow.log_metric(f'current_{metric}', value)
             
-            print(f'📊 Current Production Performance:')
+            print(f'?? Current Production Performance:')
             for metric, value in current_performance.items():
                 print(f'   {metric}: {value:.4f}')
             
@@ -2474,7 +2474,7 @@ jobs:
             mlflow.log_param('degradation_reasons', json.dumps(degradation_reasons))
             mlflow.log_param('retraining_recommended', str(should_retrain).lower())
             
-            print(f'📊 Performance Monitoring Results:')
+            print(f'?? Performance Monitoring Results:')
             print(f'   Degradation Detected: {degradation_detected}')
             print(f'   Severity: {degradation_severity}')
             print(f'   Issues: {degradation_reasons}')
@@ -2486,7 +2486,7 @@ jobs:
                 f.write(f'performance_degradation={degradation_severity}\n')
                 f.write(f'mlflow_run_id={run.info.run_id}\n')
             
-            print('✅ Advanced performance monitoring completed')
+            print('? Advanced performance monitoring completed')
         EOF
 
   # =====================================
@@ -2498,9 +2498,9 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-    - name: "🚀 Generate Comprehensive A/B Testing Report"
+    - name: "?? Generate Comprehensive A/B Testing Report"
       run: |
-        echo "📊 Generating Comprehensive A/B Testing MLOps Report..."
+        echo "?? Generating Comprehensive A/B Testing MLOps Report..."
         
         python3 << 'EOF'
         import json
@@ -2544,14 +2544,14 @@ jobs:
             }
         }
         
-        print('🎯 A/B Testing MLOps Pipeline Complete!')
+        print('?? A/B Testing MLOps Pipeline Complete!')
         print('=' * 60)
-        print(f'🔬 Experiment: {report["experiment_summary"]["experiment_id"]}')
-        print(f'🏆 Winner: {report["ab_test_results"]["winning_model"].upper()}')
-        print(f'📈 Improvement: {report["ab_test_results"]["performance_difference"]}')
-        print(f'🎯 F1 Score: {report["model_deployment"]["champion_f1_score"]}')
-        print(f'🚀 Deployment: {report["model_deployment"]["deployment_status"]}')
-        print(f'📊 MLflow: {report["mlflow_links"]["experiment_url"]}')
+        print(f'?? Experiment: {report["experiment_summary"]["experiment_id"]}')
+        print(f'?? Winner: {report["ab_test_results"]["winning_model"].upper()}')
+        print(f'?? Improvement: {report["ab_test_results"]["performance_difference"]}')
+        print(f'?? F1 Score: {report["model_deployment"]["champion_f1_score"]}')
+        print(f'?? Deployment: {report["model_deployment"]["deployment_status"]}')
+        print(f'?? MLflow: {report["mlflow_links"]["experiment_url"]}')
         print('=' * 60)
         
         # Save comprehensive report
@@ -2559,10 +2559,10 @@ jobs:
         with open('reports/ab_testing_comprehensive_report.json', 'w') as f:
             json.dump(report, f, indent=2)
         
-        print('✅ Comprehensive report generated')
+        print('? Comprehensive report generated')
         EOF
     
-    - name: "📊 Upload Final Reports"
+    - name: "?? Upload Final Reports"
       uses: actions/upload-artifact@v4
       with:
         name: comprehensive-ab-testing-reports
@@ -2570,34 +2570,34 @@ jobs:
           reports/
           experiments/
         
-    - name: "🎉 Success Notification"
+    - name: "?? Success Notification"
       if: needs.winner-selection-engine.outputs.final_winning_model != 'no_winner'
       run: |
-        echo "🎉 A/B Testing MLOps Pipeline Successfully Completed!"
-        echo "🏆 Winner: ${{ needs.winner-selection-engine.outputs.final_winning_model }}"
-        echo "📈 Performance Improvement: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%"
-        echo "🚀 Deployment Status: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}"
-        echo "📊 Business Impact Score: ${{ needs.winner-selection-engine.outputs.business_impact_score }}"
+        echo "?? A/B Testing MLOps Pipeline Successfully Completed!"
+        echo "?? Winner: ${{ needs.winner-selection-engine.outputs.final_winning_model }}"
+        echo "?? Performance Improvement: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%"
+        echo "?? Deployment Status: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}"
+        echo "?? Business Impact Score: ${{ needs.winner-selection-engine.outputs.business_impact_score }}"
         echo ""
-        echo "🎯 Your complete enterprise A/B Testing MLOps pipeline includes:"
-        echo "  ✅ Statistical A/B testing with confidence intervals"
-        echo "  ✅ Advanced drift detection with DVC data versioning" 
-        echo "  ✅ Early stopping engine with SPRT"
-        echo "  ✅ Multi-criteria winner selection"
-        echo "  ✅ Business impact & ROI analysis"
-        echo "  ✅ Segment & temporal pattern analysis"
-        echo "  ✅ Hyperparameter-optimized champion model training"
-        echo "  ✅ Intelligent model promotion with safety checks"
-        echo "  ✅ Performance monitoring & auto-retraining triggers"
-        echo "  ✅ Complete MLflow experiment tracking & model registry"
-        echo "  ✅ DVC data & model versioning for reproducibility"
+        echo "?? Your complete enterprise A/B Testing MLOps pipeline includes:"
+        echo "  ? Statistical A/B testing with confidence intervals"
+        echo "  ? Advanced drift detection with DVC data versioning" 
+        echo "  ? Early stopping engine with SPRT"
+        echo "  ? Multi-criteria winner selection"
+        echo "  ? Business impact & ROI analysis"
+        echo "  ? Segment & temporal pattern analysis"
+        echo "  ? Hyperparameter-optimized champion model training"
+        echo "  ? Intelligent model promotion with safety checks"
+        echo "  ? Performance monitoring & auto-retraining triggers"
+        echo "  ? Complete MLflow experiment tracking & model registry"
+        echo "  ? DVC data & model versioning for reproducibility"
         echo ""
-        echo "🚀 Enterprise-grade A/B Testing MLOps automation is now LIVE!"
+        echo "?? Enterprise-grade A/B Testing MLOps automation is now LIVE!"
         
-    - name: "📧 Advanced Notification System"
+    - name: "?? Advanced Notification System"
       if: always()
       run: |
-        echo "📧 Sending comprehensive pipeline notifications..."
+        echo "?? Sending comprehensive pipeline notifications..."
         
         python3 << 'EOF'
         import json
@@ -2617,7 +2617,7 @@ jobs:
             'timestamp': datetime.now().isoformat()
         }
         
-        print("📧 Notification Summary:")
+        print("?? Notification Summary:")
         print(f"   Pipeline Status: {notification_data['pipeline_status']}")
         print(f"   Experiment ID: {notification_data['experiment_id']}")
         print(f"   Winning Model: {notification_data['winning_model']}")
@@ -2631,58 +2631,58 @@ jobs:
         with open('reports/notification_summary.json', 'w') as f:
             json.dump(notification_data, f, indent=2)
             
-        print("✅ Notification data prepared for external integrations")
+        print("? Notification data prepared for external integrations")
         EOF
         
         # Add Slack/Teams/Email integration here if webhook URLs are configured
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
-          echo "📧 Sending Slack notification..."
+          echo "?? Sending Slack notification..."
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d '{
-              "text": "🎉 A/B Testing MLOps Pipeline Complete! 🚀\n\n📊 *Results:*\n• Winner: ${{ needs.winner-selection-engine.outputs.final_winning_model }}\n• Performance: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%\n• F1 Score: ${{ needs.train-champion-model.outputs.champion_f1_score }}\n• Deployment: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}\n\n🔗 <${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}|View in MLflow>\n🔗 <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Run>"
+              "text": "?? A/B Testing MLOps Pipeline Complete! ??\n\n?? *Results:*\n� Winner: ${{ needs.winner-selection-engine.outputs.final_winning_model }}\n� Performance: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%\n� F1 Score: ${{ needs.train-champion-model.outputs.champion_f1_score }}\n� Deployment: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}\n\n?? <${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}|View in MLflow>\n?? <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Run>"
             }'
         fi
         
-    - name: "📋 Pipeline Summary & Next Steps"
+    - name: "?? Pipeline Summary & Next Steps"
       if: always()
       run: |
-        echo "📋 Complete A/B Testing MLOps Pipeline Summary"
+        echo "?? Complete A/B Testing MLOps Pipeline Summary"
         echo "================================================="
-        echo "🔬 Experiment ID: ${{ needs.validate-experiment-setup.outputs.experiment_id }}"
-        echo "🚨 Trigger Reason: ${{ github.event.inputs.reason }}"
-        echo "🏆 Winning Model: ${{ needs.winner-selection-engine.outputs.final_winning_model }}"
-        echo "📈 Performance Improvement: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%"
-        echo "🎯 Champion F1 Score: ${{ needs.train-champion-model.outputs.champion_f1_score }}"
-        echo "🚀 Deployment Status: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}"
-        echo "💰 Business Impact Score: ${{ needs.winner-selection-engine.outputs.business_impact_score }}"
-        echo "🔄 Retraining Triggered: ${{ needs.performance-monitoring-and-retraining.outputs.retraining_triggered }}"
+        echo "?? Experiment ID: ${{ needs.validate-experiment-setup.outputs.experiment_id }}"
+        echo "?? Trigger Reason: ${{ github.event.inputs.reason }}"
+        echo "?? Winning Model: ${{ needs.winner-selection-engine.outputs.final_winning_model }}"
+        echo "?? Performance Improvement: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%"
+        echo "?? Champion F1 Score: ${{ needs.train-champion-model.outputs.champion_f1_score }}"
+        echo "?? Deployment Status: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}"
+        echo "?? Business Impact Score: ${{ needs.winner-selection-engine.outputs.business_impact_score }}"
+        echo "?? Retraining Triggered: ${{ needs.performance-monitoring-and-retraining.outputs.retraining_triggered }}"
         echo ""
-        echo "🔗 Important Links:"
-        echo "• MLflow Experiment: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}"
-        echo "• Production API: http://${{ env.PROD_API_URL }}"
-        echo "• Grafana Dashboard: http://${{ env.GRAFANA_URL }}"
-        echo "• Prometheus Metrics: http://${{ env.PROMETHEUS_URL }}"
-        echo "• GitHub Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "?? Important Links:"
+        echo "� MLflow Experiment: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}"
+        echo "� Production API: http://${{ env.PROD_API_URL }}"
+        echo "� Grafana Dashboard: http://${{ env.GRAFANA_URL }}"
+        echo "� Prometheus Metrics: http://${{ env.PROMETHEUS_URL }}"
+        echo "� GitHub Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         echo "================================================="
         echo ""
-        echo "🎯 Your enterprise A/B Testing MLOps pipeline features:"
-        echo "  ✅ Advanced statistical A/B testing with confidence intervals & power analysis"
-        echo "  ✅ Comprehensive drift detection with KS tests & PSI scoring"
-        echo "  ✅ DVC data & model versioning for full reproducibility"
-        echo "  ✅ Sequential Probability Ratio Test (SPRT) early stopping"
-        echo "  ✅ Multi-Criteria Decision Analysis (MCDA) winner selection"
-        echo "  ✅ Advanced business impact & ROI analysis with NPV calculations"
-        echo "  ✅ Customer segmentation & temporal pattern analysis"
-        echo "  ✅ Hyperparameter-optimized champion model training"
-        echo "  ✅ Intelligent model promotion with safety checks & deployment strategies"
-        echo "  ✅ Continuous performance monitoring & auto-retraining triggers"
-        echo "  ✅ Complete MLflow experiment tracking & model registry integration"
-        echo "  ✅ Comprehensive reporting & notification system"
+        echo "?? Your enterprise A/B Testing MLOps pipeline features:"
+        echo "  ? Advanced statistical A/B testing with confidence intervals & power analysis"
+        echo "  ? Comprehensive drift detection with KS tests & PSI scoring"
+        echo "  ? DVC data & model versioning for full reproducibility"
+        echo "  ? Sequential Probability Ratio Test (SPRT) early stopping"
+        echo "  ? Multi-Criteria Decision Analysis (MCDA) winner selection"
+        echo "  ? Advanced business impact & ROI analysis with NPV calculations"
+        echo "  ? Customer segmentation & temporal pattern analysis"
+        echo "  ? Hyperparameter-optimized champion model training"
+        echo "  ? Intelligent model promotion with safety checks & deployment strategies"
+        echo "  ? Continuous performance monitoring & auto-retraining triggers"
+        echo "  ? Complete MLflow experiment tracking & model registry integration"
+        echo "  ? Comprehensive reporting & notification system"
         echo ""
-        echo "🚀 Enterprise-grade A/B Testing MLOps automation is now LIVE and fully operational!"
+        echo "?? Enterprise-grade A/B Testing MLOps automation is now LIVE and fully operational!"
         echo ""
-        echo "📚 Next Steps:"
+        echo "?? Next Steps:"
         echo "  1. Monitor the deployed model performance in Grafana"
         echo "  2. Review MLflow experiments for detailed insights"
         echo "  3. Analyze business impact reports in the artifacts"
@@ -2702,13 +2702,13 @@ jobs:
       grafana_deployment_url: ${{ steps.deploy.outputs.url }}
       grafana_canary_percentage: ${{ steps.deploy.outputs.canary_percentage }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Grafana-Intelligent Model Deployment"
+    - name: "?? Grafana-Intelligent Model Deployment"
       id: deploy
       run: |
-        echo "📊 Starting Grafana-Intelligent Model Deployment..."
+        echo "?? Starting Grafana-Intelligent Model Deployment..."
         
         python3 << 'EOF'
         import mlflow
@@ -2717,7 +2717,7 @@ jobs:
         import os
         
         # Set MLflow tracking
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         try:
             mlflow.set_experiment(experiment_id=experiment_id)
@@ -2731,7 +2731,7 @@ jobs:
             grafana_confidence = float('${{ needs.grafana-ab-decision-engine.outputs.grafana_confidence }}')
             model_recommendation = '${{ needs.grafana-ab-decision-engine.outputs.model_recommendation }}'
             
-            print(f'📊 Grafana-Intelligent Deployment Context:')
+            print(f'?? Grafana-Intelligent Deployment Context:')
             print(f'   Grafana Decision: {grafana_decision}')
             print(f'   Model Recommendation: {model_recommendation}')
             print(f'   Confidence: {grafana_confidence:.3f}')
@@ -2741,25 +2741,25 @@ jobs:
                 deployment_status = 'full_grafana_deployment'
                 canary_percentage = 100
                 deployment_url = '${{ env.PROD_API_URL }}'
-                print('🚀 GRAFANA HIGH CONFIDENCE - Full deployment approved!')
+                print('?? GRAFANA HIGH CONFIDENCE - Full deployment approved!')
                 
             elif grafana_decision == 'gradual_rollout_treatment':
                 deployment_status = 'grafana_gradual_rollout'
                 canary_percentage = int(grafana_confidence * 100)  # Scale with confidence
                 deployment_url = '${{ env.PROD_API_URL }}'
-                print(f'📊 GRAFANA GRADUAL ROLLOUT - {canary_percentage}% traffic')
+                print(f'?? GRAFANA GRADUAL ROLLOUT - {canary_percentage}% traffic')
                 
             elif grafana_decision == 'keep_control':
                 deployment_status = 'grafana_keep_current'
                 canary_percentage = 0
                 deployment_url = '${{ env.PROD_API_URL }}'
-                print('📊 GRAFANA DECISION - Keep current model')
+                print('?? GRAFANA DECISION - Keep current model')
                 
             else:
                 deployment_status = 'grafana_monitoring_mode'
                 canary_percentage = 5  # Minimal canary for monitoring
                 deployment_url = '${{ env.PROD_API_URL }}'
-                print('📊 GRAFANA MONITORING MODE - Minimal canary deployment')
+                print('?? GRAFANA MONITORING MODE - Minimal canary deployment')
             
             # Log deployment decision
             mlflow.log_param('deployment_trigger', 'grafana_decision')
@@ -2768,7 +2768,7 @@ jobs:
             mlflow.log_metric('canary_percentage', canary_percentage)
             mlflow.log_metric('grafana_confidence', grafana_confidence)
             
-            print(f'📊 Grafana Deployment Decision:')
+            print(f'?? Grafana Deployment Decision:')
             print(f'   Status: {deployment_status}')
             print(f'   URL: {deployment_url}')
             print(f'   Canary Percentage: {canary_percentage}%')
@@ -2779,7 +2779,7 @@ jobs:
                 f.write(f'url={deployment_url}\n')
                 f.write(f'canary_percentage={canary_percentage}\n')
             
-            print('✅ Grafana-intelligent deployment completed')
+            print('? Grafana-intelligent deployment completed')
         EOF
 
   # Enhanced Grafana-triggered retraining job
@@ -2791,18 +2791,18 @@ jobs:
       retraining_status: ${{ steps.retrain.outputs.status }}
       new_model_version: ${{ steps.retrain.outputs.model_version }}
     steps:
-    - name: "🚀 Checkout Repository"
+    - name: "?? Checkout Repository"
       uses: actions/checkout@v4
       
-    - name: "🚀 Setup Python Environment"
+    - name: "?? Setup Python Environment"
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         
-    - name: "🚀 Grafana-Triggered Model Retraining"
+    - name: "?? Grafana-Triggered Model Retraining"
       id: retrain
       run: |
-        echo "📊 Grafana-Triggered Retraining Initiated!"
+        echo "?? Grafana-Triggered Retraining Initiated!"
         echo "Grafana Decision: ${{ needs.grafana-ab-decision-engine.outputs.grafana_decision }}"
         echo "Performance Monitoring Trigger: ${{ needs.performance-monitoring-and-retraining.outputs.retraining_triggered }}"
         echo "Model Recommendation: ${{ needs.grafana-ab-decision-engine.outputs.model_recommendation }}"
@@ -2814,7 +2814,7 @@ jobs:
         import os
         
         # Set MLflow tracking
-        mlflow.set_tracking_uri('${{ env.MLFLOW_TRACKING_URI }}')
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
         experiment_id = '${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}'
         try:
             mlflow.set_experiment(experiment_id=experiment_id)
@@ -2828,7 +2828,7 @@ jobs:
             model_recommendation = '${{ needs.grafana-ab-decision-engine.outputs.model_recommendation }}'
             grafana_confidence = float('${{ needs.grafana-ab-decision-engine.outputs.grafana_confidence }}')
             
-            print(f'📊 Grafana-Triggered Retraining Context:')
+            print(f'?? Grafana-Triggered Retraining Context:')
             print(f'   Grafana Decision: {grafana_decision}')
             print(f'   Model Recommendation: {model_recommendation}')
             print(f'   Confidence: {grafana_confidence:.3f}')
@@ -2859,7 +2859,7 @@ jobs:
             mlflow.log_param('new_model_version', new_model_version)
             mlflow.log_metric('grafana_confidence', grafana_confidence)
             
-            print(f'📊 Retraining Decision:')
+            print(f'?? Retraining Decision:')
             print(f'   Strategy: {retraining_strategy}')
             print(f'   New Model Version: {new_model_version}')
             print(f'   Status: {status}')
@@ -2869,7 +2869,7 @@ jobs:
                 f.write(f'status={status}\n')
                 f.write(f'model_version={new_model_version}\n')
             
-            print('✅ Grafana-triggered retraining completed')
+            print('? Grafana-triggered retraining completed')
         EOF
 
   # =====================================
@@ -2881,26 +2881,26 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.inputs.reason == 'maintenance' || github.event_name == 'schedule'
     steps:
-    - name: "🧹 Pipeline Maintenance & Cleanup"
+    - name: "?? Pipeline Maintenance & Cleanup"
       run: |
-        echo "🧹 Running pipeline maintenance tasks..."
-        echo "• Cleaning up old experiment artifacts"
-        echo "• Optimizing MLflow experiment storage"
-        echo "• Validating monitoring dashboards"
-        echo "• Checking integration health"
-        echo "✅ Maintenance completed successfully"
+        echo "?? Running pipeline maintenance tasks..."
+        echo "� Cleaning up old experiment artifacts"
+        echo "� Optimizing MLflow experiment storage"
+        echo "� Validating monitoring dashboards"
+        echo "� Checking integration health"
+        echo "? Maintenance completed successfully"
 
   # Emergency rollback capability
   emergency-rollback:
     runs-on: ubuntu-latest
     if: github.event.inputs.reason == 'emergency_rollback'
     steps:
-    - name: "🚨 Emergency Model Rollback"
+    - name: "?? Emergency Model Rollback"
       run: |
-        echo "🚨 EMERGENCY ROLLBACK INITIATED"
+        echo "?? EMERGENCY ROLLBACK INITIATED"
         echo "Rolling back to previous stable model version..."
-        echo "⚠️ This would trigger immediate rollback procedures"
-        echo "✅ Rollback procedures would be executed here"
+        echo "?? This would trigger immediate rollback procedures"
+        echo "? Rollback procedures would be executed here"
 
 # =====================================
 # PIPELINE COMPLETION
