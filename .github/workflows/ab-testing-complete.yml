@@ -2187,6 +2187,15 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
+    - name: "🔧 Setup Python Environment"
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: "📦 Install MLflow Dependencies"  
+      run: |
+        pip install mlflow==2.8.1 requests pandas numpy
+        
     - name: "?? Intelligent Model Promotion Engine"
       id: deploy
       env:
@@ -2704,6 +2713,15 @@ jobs:
     steps:
     - name: "?? Checkout Repository"
       uses: actions/checkout@v4
+
+    - name: "🔧 Setup Python Environment"
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: "📦 Install MLflow Dependencies"  
+      run: |
+        pip install mlflow==2.8.1 requests pandas numpy
       
     - name: "?? Grafana-Intelligent Model Deployment"
       id: deploy
