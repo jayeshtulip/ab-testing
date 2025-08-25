@@ -1,4 +1,4 @@
-name: "Enhanced A/B Testing MLOps Pipeline - Complete Implementation"
+ï»¿name: "Enhanced A/B Testing MLOps Pipeline - Complete Implementation"
 
 on:
   workflow_dispatch:
@@ -1797,8 +1797,8 @@ jobs:
         
         print(f'?? Temporal Pattern Analysis:')
         print(f'   Current Time: {current_time_str}')
-        print(f'   Hourly Pattern: {current_pattern} (×{pattern_multiplier:.2f})')
-        print(f'   Daily Pattern: {daily_pattern} (×{daily_multiplier:.2f})')
+        print(f'   Hourly Pattern: {current_pattern} (ï¿½{pattern_multiplier:.2f})')
+        print(f'   Daily Pattern: {daily_pattern} (ï¿½{daily_multiplier:.2f})')
         print(f'   Combined Multiplier: {combined_temporal_multiplier:.2f}')
         print(f'   Temporal Adjusted Performance: {temporal_adjusted_performance:.2f}%')
         
@@ -2640,7 +2640,7 @@ jobs:
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d '{
-              "text": "?? A/B Testing MLOps Pipeline Complete! ??\n\n?? *Results:*\n• Winner: ${{ needs.winner-selection-engine.outputs.final_winning_model }}\n• Performance: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%\n• F1 Score: ${{ needs.train-champion-model.outputs.champion_f1_score }}\n• Deployment: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}\n\n?? <${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}|View in MLflow>\n?? <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Run>"
+              "text": "?? A/B Testing MLOps Pipeline Complete! ??\n\n?? *Results:*\nï¿½ Winner: ${{ needs.winner-selection-engine.outputs.final_winning_model }}\nï¿½ Performance: ${{ needs.analyze-ab-test-results.outputs.performance_difference }}%\nï¿½ F1 Score: ${{ needs.train-champion-model.outputs.champion_f1_score }}\nï¿½ Deployment: ${{ needs.intelligent-model-promotion.outputs.deployment_status }}\n\n?? <${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}|View in MLflow>\n?? <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View GitHub Run>"
             }'
         fi
         
@@ -2659,11 +2659,11 @@ jobs:
         echo "?? Retraining Triggered: ${{ needs.performance-monitoring-and-retraining.outputs.retraining_triggered }}"
         echo ""
         echo "?? Important Links:"
-        echo "• MLflow Experiment: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}"
-        echo "• Production API: http://${{ env.PROD_API_URL }}"
-        echo "• Grafana Dashboard: http://${{ env.GRAFANA_URL }}"
-        echo "• Prometheus Metrics: http://${{ env.PROMETHEUS_URL }}"
-        echo "• GitHub Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "ï¿½ MLflow Experiment: ${{ env.MLFLOW_TRACKING_URI }}/#/experiments/${{ needs.validate-experiment-setup.outputs.mlflow_experiment_id }}"
+        echo "ï¿½ Production API: http://${{ env.PROD_API_URL }}"
+        echo "ï¿½ Grafana Dashboard: http://${{ env.GRAFANA_URL }}"
+        echo "ï¿½ Prometheus Metrics: http://${{ env.PROMETHEUS_URL }}"
+        echo "ï¿½ GitHub Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         echo "================================================="
         echo ""
         echo "?? Your enterprise A/B Testing MLOps pipeline features:"
@@ -2884,10 +2884,10 @@ jobs:
     - name: "?? Pipeline Maintenance & Cleanup"
       run: |
         echo "?? Running pipeline maintenance tasks..."
-        echo "• Cleaning up old experiment artifacts"
-        echo "• Optimizing MLflow experiment storage"
-        echo "• Validating monitoring dashboards"
-        echo "• Checking integration health"
+        echo "ï¿½ Cleaning up old experiment artifacts"
+        echo "ï¿½ Optimizing MLflow experiment storage"
+        echo "ï¿½ Validating monitoring dashboards"
+        echo "ï¿½ Checking integration health"
         echo "? Maintenance completed successfully"
 
   # Emergency rollback capability
